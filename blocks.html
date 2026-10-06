@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>RoverBlocks Studio Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11.2.2/blockly.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blockly@11.2.2/msg/en.js"></script>
+<style>
+*{box-sizing:border-box}:root{--line:#2d405f;--muted:#91a2bb;--cyan:#22d3ee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;background:#0b1120;color:#e5e7eb;overflow:hidden}
+button,select,input{font:inherit}.app{height:100%;display:grid;grid-template-rows:54px 36px minmax(0,1fr)}
+header{display:flex;align-items:center;gap:8px;padding:0 12px;background:#080d18;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
+.logo{font-size:18px;font-weight:850}.logo i{font-style:normal;color:var(--cyan)}
+select,.btn{background:#172238;color:#e5e7eb;border:1px solid #354865;border-radius:7px;padding:6px 9px}.btn{cursor:pointer;font-weight:650}.btn:hover{background:#22314b}.btn.primary{background:#087ca8;border-color:#13a8dc}.btn.green{background:#176b38;border-color:#27b85d}.btn.red{background:#8a2525;border-color:#d04848}
+.toolbar{margin-left:auto;display:flex;gap:6px;align-items:center}.status{font-size:11px;color:#86efac}
+.tabs{display:flex;align-items:center;gap:4px;padding:0 9px;background:#0e1727;border-bottom:1px solid var(--line)}.tab{font-size:12px;padding:6px 12px;border-radius:6px;color:var(--muted);cursor:pointer}.tab.active{background:#26364f;color:#fff}
+.layout{min-height:0;display:grid;grid-template-columns:250px minmax(0,1fr) 340px}.left,.right{background:#0e1726;overflow:auto}.left{border-right:1px solid var(--line)}.right{border-left:1px solid var(--line)}
+#blocklyWrap{position:relative;min-height:0}#blockly{position:absolute;inset:0}.view{display:none;overflow:auto;padding:15px;background:#0d1625}
+.section{padding:10px;border-bottom:1px solid var(--line)}.section h3{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:0 0 8px}
+.search{width:100%;padding:8px;background:#111b2d;border:1px solid #31445f;color:#fff;border-radius:7px;outline:none}
+.cat-title{font-size:11px;color:#cbd5e1;font-weight:800;padding:2px 2px 6px}.palette{display:grid;gap:4px}
+.block-btn{width:100%;text-align:left;border:0;border-left:4px solid var(--c);background:#19263a;color:#e5e7eb;border-radius:6px;padding:6px 8px;font-size:11px;cursor:grab}.block-btn:hover{background:#263854}.block-btn.off{opacity:.35;text-decoration:line-through}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:6px}.card{background:#121e31;border:1px solid #2a3d59;border-radius:8px;padding:7px 9px}.card .label{font-size:9px;text-transform:uppercase;color:#8496af;letter-spacing:.7px}.value{font-weight:800;font-size:15px;margin-top:2px}
+canvas{width:100%;background:#0a1220;border:1px solid #273953;border-radius:8px;display:block;margin-bottom:8px}
+pre,.log{margin:0;background:#090f1b;border:1px solid #273953;border-radius:7px;padding:8px;font:10.5px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;overflow:auto}pre{max-height:220px}.log{height:140px;color:#b7c4d7}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}.hw,.node{background:#142137;border:1px solid #30445f;border-radius:9px;padding:12px}.hw h4,.node h4{margin:0 0 6px}.hw p,.node p{font-size:11px;color:#93a4bc;margin:0 0 8px}.pins{font:10px monospace;color:#7dd3fc;background:#0a1220;padding:6px;border-radius:5px;margin-bottom:8px}
+.hw label{font-size:12px;cursor:pointer}.led{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade8066}.led.gray{background:#64748b;box-shadow:none}
+.hint{position:absolute;left:10px;bottom:10px;z-index:3;background:#09101dcc;border:1px solid #293b57;padding:5px 8px;border-radius:6px;color:#8394ac;font-size:10px;pointer-events:none}
+@media(max-width:900px){.layout{grid-template-columns:200px minmax(0,1fr)}.right{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">Rover<i>Blocks</i> Pro</div>
+  <select id="rover" onchange="switchRover()"></select><span class="status" id="st">● Ready</span>
+  <div class="toolbar">
+    <button class="btn" onclick="ws.undo(false)" title="Undo">↶</button><button class="btn" onclick="ws.undo(true)" title="Redo">↷</button>
+    <button class="btn" onclick="clearProgram()">New</button><button class="btn" onclick="saveFile()">Save</button><button class="btn" onclick="$('file').click()">Load</button>
+    <select id="spd" title="Simulation speed"><option value="1">1×</option><option value="2">2×</option><option value="4">4×</option></select>
+    <button class="btn green" id="runBtn" onclick="toggleRun()">▶ Run</button><button class="btn" onclick="fire('button')" title="Trigger the button event">Press button</button><button class="btn primary" onclick="exportCode()">Export code</button>
+  </div>
+  <input type="file" id="file" accept=".json" hidden onchange="loadFile(this)">
+</header>
+<nav class="tabs"><div class="tab active" onclick="showView('program',this)">Program</div><div class="tab" onclick="showView('hardware',this)">Hardware</div><div class="tab" onclick="showView('network',this)">Rover Network</div></nav>
+<div class="layout">
+<aside class="left">
+  <div class="section"><input class="search" id="search" placeholder="Search blocks…" oninput="filterBlocks()"></div>
+  <div id="palette"></div>
+  <div class="section" style="font-size:10px;line-height:1.5;color:#8191a8"><b>Tips</b><br>Click or drag a block to add it. Rounded blocks plug into slots; numbers are pre-filled. Hat blocks (ON, EVERY, PROCEDURE) start their own scripts. Disable modules in Hardware to get warnings on blocks that need them.</div>
+</aside>
+<main id="blocklyWrap"><div id="blockly"></div><div class="hint">Scroll to zoom • Right-click for duplicate/delete • Ctrl+Z undo</div></main>
+<section class="view" id="hardware"><h2 style="margin-top:0">Rover hardware map</h2><p style="color:#91a2bb;font-size:12px">Toggle the modules installed on this rover. Blocks that need a missing module are flagged and skipped at runtime.</p><div class="grid" id="hwgrid"></div></section>
+<section class="view" id="network"><h2 style="margin-top:0">Multi-rover network</h2><div class="grid" id="nodes"></div><h4>Message feed</h4><pre id="feed"></pre><h4>Server values</h4><pre id="srv"></pre></section>
+<aside class="right">
+  <div class="section"><h3>Simulator</h3><canvas id="cv" width="220" height="220"></canvas>
+    <div class="cards"><div class="card"><div class="label">Distance</div><div class="value" id="dist">–</div></div><div class="card"><div class="label">Battery</div><div class="value" id="bat">–</div></div><div class="card"><div class="label">Heading</div><div class="value" id="head">–</div></div><div class="card"><div class="label">Speed</div><div class="value" id="vel">–</div></div></div></div>
+  <div class="section"><h3>Generated program</h3><pre id="code"></pre></div>
+  <div class="section"><h3>Events & log</h3><div class="log" id="log">Ready.</div></div>
+</aside>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const H={sensor:120,drive:25,state:45,control:260,logic:15,ai:205,net:330,data:165,debug:0};
+const CAT={sensor:'Sensors',drive:'Drive & Actuators',state:'Motion & State',control:'Control & Events',logic:'Logic & Math',ai:'AI / Vision',net:'Rover Network',data:'Variables',debug:'Debug'};
+// type, category, message, args, kind  (o=number out, b=boolean out, x=text out, a=any out, s=statement, h=hat)
+// args: d:A|B dropdown, i:text field, f0 number field, n60 number slot, a0 any slot (number default), t:text slot, b bool slot, s statement
+const S=[
+['accel','sensor','accelerometer %1',['d:X|Y|Z'],'o'],['gyro','sensor','gyroscope %1',['d:X|Y|Z'],'o'],['distance','sensor','distance %1',['d:cm|mm|in'],'o'],
+['temperature','sensor','temperature %1',['d:°C|°F'],'o'],['humidity','sensor','humidity',[],'o'],['light','sensor','light level',[],'o'],['sound','sensor','sound level',[],'o'],
+['gas','sensor','gas / air quality',[],'o'],['pressure','sensor','pressure',[],'o'],['battery','sensor','battery %1',['d:%|V'],'o'],['heading','sensor','compass heading',[],'o'],
+['line','sensor','line sensor %1',['d:left|center|right'],'o'],['color','sensor','color sensor',[],'x'],['ir','sensor','IR obstacle',[],'b'],['touch','sensor','touch pressed',[],'b'],
+['flame','sensor','flame detected',[],'b'],['pir','sensor','motion detected',[],'b'],['encoder','sensor','encoder %1',['d:position|speed'],'o'],['gps','sensor','GPS %1',['d:lat|lon'],'o'],
+['move','drive','move %1 at speed %2',['d:forward|backward|left|right','n60'],'s'],['drive','drive','drive %1 %2 cm at speed %3',['d:forward|backward','n50','n60'],'s'],
+['turn','drive','turn %1 %2 °',['d:left|right','n90'],'s'],['stop','drive','stop motors',[],'s'],['motor','drive','motors L %1 R %2',['n50','n50'],'s'],
+['servo','drive','servo %1 angle %2',['d:S1|S2|S3','n90'],'s'],['gripper','drive','gripper %1',['d:open|close|toggle'],'s'],['buzzer','drive','buzzer %1 Hz for %2 ms',['n440','n200'],'s'],
+['rgb','drive','RGB LED %1',['d:red|green|blue|yellow|cyan|purple|white|off'],'s'],['led','drive','LED %1 %2',['d:L1|L2|L3','d:on|off'],'s'],['relay','drive','relay %1 %2',['d:R1|R2','d:on|off'],'s'],
+['fan','drive','fan speed %1',['n50'],'s'],['pump','drive','pump power %1',['n50'],'s'],['vibrate','drive','vibrate %1 ms',['n200'],'s'],
+['goF','drive','move forward at speed %1',['n60'],'s'],['goB','drive','move backward at speed %1',['n60'],'s'],['spinL','drive','turn left at speed %1',['n50'],'s'],['spinR','drive','turn right at speed %1',['n50'],'s'],
+['isMoving','state','rover is %1',['d:moving forward|moving backward|turning left|turning right|stopped'],'b'],['whenState','state','when rover starts %1 do %2',['d:moving forward|moving backward|turning left|turning right|stopped','s'],'h'],
+['ledIs','state','LED %1 is %2',['d:L1|L2|L3','d:on|off'],'b'],['rgbIs','state','RGB LED is %1',['d:red|green|blue|yellow|cyan|purple|white|off'],'b'],['relayIs','state','relay %1 is %2',['d:R1|R2','d:on|off'],'b'],
+['gripIs','state','gripper is %1',['d:open|closed'],'b'],['blocked','state','rover is blocked',[],'b'],['near','state','obstacle within %1 cm',['n20'],'b'],
+['event','control','on %1 do %2',['d:startup|button|obstacle|low battery|message','s'],'h'],['every','control','every %1 ms do %2',['n1000','s'],'h'],['proc','control','procedure %1 %2',['i:myRoutine','s'],'h'],
+['if','control','if %1 then %2 else %3',['b','s','s'],'s'],['repeat','control','repeat %1 times %2',['n5','s'],'s'],['for','control','for i from %1 to %2 %3',['n1','n10','s'],'s'],
+['while','control','while %1 %2',['b','s'],'s'],['waitu','control','wait until %1',['b'],'s'],['break','control','break loop',[],'s'],['wait','control','wait %1 ms',['n500'],'s'],
+['call','control','call %1',['i:myRoutine'],'s'],['halt','control','stop program',[],'s'],
+['compare','logic','%1 %2 %3',['a0','d:=|≠|>|<|≥|≤','a0'],'b'],['logic','logic','%1 %2 %3',['b','d:AND|OR|XOR','b'],'b'],['not','logic','not %1',['b'],'b'],
+['math','logic','%1 %2 %3',['n0','d:+|−|×|÷|%|^','n0'],'o'],['mathfn','logic','%1 of %2',['d:abs|sqrt|round|ceil|floor|sin|cos|tan','n0'],'o'],
+['clamp','logic','clamp %1 min %2 max %3',['n0','n0','n100'],'o'],['map','logic','map %1 from %2–%3 to %4–%5',['n0','n0','n1023','n0','n100'],'o'],
+['random','logic','random %1 to %2',['n0','n100'],'o'],['num','logic','%1',['f0'],'o'],['str','logic','“%1”',['i:hello'],'x'],['bool','logic','%1',['d:true|false'],'b'],
+['object','ai','AI object %1',['d:detected|confidence'],'a'],['target','ai','AI target %1',['d:x|y|distance'],'o'],['camera','ai','camera %1',['d:capture|track|scan'],'s'],
+['follow','ai','follow target at speed %1',['n50'],'s'],['scan','ai','scan %1 °',['n180'],'s'],
+['send','net','send to %1 message %2',['d:Rover A|Rover B|Rover C|Rover D|all','t:hello'],'s'],['broadcast','net','broadcast %1',['d:obstacle|target|help|ready|stop'],'s'],
+['onmsg','net','on message %1 do %2',['d:any|obstacle|target|help|ready|stop','s'],'h'],['sync','net','sync %1',['d:position|sensors|mission|start|stop'],'s'],
+['sset','net','server set %1 = %2',['t:key','a0'],'s'],['sget','net','server get %1',['t:key'],'a'],
+['setvar','data','set %1 to %2',['i:counter','a0'],'s'],['getvar','data','get %1',['i:counter'],'a'],['inc','data','change %1 by %2',['i:counter','n1'],'s'],
+['log','debug','log %1',['t:Hello rover'],'s'],['dbg','debug','debug LED %1',['d:blink|fast|error'],'s']
+];
+const R={};S.forEach(r=>R[r[0]]={c:r[1],m:r[2],a:r[3],k:r[4]});
+Blockly.defineBlocksWithJsonArray(S.map(([type,c,m,a,k])=>{
+  const j={type,message0:m,colour:H[c],inputsInline:!a.includes('s')};
+  if(a.length)j.args0=a.map((s,i)=>{const n='A'+i,q=s[0];
+    if(q=='d')return{type:'field_dropdown',name:n,options:s.slice(2).split('|').map(x=>[x,x])};
+    if(q=='i')return{type:'field_input',name:n,text:s.slice(2)};
+    if(q=='f')return{type:'field_number',name:n,value:+s.slice(1)};
+    if(q=='s')return{type:'input_statement',name:n};
+    return{type:'input_value',name:n,check:q=='n'?'Number':q=='b'?'Boolean':null}});
+  if(k=='s'){j.previousStatement=null;j.nextStatement=null}
+  else if(k!='h')j.output={o:'Number',b:'Boolean',x:'String',a:null}[k];
+  return j}));
+function snip(t){return `<block type="${t}">`+R[t].a.map((s,i)=>'na'.includes(s[0])?`<value name="A${i}"><shadow type="num"><field name="A0">${s.slice(1)||0}</field></shadow></value>`:s[0]=='t'?`<value name="A${i}"><shadow type="str"><field name="A0">${s.slice(2)}</field></shadow></value>`:'').join('')+'</block>'}
+
+// ---------- hardware ----------
+const hw=[
+['IMU','Accelerometer, gyro, compass','I2C SDA/SCL',['accel','gyro','heading']],['Ultrasonic','Front distance','TRIG D5 • ECHO D6',['distance']],['IR','Obstacle / edge','D2 / D3',['ir']],
+['Environment','Temp, humidity, pressure, gas','I2C / A0–A1',['temperature','humidity','pressure','gas']],['Light & sound','Ambient sensors','A7 / A8',['light','sound']],['RGB color','Object color','I2C',['color']],
+['Line array','Line following','A2–A5',['line']],['Servos','Arm / pan / steering','PWM S1–S3',['servo','gripper']],['RGB / LEDs','Status lights','PWM R9 G10 B11',['rgb','led']],['Buzzer','Sound','D12',['buzzer']],
+['Motor driver','Differential drive','PWM M1/M2',['move','drive','turn','stop','motor','goF','goB','spinL','spinR']],['Encoder','Wheel distance / speed','D18/D19',['encoder']],['GPS','Coordinates','UART',['gps']],
+['Camera / AI','Vision & tracking','USB / Wi-Fi',['object','target','camera','follow','scan']],['Fan / pump','Cooling / liquids','PWM',['fan','pump']],['Relay','External loads','R1/R2',['relay']],
+['Vibration','Haptics','D13',['vibrate']],['Touch / flame / PIR','Digital sensors','D7–D9',['touch','flame','pir']],['Radio','Rover messaging','Wi-Fi',['send','broadcast','sync']]
+].map(x=>({n:x[0],d:x[1],p:x[2],t:x[3],on:true}));
+let off=new Set();
+$('hwgrid').innerHTML=hw.map((m,i)=>`<div class="hw"><h4>${m.n}</h4><p>${m.d}</p><div class="pins">${m.p}</div><label><input type="checkbox" checked onchange="hw[${i}].on=this.checked;hwCheck()"> Installed</label></div>`).join('');
+function hwCheck(){off=new Set(hw.filter(m=>!m.on).flatMap(m=>m.t));
+  ws.getAllBlocks().forEach(b=>b.setWarningText(off.has(b.type)?'Module disabled in Hardware tab':null));
+  document.querySelectorAll('.block-btn').forEach(x=>x.classList.toggle('off',off.has(x.dataset.type)))}
+
+// ---------- workspace ----------
+const theme=Blockly.Theme.defineTheme('rover',{base:Blockly.Themes.Zelos,componentStyles:{workspaceBackgroundColour:'#0e1726',scrollbarColour:'#4a5f82',insertionMarkerColour:'#fff',insertionMarkerOpacity:.3}});
+const ws=Blockly.inject('blockly',{theme,renderer:'zelos',grid:{spacing:20,length:3,colour:'#25344c',snap:true},zoom:{controls:true,wheel:true,startScale:.85,maxScale:1.5,minScale:.4},trashcan:true,move:{scrollbars:true,drag:true,wheel:false}});
+let loading=false;
+const label=t=>({num:'number',str:'text',bool:'true / false'}[t]||R[t].m.replace(/%\d+/g,'▾'));
+const palette=$('palette');
+Object.keys(CAT).forEach(c=>{const d=document.createElement('div');d.className='section cat';d.innerHTML=`<div class="cat-title">${CAT[c]}</div><div class="palette"></div>`;
+  S.filter(r=>r[1]==c).forEach(r=>{const b=document.createElement('button');b.className='block-btn';b.style.setProperty('--c',`hsl(${H[c]} 60% 55%)`);b.draggable=true;b.dataset.type=r[0];b.textContent=label(r[0]);
+    b.ondragstart=e=>e.dataTransfer.setData('text/plain',r[0]);b.onclick=()=>{const q=$('blockly').getBoundingClientRect();place(r[0],q.left+90+(n++%8)*24,q.top+70+(n%8)*24)};d.lastChild.appendChild(b)});palette.appendChild(d)});
+let n=0;
+function place(t,x,y){const b=Blockly.Xml.domToBlock(Blockly.utils.xml.textToDom('<xml>'+snip(t)+'</xml>').firstChild,ws);
+  b.moveTo(Blockly.utils.svgMath.screenToWsCoordinates(ws,new Blockly.utils.Coordinate(x,y)));b.select();hwCheck();return b}
+$('blockly').addEventListener('dragover',e=>e.preventDefault());
+$('blockly').addEventListener('drop',e=>{e.preventDefault();const t=e.dataTransfer.getData('text/plain');if(R[t])place(t,e.clientX,e.clientY)});
+function filterBlocks(){const q=$('search').value.toLowerCase();document.querySelectorAll('.block-btn').forEach(b=>b.style.display=b.textContent.toLowerCase().includes(q)||b.dataset.type.includes(q)?'block':'none');
+  document.querySelectorAll('.cat').forEach(c=>c.style.display=[...c.querySelectorAll('.block-btn')].some(b=>b.style.display!=='none')?'block':'none')}
+
+// ---------- code view ----------
+const walk=(b,f)=>b.inputList.flatMap(i=>i.type==1?[(t=>t?f(t):'_')(i.connection&&i.connection.targetBlock())]:i.type==3?[]:i.fieldRow.filter(x=>x.name).map(x=>x.getValue()));
+const exp=b=>b.type=='num'?b.getFieldValue('A0'):b.type=='str'?JSON.stringify(b.getFieldValue('A0')):b.type+'('+walk(b,exp).join(', ')+')';
+function code(b,d){const p='  '.repeat(d),o=[];for(;b;b=b.getNextBlock()){const h=p+b.type+'('+walk(b,exp).join(', ')+')',st=b.inputList.filter(i=>i.type==3);
+  if(st.length){o.push(h+' {');st.forEach((i,k)=>{if(k)o.push(p+'} else {');o.push(code(i.connection.targetBlock(),d+1)||p+'  // empty')});o.push(p+'}')}else o.push(h)}return o.join('\n')}
+const program=()=>ws.getTopBlocks(true).map(b=>code(b,0)).join('\n\n');
+function update(){$('code').textContent=program()||'// Drop blocks to build your rover program.'}
+
+// ---------- simulator ----------
+const sim={},OB=[[90,50,40,40],[140,120,35,35],[30,90,25,25]];
+let run=false,vars={},srv={},timers=[],busy=new Set(),trail=[],feed=[];
+const sleep=ms=>new Promise(r=>setTimeout(r,ms/(+$('spd').value)));
+function reset(){Object.assign(sim,{x:40,y:170,a:0,l:0,r:0,bat:100,odo:0,hit:0,ob:0,lb:0,rgb:'#64748b',rgbn:'off',io:{},grip:'open',ms:'stopped'});vars={};srv={};trail=[];feed=[]}
+const solid=(x,y)=>x<0||y<0||x>200||y>200||OB.some(o=>x>o[0]&&x<o[0]+o[2]&&y>o[1]&&y<o[1]+o[3]);
+function ray(){const r=sim.a*Math.PI/180;for(let d=0;d<200;d++)if(solid(sim.x+Math.sin(r)*d,sim.y-Math.cos(r)*d))return d;return 200}
+function phys(dt){dt*=+$('spd').value;const v=(sim.l+sim.r)/2*.6;sim.a=(sim.a+(sim.r-sim.l)*1.8*dt+360)%360;const r=sim.a*Math.PI/180,x=sim.x+Math.sin(r)*v*dt,y=sim.y-Math.cos(r)*v*dt;
+  if(solid(x,y)){sim.hit=Math.abs(v)>0?1:0}else{sim.odo+=Math.abs(v)*dt;sim.x=x;sim.y=y;sim.hit=0;if(v&&trail.push([x,y])>300)trail.shift()}
+  sim.bat=Math.max(0,sim.bat-(Math.abs(v)*.004+.01)*dt)}
+const nz=(b,s)=>b+(Math.random()-.5)*s;
+function sv(t,o){const d=ray();switch(t){
+ case'distance':return +(d*{cm:1,mm:10,in:.394}[o]).toFixed(1);
+ case'temperature':{const c=nz(29,.6);return +(o=='°F'?c*1.8+32:c).toFixed(1)}
+ case'battery':return o=='V'?+(6+sim.bat*.024).toFixed(2):+sim.bat.toFixed(0);
+ case'heading':return +sim.a.toFixed(0);case'ir':return d<15;case'touch':return !!sim.hit;case'flame':case'pir':return false;
+ case'accel':return +(o=='Z'?9.8:nz(0,.2)).toFixed(2);case'gyro':return +nz((sim.r-sim.l)*1.8,1).toFixed(1);
+ case'line':return(Math.floor(sim.x/20)+Math.floor(sim.y/20)+(o=='left'?0:o=='center'?1:2))%2;
+ case'color':return['red','green','blue','white'][(Math.floor(sim.x/50)+Math.floor(sim.y/50))%4];
+ case'encoder':return o=='speed'?+((sim.l+sim.r)*.3).toFixed(0):+sim.odo.toFixed(0);
+ case'gps':return +(o=='lat'?37.7749+(200-sim.y)*1e-5:-122.4194+sim.x*1e-5).toFixed(5);
+ case'object':return o=='detected'?d<80:d<80?90:0;case'target':return o=='distance'?d:0;
+ default:return +nz({humidity:45,light:60,sound:35,gas:120,pressure:1013}[t]||0,2).toFixed(1)}}
+function ev(b){const g=i=>{const x=b.getInputTargetBlock('A'+i);return x?ev(x):0},f=i=>b.getFieldValue('A'+i),t=b.type;
+ switch(t){
+ case'num':return+f(0);case'str':return f(0);case'bool':return f(0)=='true';
+ case'compare':{const a=g(0),c=g(2);return{'=':a==c,'≠':a!=c,'>':a>c,'<':a<c,'≥':a>=c,'≤':a<=c}[f(1)]}
+ case'logic':{const a=!!g(0),c=!!g(2);return f(1)=='AND'?a&&c:f(1)=='OR'?a||c:a!=c}
+ case'not':return!g(0);
+ case'math':{const a=+g(0),c=+g(2);return{'+':a+c,'−':a-c,'×':a*c,'÷':c?a/c:0,'%':c?a%c:0,'^':Math.pow(a,c)}[f(1)]}
+ case'mathfn':{const a=+g(1),o=f(0);return o=='abs'?Math.abs(a):o=='sqrt'?Math.sqrt(a):o=='round'?Math.round(a):o=='ceil'?Math.ceil(a):o=='floor'?Math.floor(a):Math[o](a*Math.PI/180)}
+ case'clamp':return Math.min(Math.max(+g(0),+g(1)),+g(2));
+ case'map':{const[v,a,b2,c,d]=[0,1,2,3,4].map(g);return b2==a?c:c+(v-a)*(d-c)/(b2-a)}
+ case'random':{const a=+g(0),c=+g(1);return Math.round(a+Math.random()*(c-a))}
+ case'isMoving':return mstate()==f(0);
+ case'ledIs':case'relayIs':return(sim.io[f(0)]||'off')==f(1);
+ case'rgbIs':return sim.rgbn==f(0);
+ case'gripIs':return sim.grip==f(0);
+ case'blocked':return !!sim.hit;
+ case'near':return ray()<+g(0);
+ case'getvar':return vars[f(0)]??0;case'sget':return srv[g(0)]??0;
+ default:{if(off.has(t))return 0;return sv(t,f(0))}}}
+const walkV=b=>walk(b,ev);
+function log(m){const l=$('log');l.textContent+=(l.textContent?'\n':'')+m;l.scrollTop=1e9}
+function net(m){feed.unshift(m);feed=feed.slice(0,40);nv()}
+const nodes=['Rover A','Rover B','Rover C','Rover D','Base Station'];
+function nv(){$('nodes').innerHTML=nodes.map(x=>`<div class="node"><h4>${x} <span class="led ${x==$('rover').value?'':'gray'}"></span></h4><p>${x==$('rover').value?'Active • editing now':'Standby'}</p></div>`).join('');$('feed').textContent=feed.join('\n')||'No messages yet.';$('srv').textContent=JSON.stringify(srv,null,1)}
+const hats=(t,f)=>ws.getTopBlocks(true).filter(b=>b.type==t&&f(b));
+async function launch(b){if(busy.has(b.id)||!run)return;busy.add(b.id);try{await seq(b.getInputTargetBlock('A1'))}catch(e){if(e!=='BRK')fail(e)}busy.delete(b.id)}
+const fire=n=>{if(!run)return log('Press ▶ Run first.');hats('event',b=>b.getFieldValue('A0')==n).forEach(launch)};
+function fail(e){if(e=='STOP')return;log('✖ '+(e.message||e));stopRun()}
+async function seq(b){for(;b&&run;b=b.getNextBlock()){ws.highlightBlock(b.id);await step(b);await sleep(30)}ws.highlightBlock(null)}
+async function loopBody(b,i){try{await seq(b.getInputTargetBlock('A'+i));await sleep(20);return 0}catch(e){if(e=='BRK')return 1;throw e}}
+const COL={red:'#ef4444',green:'#22c55e',blue:'#3b82f6',yellow:'#facc15',cyan:'#22d3ee',purple:'#a855f7',white:'#f8fafc',off:'#64748b'};
+async function step(b){const t=b.type,g=i=>{const x=b.getInputTargetBlock('A'+i);return x?ev(x):0},f=i=>b.getFieldValue('A'+i);
+ if(off.has(t)){log(`⚠ ${t}: module disabled, skipped`);return}
+ switch(t){
+ case'if':return seq(b.getInputTargetBlock(g(0)?'A1':'A2'));
+ case'repeat':for(let i=0,k=+g(0);i<k&&run;i++)if(await loopBody(b,1))break;return;
+ case'for':for(let i=+g(0),k=+g(1);i<=k&&run;i++){vars.i=i;if(await loopBody(b,2))break}return;
+ case'while':while(run&&g(0))if(await loopBody(b,1))break;return;
+ case'waitu':while(run&&!g(0))await sleep(50);return;
+ case'break':throw'BRK';case'halt':stopRun();throw'STOP';
+ case'wait':return sleep(+g(0));
+ case'call':{const p=hats('proc',h=>h.getFieldValue('A0')==f(0))[0];if(!p)throw new Error('No procedure named '+f(0));return seq(p.getInputTargetBlock('A1'))}
+ case'move':{const s=+g(1),d=f(0);sim.l=d=='forward'?s:d=='backward'?-s:d=='left'?s:-s;sim.r=d=='forward'?s:d=='backward'?-s:d=='left'?-s:s;return}
+ case'drive':{const s=Math.abs(+g(2)),sg=f(0)=='forward'?1:-1,o=sim.odo,cm=+g(1);if(!s)return;sim.l=sim.r=s*sg;while(run&&sim.odo-o<cm&&!sim.hit)await sleep(40);sim.l=sim.r=0;if(sim.hit)log('⚠ drive blocked by obstacle');return}
+ case'turn':{const s=50;sim.l=f(0)=='left'?s:-s;sim.r=-sim.l;await sleep(Math.abs(+g(1))/180*1000);sim.l=sim.r=0;return}
+ case'stop':sim.l=sim.r=0;return;
+ case'goF':sim.l=sim.r=+g(0);return;case'goB':sim.l=sim.r=-g(0);return;
+ case'spinL':sim.l=+g(0);sim.r=-g(0);return;case'spinR':sim.l=-g(0);sim.r=+g(0);return;
+ case'led':case'relay':sim.io[f(0)]=f(1);log(`${t.toUpperCase()} ${f(0)} ${f(1)}`);return;
+ case'gripper':sim.grip=f(0)=='toggle'?(sim.grip=='open'?'closed':'open'):f(0)=='close'?'closed':'open';log('GRIPPER '+sim.grip);return;
+ case'motor':sim.l=+g(0);sim.r=+g(1);return;
+ case'rgb':sim.rgb=COL[f(0)];sim.rgbn=f(0);log('RGB → '+f(0));return;
+ case'setvar':vars[f(0)]=g(1);return;case'inc':vars[f(0)]=(+vars[f(0)]||0)+(+g(1));return;
+ case'sset':srv[g(0)]=g(1);net(`server: ${g(0)} = ${g(1)}`);return;
+ case'log':log('▸ '+g(0));return;
+ case'send':net(`${$('rover').value} → ${f(0)}: ${g(1)}`);return;
+ case'broadcast':{const e=f(0);net(`${$('rover').value} ⇒ all: ${e}`);log('📡 broadcast '+e);hats('onmsg',h=>['any',e].includes(h.getFieldValue('A0'))).forEach(launch);fire('message');return}
+ case'buzzer':log(`♪ ${g(0)} Hz`);return sleep(+g(1));
+ case'vibrate':case'camera':case'scan':return sleep(t=='vibrate'?+g(0):300);
+ default:log(`${t.toUpperCase()} ${walkV(b).join(', ')}`)}}
+function mstate(){const l=sim.l,r=sim.r;return !l&&!r?'stopped':l>0&&r>0?'moving forward':l<0&&r<0?'moving backward':r>l?'turning right':'turning left'}
+function tick(){if(run){phys(.05);const m=mstate();if(m!=sim.ms){sim.ms=m;hats('whenState',h=>h.getFieldValue('A0')==m).forEach(launch)}const d=ray();if(d<20&&!sim.ob){sim.ob=1;fire('obstacle')}if(d>=25)sim.ob=0;if(sim.bat<20&&!sim.lb){sim.lb=1;fire('low battery')}}draw()}
+function draw(){const c=$('cv').getContext('2d'),k=1.1;c.clearRect(0,0,220,220);c.strokeStyle='#1c2b44';for(let i=0;i<=200;i+=20){c.beginPath();c.moveTo(i*k,0);c.lineTo(i*k,220);c.moveTo(0,i*k);c.lineTo(220,i*k);c.stroke()}
+ c.fillStyle='#475569';OB.forEach(o=>c.fillRect(o[0]*k,o[1]*k,o[2]*k,o[3]*k));c.strokeStyle='#22d3ee55';c.beginPath();trail.forEach((p,i)=>i?c.lineTo(p[0]*k,p[1]*k):c.moveTo(p[0]*k,p[1]*k));c.stroke();
+ const d=ray(),r=sim.a*Math.PI/180;c.strokeStyle='#fbbf2466';c.beginPath();c.moveTo(sim.x*k,sim.y*k);c.lineTo((sim.x+Math.sin(r)*d)*k,(sim.y-Math.cos(r)*d)*k);c.stroke();
+ c.save();c.translate(sim.x*k,sim.y*k);c.rotate(r);c.fillStyle=sim.rgb;c.beginPath();c.moveTo(0,-9);c.lineTo(7,8);c.lineTo(-7,8);c.closePath();c.fill();c.strokeStyle='#fff';c.stroke();c.restore();
+ ['L1','L2','L3'].forEach((n,i)=>{c.fillStyle=sim.io[n]=='on'?'#fde047':'#334155';c.beginPath();c.arc(12+i*14,12,5,0,7);c.fill()});
+ $('dist').textContent=d.toFixed(0)+' cm';$('bat').textContent=sim.bat.toFixed(0)+'%';$('head').textContent=sim.a.toFixed(0)+'°';$('vel').textContent=((sim.l+sim.r)*.3).toFixed(0)+' cm/s'}
+function toggleRun(){run?stopRun():startRun()}
+function startRun(){if(!ws.getTopBlocks().length)return log('Nothing to run — add blocks first.');reset();$('log').textContent='';run=true;$('runBtn').textContent='■ Stop';$('runBtn').className='btn red';$('st').textContent='● Running';
+ const w=ws.getAllBlocks().filter(b=>b.warning).length;if(w)log(`⚠ ${w} block(s) need disabled modules`);log('▶ '+$('rover').value+' started');
+ hats('event',b=>b.getFieldValue('A0')=='startup').forEach(launch);
+ hats('every',()=>1).forEach(h=>timers.push(setInterval(()=>{const x=h.getInputTargetBlock('A0');launch(h)},Math.max(50,+(h.getInputTargetBlock('A0')?ev(h.getInputTargetBlock('A0')):1000))/(+$('spd').value))))}
+function stopRun(){run=false;timers.forEach(clearInterval);timers=[];sim.l=sim.r=0;ws.highlightBlock(null);$('runBtn').textContent='▶ Run';$('runBtn').className='btn green';$('st').textContent='● Ready';log('■ stopped')}
+
+// ---------- views / projects ----------
+function showView(v,el){$('blocklyWrap').style.display=v=='program'?'block':'none';$('hardware').style.display=v=='hardware'?'block':'none';$('network').style.display=v=='network'?'block':'none';
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');if(v=='program')Blockly.svgResize(ws);nv()}
+let projects={},cur='Rover A';
+const ser=()=>Blockly.serialization.workspaces.save(ws);
+function loadWs(j){loading=true;ws.clear();if(j)Blockly.serialization.workspaces.load(j,ws);loading=false;update();hwCheck()}
+function persist(){projects[cur]=ser();try{localStorage.setItem('rb3',JSON.stringify({projects,hw:hw.map(m=>m.on)}))}catch(e){}}
+function switchRover(){if(run)stopRun();projects[cur]=ser();cur=$('rover').value;loadWs(projects[cur]);nv()}
+function clearProgram(){if(confirm('Clear the current rover program?')){ws.clear();update()}}
+const dl=(name,txt,type)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+function saveFile(){persist();dl('rover-project.json',JSON.stringify({format:'RoverBlocks',version:3,projects,hw:hw.map(m=>m.on)},null,1),'application/json')}
+function loadFile(i){const f=i.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(o.format!='RoverBlocks'||!o.projects)throw new Error('Not a RoverBlocks v3 project');projects=o.projects;(o.hw||[]).forEach((v,k)=>{if(hw[k])hw[k].on=v});
+  document.querySelectorAll('#hwgrid input').forEach((x,k)=>x.checked=hw[k].on);loadWs(projects[cur])}catch(e){alert('Could not load project: '+e.message)}i.value=''})}
+function exportCode(){dl('rover-program.txt',`// ${$('rover').value}\n// Disabled modules: ${[...off].join(', ')||'none'}\n\n${program()}\n`,'text/plain')}
+
+$('rover').innerHTML=nodes.map(x=>`<option>${x}</option>`).join('');
+const starter=`<xml><block type="event" x="40" y="40"><field name="A0">startup</field><statement name="A1"><block type="log"><value name="A0"><shadow type="str"><field name="A0">Rover online</field></shadow></value><next><block type="while"><value name="A0"><block type="bool"><field name="A0">true</field></block></value><statement name="A1"><block type="if"><value name="A0"><block type="compare"><value name="A0"><block type="distance"><field name="A0">cm</field></block></value><field name="A1">&lt;</field><value name="A2"><shadow type="num"><field name="A0">25</field></shadow></value></block></value><statement name="A1"><block type="stop"><next><block type="rgb"><field name="A0">red</field><next><block type="turn"><field name="A0">right</field><value name="A1"><shadow type="num"><field name="A0">90</field></shadow></value></block></next></block></next></block></statement><statement name="A2"><block type="move"><field name="A0">forward</field><value name="A1"><shadow type="num"><field name="A0">60</field></shadow></value><next><block type="rgb"><field name="A0">green</field></block></next></block></statement></block></statement></block></next></block></statement></block></xml>`;
+reset();draw();setInterval(tick,50);
+try{const s=JSON.parse(localStorage.getItem('rb3')||'null');if(s&&s.projects){projects=s.projects;(s.hw||[]).forEach((v,k)=>{if(hw[k])hw[k].on=v});document.querySelectorAll('#hwgrid input').forEach((x,k)=>x.checked=hw[k].on)}}catch(e){}
+if(projects[cur])loadWs(projects[cur]);else{loading=true;Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(starter),ws);loading=false;update()}
+ws.addChangeListener(e=>{if(loading||e.isUiEvent)return;update();hwCheck();persist()});
+window.addEventListener('resize',()=>Blockly.svgResize(ws));nv();
+</script>
+</body>
+</html>
