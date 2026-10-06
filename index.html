@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+    <title>Snap Racer Controller</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        html,
+        body {
+            overscroll-behavior: none !important;
+            overscroll-behavior-y: none !important
+        }
+
+        body {
+            margin: 0;
+            padding: 12px 8px;
+            background: #0d0d0d;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+            text-align: center;
+            touch-action: manipulation
+        }
+
+        h2 {
+            margin: 4px 0 10px;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #fff
+        }
+
+        .panel {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            max-width: 360px;
+            margin: 10px auto;
+            padding: 14px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6)
+        }
+
+        .panel-title {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            font-weight: 700
+        }
+
+        .ctrl-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            transition: all .1s ease;
+            width: 68px;
+            height: 50px;
+            margin: 3px;
+            font-size: 19px;
+            font-weight: bold;
+            background: #2d2d2d;
+            color: #fff;
+            box-shadow: 0 3px 0 #151515
+        }
+
+        .stop-btn {
+            background: #c62828;
+            box-shadow: 0 3px 0 #8e0000
+        }
+
+        .ctrl-btn:active {
+            transform: translateY(3px);
+            box-shadow: none
+        }
+
+        #dpadContainer {
+            width: 236px;
+            min-width: 236px;
+            flex-shrink: 0;
+            text-align: center;
+            white-space: nowrap
+        }
+
+        .slider-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            padding-left: 10px;
+            border-left: 1px solid #333;
+            height: 160px;
+            width: 56px;
+            min-width: 56px;
+            flex-shrink: 0
+        }
+
+        .slider-val {
+            font-size: 17px;
+            font-weight: bold;
+            color: #007aff;
+            margin-bottom: 10px;
+            width: 48px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            display: inline-block
+        }
+
+        .v-slider {
+            -webkit-appearance: slider-vertical;
+            width: 24px;
+            height: 105px;
+            margin: 0;
+            padding: 0;
+            background: #2d2d2d;
+            border-radius: 12px;
+            outline: none;
+            touch-action: none
+        }
+
+        .v-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #007aff;
+            cursor: pointer;
+            touch-action: none
+        }
+
+        #wheelContainer {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 180px;
+            height: 160px;
+            position: relative
+        }
+
+        .wheel-graphic {
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            border: 6px solid #007aff;
+            position: relative;
+            background: #111;
+            transition: transform .08s ease-out;
+            touch-action: none
+        }
+
+        .wheel-graphic:before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: #007aff;
+            transform: translateY(-50%)
+        }
+
+        .wheel-graphic:after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            bottom: 0;
+            width: 6px;
+            background: #007aff;
+            transform: translateX(-50%)
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 2
+        }
+
+        .pedal-col {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-left: 10px;
+            padding-left: 10px;
+            border-left: 1px solid #333
+        }
+
+        .pedal-btn {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            width: 54px;
+            height: 52px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            background: #2e7d32;
+            box-shadow: 0 4px 0 #1b5e20
+        }
+
+        .brake-btn {
+            background: #c62828;
+            box-shadow: 0 4px 0 #8e0000
+        }
+
+        .pedal-btn:active {
+            transform: translateY(4px);
+            box-shadow: none
+        }
+
+        .switches-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-top: 14px;
+            padding: 0 4px
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 38px;
+            height: 22px
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0
+        }
+
+        .slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #333;
+            transition: .25s;
+            border-radius: 22px
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            transition: .25s;
+            border-radius: 50%
+        }
+
+        input:checked+.slider {
+            background: #007aff
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(16px)
+        }
+
+        .switch-label {
+            font-size: 11px;
+            margin-left: 7px;
+            color: #aaa;
+            font-weight: 600
+        }
+
+        .cam-wrapper {
+            position: relative;
+            width: 320px;
+            height: 240px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5)
+        }
+
+        #camFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: #000;
+            display: none;
+            object-fit: cover
+        }
+
+        #hudCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 320px;
+            height: 240px;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
+        }
+
+        #camError {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            background: #181818;
+            border: 1px dashed #3a3a3a;
+            color: #ef5350;
+            display: none;
+            box-sizing: border-box;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 18px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: .5px
+        }
+
+        .connected {
+            background: rgba(46, 125, 50, 0.15);
+            color: #4caf50;
+            border: 1px solid rgba(46, 125, 50, 0.4)
+        }
+
+        .removed {
+            background: rgba(198, 40, 40, 0.15);
+            color: #ef5350;
+            border: 1px solid rgba(198, 40, 40, 0.4)
+        }
+
+        .telemetry-val {
+            font-size: 17px;
+            font-weight: bold;
+            color: #007aff;
+            min-height: 26px;
+            margin: 6px 0
+        }
+
+        .mod-select,
+        .rule-select,
+        .rule-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            background: #252525;
+            border: 1px solid #333;
+            border-radius: 8px;
+            outline: none;
+            margin-bottom: 8px
+        }
+
+        .rule-box {
+            background: #141414;
+            border: 1px solid #292929;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+            text-align: left
+        }
+
+        .rule-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: block
+        }
+
+        .rule-btn {
+            width: 100%;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #007aff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 4px
+        }
+
+        .rst-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #444;
+            background: #252525;
+            color: #ff5252;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+            padding: 0;
+            line-height: 1
+        }
+
+        .rgb-btn {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            width: 48%;
+            margin: 3px 1%;
+            padding: 9px 3px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #fff;
+            display: inline-block
+        }
+
+        .rgb-off {
+            background: #2a2a2a;
+            color: #aaa
+        }
+
+        .rgb-rain {
+            background: linear-gradient(45deg, #ff4b4b, #ffb74b, #ffff4b, #4bff4b, #4b4bff, #944bd3)
+        }
+
+        .rgb-breath {
+            background: #555
+        }
+
+        .rgb-red {
+            background: #d32f2f
+        }
+
+        .rgb-green {
+            background: #2e7d32
+        }
+
+        .rgb-blue {
+            background: #1976d2
+        }
+
+        .rgb-police {
+            background: linear-gradient(90deg, #d32f2f 50%, #1976d2 50%)
+        }
+
+        .rgb-chase {
+            background: #00bcd4;
+            color: #000
+        }
+
+        .rgb-auto {
+            background: #8e24aa
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>SNAP RACER</h2>
+
+    <!-- LIVE FPV STREAM + FIGHTER JET HUD -->
+    <div class="panel" id="cameraSection" style="display:none;padding:10px;margin-top:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span class="panel-title" style="margin-bottom:0;">Live FPV Stream & HUD</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <label class="switch"><input type="checkbox" id="hudToggle" onchange="toggleHud(this.checked)"><span
+                        class="slider"></span></label>
+                <span style="font-size:10px;color:#00e5ff;font-weight:bold;">HUD</span>
+                <button type="button" class="rst-btn" onclick="camReload(event); return false;"
+                    title="Reload Stream">&#8635;</button>
+            </div>
+        </div>
+        <div class="cam-wrapper">
+            <img id="camFrame" src="" alt="Stream" onload="onCamLoad()" onerror="onCamError()">
+            <canvas id="hudCanvas" width="320" height="240" style="display:none;"></canvas>
+            <div id="camError">
+                <div style="font-size:30px;margin-bottom:8px;">📷</div>
+                <div style="font-size:14px;font-weight:700;color:#fff;">Camera Offline</div>
+                <div style="font-size:11px;color:#888;margin-top:4px;">Check ESP32-CAM (192.168.4.10)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-title">Driving Controls & Throttle</div>
+        <div style="display:flex;justify-content:center;align-items:center;width:100%;">
+            <div id="dpadContainer">
+                <div style="text-align:center;">
+                    <div class="ctrl-btn" onpointerdown="driveStart('forward',event)" onpointerup="driveStop(event)"
+                        onpointercancel="driveStop(event)">F</div>
+                </div>
+                <div style="text-align:center;">
+                    <div class="ctrl-btn" onpointerdown="driveStart('left',event)" onpointerup="driveStop(event)"
+                        onpointercancel="driveStop(event)">L</div>
+                    <div class="ctrl-btn stop-btn" onpointerdown="stopPress(event)" onpointerup="stopRelease(event)"
+                        onpointercancel="stopRelease(event)">STOP</div>
+                    <div class="ctrl-btn" onpointerdown="driveStart('right',event)" onpointerup="driveStop(event)"
+                        onpointercancel="driveStop(event)">R</div>
+                </div>
+                <div style="text-align:center;">
+                    <div class="ctrl-btn" onpointerdown="driveStart('backward',event)" onpointerup="driveStop(event)"
+                        onpointercancel="driveStop(event)">B</div>
+                </div>
+            </div>
+
+            <!-- COCKPIT STEERING WHEEL -->
+            <div id="wheelContainer">
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                        <label class="switch" style="transform:scale(0.8);transform-origin:center;">
+                            <input type="checkbox" id="gyroToggle" onchange="toggleGyroMode(this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="gyroLabel"
+                            style="font-size:10px;font-weight:bold;color:#aaa;min-width:78px;text-align:left;">Gyro:
+                            OFF</span>
+                    </div>
+                    <div id="steerWheel" class="wheel-graphic">
+                        <div class="wheel-center"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sliderContainer" class="slider-col">
+                <div class="slider-val" id="speedReadout">0</div>
+                <input type="range" id="speedSlider" class="v-slider" min="0" max="255" value="0" orient="vertical"
+                    onpointerdown="isSliderActive=true;lastSliderInteractTime=Date.now()"
+                    onpointerup="isSliderActive=false;lastSliderInteractTime=Date.now();onSliderChange(this.value)"
+                    oninput="onSliderInput(this.value)" onchange="onSliderChange(this.value)">
+                <div style="font-size:9px;color:#888;margin-top:4px;font-weight:bold;">PWM</div>
+            </div>
+            <div id="pedalContainer" class="pedal-col">
+                <div class="pedal-btn" onpointerdown="pressGas(true,event)" onpointerup="pressGas(false,event)"
+                    onpointercancel="pressGas(false,event)">▲<br>GAS</div>
+                <div class="pedal-btn brake-btn" onpointerdown="pressBrake(true,event)"
+                    onpointerup="pressBrake(false,event)" onpointercancel="pressBrake(false,event)">▼<br>REV</div>
+            </div>
+        </div>
+
+        <div class="switches-row">
+            <div class="switch-container"><label class="switch"><input type="checkbox" id="obsToggle"
+                        onchange="toggleObstacle(this.checked)"><span class="slider"></span></label><span id="obsLabel"
+                    class="switch-label">Auto-Brake: OFF</span></div>
+            <div class="switch-container"><label class="switch"><input type="checkbox"
+                        onchange="toggleHeadlights(this.checked)"><span class="slider"></span></label><span
+                    id="headlightLabel" class="switch-label">Lights: OFF</span></div>
+        </div>
+        <div class="switches-row">
+            <div class="switch-container"><label class="switch"><input type="checkbox" id="cockpitToggle"
+                        onchange="toggleCockpitMode(this.checked)"><span class="slider"></span></label><span
+                    id="cockpitLabel" class="switch-label">Cockpit Mode: OFF</span></div>
+            <div class="switch-container"><label class="switch"><input type="checkbox"
+                        onchange="toggleAddOns(this.checked)"><span class="slider"></span></label><span id="addOnLabel"
+                    class="switch-label">Add-Ons: OFF</span></div>
+        </div>
+        <div class="switches-row">
+            <div class="switch-container"><label class="switch"><input type="checkbox" id="imuToggle"
+                        onchange="toggleImu(this.checked)"><span class="slider"></span></label><span id="imuLabel"
+                    class="switch-label">IMU HUD: OFF</span></div>
+            <div class="switch-container"><label class="switch"><input type="checkbox" id="camToggle"
+                        onchange="toggleCamera(this.checked)"><span class="slider"></span></label><span id="camLabel"
+                    class="switch-label">Camera: OFF</span></div>
+        </div>
+    </div>
+
+    <!-- INBUILT ACCELEROMETER TELEMETRY -->
+    <div class="panel" id="imuPanel" style="display:none;">
+        <div class="panel-title">Accelerometer / Orientation Telemetry</div>
+        <div id="imuStatusBadge" class="status-badge connected">● IMU ONLINE</div>
+        <div id="tiltAlertBadge" class="status-badge removed"
+            style="display:none;font-weight:800;background:rgba(255,0,0,0.25);">⚠️ ROLLOVER TILT DETECTED</div>
+        <div style="display:flex;justify-content:space-around;margin:6px 0;">
+            <div>
+                <div style="font-size:9px;color:#888;font-weight:bold;">PITCH</div>
+                <div id="imuPitchTxt" style="font-size:16px;font-weight:bold;color:#007aff;">0.0°</div>
+            </div>
+            <div>
+                <div style="font-size:9px;color:#888;font-weight:bold;">ROLL</div>
+                <div id="imuRollTxt" style="font-size:16px;font-weight:bold;color:#007aff;">0.0°</div>
+            </div>
+            <div>
+                <div style="font-size:9px;color:#888;font-weight:bold;">TOTAL TILT</div>
+                <div id="imuTiltTxt" style="font-size:16px;font-weight:bold;color:#007aff;">0.0°</div>
+            </div>
+        </div>
+        <div
+            style="display:flex;justify-content:space-around;font-size:10px;color:#aaa;margin-bottom:8px;background:#141414;padding:6px;border-radius:6px;border:1px solid #292929;">
+            <span>X: <b id="imuAxTxt" style="color:#fff;">0.0</b></span>
+            <span>Y: <b id="imuAyTxt" style="color:#fff;">0.0</b></span>
+            <span>Z: <b id="imuAzTxt" style="color:#fff;">9.8</b></span>
+        </div>
+        <div class="rule-box" style="margin-top:0;">
+            <span class="rule-label">Tilt Sensitivity:</span>
+            <select id="adxlAngleSelect" class="rule-select">
+                <option value="20">20° Angle (High Sensitivity)</option>
+                <option value="35" selected>35° Angle (Moderate Slope)</option>
+                <option value="50">50° Angle (Extreme Rollover)</option>
+            </select>
+            <span class="rule-label">Safety Action:</span>
+            <select id="adxlActionSelect" class="rule-select">
+                <option value="1" selected>Emergency Motor Cutoff</option>
+                <option value="2">Flash Hazard Warning Strobe</option>
+                <option value="0">Telemetry Only (No Action)</option>
+            </select>
+            <button class="rule-btn" onclick="applyAdxlRule()">Save Inbuilt IMU Rule</button>
+        </div>
+    </div>
+
+    <div id="addOnsContainer" style="display:none;">
+        <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <span class="panel-title" style="margin-bottom:0;">Modular Sensor Port</span>
+                <button type="button" class="rst-btn" onclick="resetModularRules(event); return false;"
+                    title="Reset Modular Sensor Rules">&#8635;</button>
+            </div>
+            <div id="plugStatus" class="status-badge removed">Checking Port...</div>
+            <div id="readout" class="telemetry-val">Safe Mode (Idle)</div>
+            <select id="modSelect" class="mod-select" onchange="switchMode(this.value)">
+                <option value="idle">Safe Mode (Idle)</option>
+                <option value="distance">1. Distance (VL53L0X)</option>
+                <option value="dht11">2. DHT11 (Temp & Hum)</option>
+                <option value="dht22">3. DHT22 (Precision)</option>
+                <option value="ldr">4. LDR Light Sensor</option>
+                <option value="rgb">5. RGB LED Ring</option>
+                <option value="oled">6. OLED Display (SSD1306)</option>
+                <option value="accel">7. Accelerometer (Modular ADXL/MPU)</option>
+            </select>
+
+            <!-- DISTANCE RULES -->
+            <div id="ruleDistBox" class="rule-box" style="display:none;">
+                <span class="rule-label">WHEN Distance IS LESS THAN:</span>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <input type="range" id="distThreshSlider" min="20" max="400" step="10" value="60" style="width:75%"
+                        oninput="document.getElementById('distValTxt').innerText=this.value+' mm ('+(this.value/10).toFixed(0)+' cm)'">
+                    <span id="distValTxt" style="font-size:11px;font-weight:bold;color:#007aff;">60 mm (6 cm)</span>
+                </div>
+                <span class="rule-label">THEN ACTION:</span>
+                <select id="distActionSelect" class="rule-select">
+                    <option value="0">Brake & Reverse (Controlled by Auto-Brake Switch)</option>
+                    <option value="1">Emergency Stop Only (Always Active)</option>
+                    <option value="2">Pivot Turn Left (Always Active)</option>
+                    <option value="3">Pivot Turn Right (Always Active)</option>
+                    <option value="4">Hazard Strobe & Stop (Always Active)</option>
+                </select>
+                <button class="rule-btn" onclick="applyDistRule()">Save Distance Rule</button>
+            </div>
+
+            <!-- LDR RULES -->
+            <div id="ruleLdrBox" class="rule-box" style="display:none;">
+                <span class="rule-label">WHEN Light Sensor (LDR) Detects Dark:</span>
+                <select id="ldrActionSelect" class="rule-select">
+                    <option value="1">Switch Front Headlights ON</option>
+                    <option value="2">Flash Hazard Warning Strobe</option>
+                    <option value="3">Emergency Stop</option>
+                    <option value="0">Monitor Only (No Action)</option>
+                </select>
+                <button class="rule-btn" onclick="applyLdrRule()">Save LDR Rule</button>
+            </div>
+
+            <!-- DHT RULES -->
+            <div id="ruleDhtBox" class="rule-box" style="display:none;">
+                <span class="rule-label">WHEN Temp EXCEEDS (°C):</span>
+                <input type="number" id="tempThreshInput" class="rule-input" value="38" min="20" max="60">
+                <span class="rule-label">THEN ACTION:</span>
+                <select id="dhtActionSelect" class="rule-select">
+                    <option value="1">Overheat Warning (Hazard Lights)</option>
+                    <option value="2">Emergency Motor Cutoff</option>
+                    <option value="0">Monitor Only</option>
+                </select>
+                <button class="rule-btn" onclick="applyDhtRule()">Save Temp Rule</button>
+            </div>
+
+            <!-- OLED CUSTOMIZER -->
+            <div id="ruleOledBox" class="rule-box" style="display:none;">
+                <span class="rule-label">Screen Visual Mode:</span>
+                <select id="oledModeSelect" class="rule-select" onchange="toggleOledInputs(this.value)">
+                    <option value="0">1. Animated Robot Face & Nav HUD</option>
+                    <option value="1">2. Live Telemetry & Speedometer</option>
+                    <option value="2">3. Custom User Text Banner</option>
+                    <option value="3">4. Chrome Dino Game (F: Jump, B: Duck)</option>
+                    <option value="5">6. Space Invaders (L/R: Move, F: Fire)</option>
+                </select>
+                <div id="oledTextInputs" style="display:none;">
+                    <span class="rule-label">Line 1:</span><input type="text" id="oledL1" class="rule-input"
+                        maxlength="16" value="SNAP RACER">
+                    <span class="rule-label">Line 2:</span><input type="text" id="oledL2" class="rule-input"
+                        maxlength="20" value="RULE ACTIVATED">
+                </div>
+                <button class="rule-btn" onclick="applyOledRule()">Update OLED Screen</button>
+            </div>
+
+            <!-- RGB CUSTOMIZER -->
+            <div id="ruleRgbBox" class="rule-box" style="display:none;">
+                <span class="rule-label">Preset Animations:</span>
+                <div class="rgb-btn rgb-off" onclick="fetchApi('/setRgb?mode=off')">Off</div>
+                <div class="rgb-btn rgb-rain" onclick="fetchApi('/setRgb?mode=rainbow')">Rainbow</div>
+                <div class="rgb-btn rgb-breath" onclick="fetchApi('/setRgb?mode=breathing')">Breathing</div>
+                <div class="rgb-btn rgb-red" onclick="fetchApi('/setRgb?mode=red')">Red</div>
+                <div class="rgb-btn rgb-green" onclick="fetchApi('/setRgb?mode=green')">Green</div>
+                <div class="rgb-btn rgb-blue" onclick="fetchApi('/setRgb?mode=blue')">Blue</div>
+                <div class="rgb-btn rgb-police" onclick="fetchApi('/setRgb?mode=police')">Police</div>
+                <div class="rgb-btn rgb-chase" onclick="fetchApi('/setRgb?mode=chase')">Chase</div>
+                <div class="rgb-btn rgb-auto" onclick="fetchApi('/setRgb?mode=auto')">Auto Mode</div>
+                <div class="rgb-btn" style="background:linear-gradient(90deg,#00e676,#ffea00,#ff1744);color:#000;"
+                    onclick="fetchApi('/setRgb?mode=tacho')">Tachometer</div>
+
+                <span class="rule-label" style="margin-top:10px;">Color & Brightness:</span>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+                    <input type="color" id="rgbColorPick" value="#007aff"
+                        style="width:46px;height:34px;border:none;border-radius:6px;cursor:pointer;"
+                        onchange="applyCustomRgb()">
+                    <input type="range" id="rgbBrightSlider" min="10" max="255" value="80" style="flex:1"
+                        oninput="sendRgbBright(this.value)">
+                </div>
+            </div>
+
+            <!-- MODULAR ACCELEROMETER RULES -->
+            <div id="ruleAccelBox" class="rule-box" style="display:none;">
+                <span class="rule-label">Modular Accel Tilt Angle Threshold:</span>
+                <select id="modAccelAngleSelect" class="rule-select">
+                    <option value="20">20° Angle (High Sensitivity)</option>
+                    <option value="35" selected>35° Angle (Moderate Slope)</option>
+                    <option value="50">50° Angle (Extreme Rollover)</option>
+                </select>
+                <span class="rule-label">Safety Action:</span>
+                <select id="modAccelActionSelect" class="rule-select">
+                    <option value="1" selected>Emergency Motor Cutoff</option>
+                    <option value="2">Flash Hazard Warning Strobe</option>
+                    <option value="0">Monitor Only (No Action)</option>
+                </select>
+                <button class="rule-btn" onclick="applyModAccelRule()">Save Modular Accel Rule</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= FIXED ABSOLUTE BASE URL =================
+        const ESP_HOST = "http://192.168.4.1";
+
+        function fetchApi(endpoint) {
+            return fetch(ESP_HOST + endpoint, { cache: 'no-store' }).catch(() => { });
+        }
+
+        let liveTelemetry = { pitch: 0, roll: 0, tilt: 0, pwm: 0, dist: -1 };
+
+        let startTouchY = 0;
+        window.addEventListener('touchstart', function (e) {
+            if (e.touches.length === 1) startTouchY = e.touches[0].clientY;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', function (e) {
+            if (e.target && e.target.closest && e.target.closest('#speedSlider, .v-slider, .slider-col, #sliderContainer, .ctrl-btn, #steerWheel, .wheel-graphic, .pedal-btn, .stop-btn')) return;
+            if (e.touches.length === 1) {
+                const deltaY = e.touches[0].clientY - startTouchY;
+                const scrollPos = window.pageYOffset || document.documentElement.scrollTop || 0;
+                if (scrollPos <= 0 && deltaY > 0 && e.cancelable) e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        window.addEventListener('touchstart', e => {
+            if (e.target.closest('.ctrl-btn, .pedal-btn, .stop-btn')) e.preventDefault();
+        }, { passive: false });
+
+        let activePointerId = null, currentDriveDir = 'stop', driveHeartbeat = null;
+        function sendCommand(dir) { fetchApi('/' + dir); }
+
+        function driveStart(dir, e) {
+            if (e) e.preventDefault();
+            if (activePointerId !== null && activePointerId !== e.pointerId) return;
+            activePointerId = e.pointerId; currentDriveDir = dir;
+            sendCommand(dir);
+            if (!driveHeartbeat) driveHeartbeat = setInterval(() => { if (currentDriveDir !== 'stop') sendCommand(currentDriveDir); }, 500);
+        }
+
+        function driveStop(e) {
+            if (e) e.preventDefault();
+            if (activePointerId !== null && e && activePointerId !== e.pointerId) return;
+            currentDriveDir = 'stop'; activePointerId = null;
+            if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
+            sendCommand('stop');
+        }
+
+        function stopPress(e) {
+            if (e) e.preventDefault();
+            activePointerId = e ? e.pointerId : null; currentDriveDir = 'stop';
+            if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
+            sendCommand('stopStart');
+        }
+
+        function stopRelease(e) {
+            if (e) e.preventDefault();
+            activePointerId = null; sendCommand('stopEnd');
+        }
+
+        window.addEventListener('pointerup', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
+        window.addEventListener('pointercancel', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
+
+        function toggleObstacle(en) { document.getElementById('obsLabel').innerText = en ? "Auto-Brake: ON" : "Auto-Brake: OFF"; document.getElementById('obsLabel').style.color = en ? "#007aff" : "#aaa"; fetchApi('/setObstacle?enabled=' + (en ? 1 : 0)); }
+        function toggleHeadlights(en) { document.getElementById('headlightLabel').innerText = en ? "Lights: ON" : "Lights: OFF"; document.getElementById('headlightLabel').style.color = en ? "#007aff" : "#aaa"; fetchApi('/setFrontLed?state=' + (en ? 1 : 0)); }
+        function toggleAddOns(en) { document.getElementById('addOnLabel').innerText = en ? "Add-Ons: ON" : "Add-Ons: OFF"; document.getElementById('addOnLabel').style.color = en ? "#007aff" : "#aaa"; document.getElementById('addOnsContainer').style.display = en ? "block" : "none"; }
+        function toggleImu(en) { document.getElementById('imuLabel').innerText = en ? "IMU HUD: ON" : "IMU HUD: OFF"; document.getElementById('imuLabel').style.color = en ? "#007aff" : "#aaa"; document.getElementById('imuPanel').style.display = en ? "block" : "none"; }
+
+        // ================= HUD =================
+        const hudCanvas = document.getElementById('hudCanvas');
+        const hudCtx = hudCanvas ? hudCanvas.getContext('2d') : null;
+
+        function isHudActive() { const t = document.getElementById('hudToggle'); return t ? t.checked : false; }
+        function toggleHud(en) { const cv = document.getElementById('hudCanvas'); if (cv) { cv.style.display = en ? 'block' : 'none'; if (!en && hudCtx) hudCtx.clearRect(0, 0, cv.width, cv.height); } }
+
+        function renderHUD() {
+            const active = isHudActive();
+            const cv = document.getElementById('hudCanvas');
+            if (!hudCtx || !cv) { requestAnimationFrame(renderHUD); return; }
+            if (!active) { cv.style.display = 'none'; hudCtx.clearRect(0, 0, cv.width, cv.height); requestAnimationFrame(renderHUD); return; }
+
+            cv.style.display = 'block';
+            const w = cv.width, h = cv.height, cx = w / 2, cy = h / 2;
+            hudCtx.clearRect(0, 0, w, h);
+
+            const pitch = liveTelemetry.pitch || 0, roll = liveTelemetry.roll || 0, speed = liveTelemetry.pwm || 0, dist = liveTelemetry.dist;
+            hudCtx.save();
+            hudCtx.strokeStyle = "#00e5ff"; hudCtx.fillStyle = "#00e5ff"; hudCtx.lineWidth = 1.5; hudCtx.font = "bold 9px monospace";
+
+            hudCtx.beginPath();
+            hudCtx.moveTo(cx - 16, cy); hudCtx.lineTo(cx - 6, cy); hudCtx.lineTo(cx - 2, cy + 4); hudCtx.lineTo(cx, cy);
+            hudCtx.lineTo(cx + 2, cy + 4); hudCtx.lineTo(cx + 6, cy); hudCtx.lineTo(cx + 16, cy);
+            hudCtx.stroke();
+
+            hudCtx.save();
+            hudCtx.translate(cx, cy);
+            hudCtx.rotate((-roll * Math.PI) / 180);
+            const pitchPx = (pitch / 45) * 35;
+            hudCtx.beginPath(); hudCtx.moveTo(-50, pitchPx); hudCtx.lineTo(-18, pitchPx); hudCtx.moveTo(18, pitchPx); hudCtx.lineTo(50, pitchPx); hudCtx.stroke();
+            hudCtx.setLineDash([4, 4]); hudCtx.beginPath(); hudCtx.moveTo(-32, pitchPx - 20); hudCtx.lineTo(32, pitchPx - 20); hudCtx.moveTo(-32, pitchPx + 20); hudCtx.lineTo(32, pitchPx + 20); hudCtx.stroke();
+            hudCtx.setLineDash([]); hudCtx.restore();
+
+            hudCtx.strokeRect(10, 35, 14, 150);
+            const speedH = (speed / 255) * 146;
+            hudCtx.fillStyle = "rgba(0,229,255,0.35)"; hudCtx.fillRect(12, 183 - speedH, 10, speedH);
+            hudCtx.fillStyle = "#00e5ff"; hudCtx.fillText("PWM", 8, 30); hudCtx.fillText(speed.toString(), 9, 200);
+            hudCtx.fillText("PITCH: " + pitch.toFixed(0) + "°", 40, 20); hudCtx.fillText("ROLL: " + roll.toFixed(0) + "°", 220, 20);
+
+            if (dist > 0 && dist <= 300) {
+                const isWarning = dist <= 60;
+                hudCtx.fillStyle = isWarning ? "rgba(255,23,68,0.85)" : "rgba(255,171,0,0.85)";
+                hudCtx.strokeStyle = isWarning ? "#ff1744" : "#ffab00";
+                hudCtx.strokeRect(cx - 50, cy + 38, 100, 22); hudCtx.fillRect(cx - 48, cy + 40, 96, 18);
+                hudCtx.fillStyle = "#fff"; hudCtx.font = "bold 10px monospace"; hudCtx.textAlign = "center";
+                hudCtx.fillText(isWarning ? "⚠️ BRAKE " + dist + "mm" : "PROX: " + dist + "mm", cx, cy + 53);
+                hudCtx.textAlign = "left";
+            }
+            hudCtx.restore();
+            requestAnimationFrame(renderHUD);
+        }
+        requestAnimationFrame(renderHUD);
+
+        let camTimeout = null;
+        function onCamLoad() {
+            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+            const f = document.getElementById('camFrame'), e = document.getElementById('camError'), cv = document.getElementById('hudCanvas');
+            if (e) e.style.display = 'none';
+            if (f) f.style.display = 'block';
+            if (cv) cv.style.display = isHudActive() ? 'block' : 'none';
+        }
+
+        function onCamError() {
+            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+            const f = document.getElementById('camFrame'), e = document.getElementById('camError'), cv = document.getElementById('hudCanvas');
+            if (f) { f.style.display = 'none'; f.src = ''; }
+            if (cv) cv.style.display = 'none';
+            if (e) e.style.display = 'flex';
+        }
+
+        function toggleCamera(en) {
+            document.getElementById('camLabel').innerText = en ? "Camera: ON" : "Camera: OFF";
+            document.getElementById('camLabel').style.color = en ? "#007aff" : "#aaa";
+            const s = document.getElementById('cameraSection'), f = document.getElementById('camFrame'), e = document.getElementById('camError'), cv = document.getElementById('hudCanvas');
+            if (s) s.style.display = en ? 'block' : 'none';
+            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+            if (en) {
+                if (e) e.style.display = 'none';
+                if (f) {
+                    f.style.display = 'none';
+                    camTimeout = setTimeout(onCamError, 3500);
+                    f.src = 'http://192.168.4.10:81/stream';
+                }
+            } else {
+                if (f) { f.src = ''; f.style.display = 'none'; }
+                if (cv) cv.style.display = 'none';
+                if (e) e.style.display = 'none';
+            }
+        }
+
+        function camReload(event) {
+            if (event) { if (event.preventDefault) event.preventDefault(); if (event.stopPropagation) event.stopPropagation(); }
+            const f = document.getElementById('camFrame'), errBox = document.getElementById('camError');
+            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+            if (!f) return false;
+            f.onerror = null; f.src = '';
+            setTimeout(() => {
+                if (errBox) errBox.style.display = 'none';
+                f.onerror = onCamError; f.onload = onCamLoad;
+                camTimeout = setTimeout(onCamError, 4000);
+                f.src = 'http://192.168.4.10:81/stream?t=' + Date.now();
+            }, 60);
+            return false;
+        }
+
+        let isSliderActive = false, lastSliderInteractTime = 0, lastSliderSend = 0;
+        function onSliderInput(val) {
+            isSliderActive = true; lastSliderInteractTime = Date.now();
+            updateSpeedUI(val);
+            if (Date.now() - lastSliderSend > 70 || val == 0 || val == 255) { lastSliderSend = Date.now(); sendSpeed(val); }
+        }
+        function onSliderChange(val) { isSliderActive = false; lastSliderInteractTime = Date.now(); sendSpeed(val); }
+        function updateSpeedUI(val) { document.getElementById('speedReadout').innerText = val; liveTelemetry.pwm = parseInt(val); }
+        function sendSpeed(val) { fetchApi('/setSpeed?pwm=' + val); }
+
+        // ================= COCKPIT & EMBEDDED GYRO =================
+        let cockpitActive = false;
+        window.gyroModeActive = false;
+        let cockpitDriveCmd = 'stop', steerDirection = 0, gasHeld = false, brakeHeld = false, wheelAngle = 0, isDraggingWheel = false, wheelTouchId = null, wheelStartX = 0, cockpitHeartbeat = null;
+        let gyroSensorActive = false, gyroCheckTimer = null;
+
+        function setCockpitUI(en) {
+            document.getElementById('dpadContainer').style.display = en ? 'none' : 'block';
+            document.getElementById('wheelContainer').style.display = en ? 'flex' : 'none';
+            document.getElementById('sliderContainer').style.display = en ? 'none' : 'flex';
+            document.getElementById('pedalContainer').style.display = en ? 'flex' : 'none';
+            let slider = document.getElementById('speedSlider');
+            if (en && slider.value == 0) { slider.value = 160; updateSpeedUI(160); sendSpeed(160); }
+        }
+
+        function toggleCockpitMode(en) {
+            cockpitActive = en;
+            document.getElementById('cockpitLabel').innerText = en ? "Cockpit Mode: ON" : "Cockpit Mode: OFF";
+            document.getElementById('cockpitLabel').style.color = en ? "#007aff" : "#aaa";
+            setCockpitUI(en);
+            if (!en) { stopGyro(); resetDriving(); }
+        }
+
+        function toggleGyroMode(en) {
+            if (en) {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission().then(resp => {
+                        if (resp === 'granted') startGyro(); else { alert("Motion Sensor permission denied!"); stopGyro(); }
+                    }).catch(() => { startGyro(); });
+                } else startGyro();
+            } else stopGyro();
+        }
+
+        function startGyro() {
+            window.gyroModeActive = true; gyroSensorActive = false;
+            document.getElementById('gyroToggle').checked = true;
+            document.getElementById('gyroLabel').innerText = "Gyro: Syncing...";
+            document.getElementById('gyroLabel').style.color = "#00e5ff";
+            window.addEventListener('deviceorientation', handleOrientation, true);
+            window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+            window.addEventListener('devicemotion', handleMotion, true);
+
+            if (gyroCheckTimer) clearTimeout(gyroCheckTimer);
+            gyroCheckTimer = setTimeout(() => {
+                if (!gyroSensorActive && window.gyroModeActive) {
+                    document.getElementById('gyroLabel').innerText = "Gyro: ⚠️ Blocked";
+                    document.getElementById('gyroLabel').style.color = "#ff5252";
+                }
+            }, 1800);
+        }
+
+        function stopGyro() {
+            window.gyroModeActive = false; gyroSensorActive = false;
+            if (gyroCheckTimer) { clearTimeout(gyroCheckTimer); gyroCheckTimer = null; }
+            const gt = document.getElementById('gyroToggle'); if (gt) gt.checked = false;
+            const gl = document.getElementById('gyroLabel'); if (gl) { gl.innerText = "Gyro: OFF"; gl.style.color = "#aaa"; }
+            window.removeEventListener('deviceorientation', handleOrientation, true);
+            window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
+            window.removeEventListener('devicemotion', handleMotion, true);
+            resetWheel();
+        }
+
+        function processTilt(tiltVal) {
+            if (isDraggingWheel) return;
+            gyroSensorActive = true;
+            let steer = 0;
+            if (tiltVal < -11) steer = -1; else if (tiltVal > 11) steer = 1;
+            const wheelDeg = Math.max(-60, Math.min(60, tiltVal * 1.8));
+            const sw = document.getElementById('steerWheel'); if (sw) sw.style.transform = `rotate(${wheelDeg}deg)`;
+            const gl = document.getElementById('gyroLabel');
+            if (gl && window.gyroModeActive) {
+                gl.innerText = "Gyro: " + (tiltVal > 0 ? "+" : "") + tiltVal.toFixed(0) + "° (" + (steer === -1 ? "L" : (steer === 1 ? "R" : "C")) + ")";
+                gl.style.color = "#00e5ff";
+            }
+            if (steer !== steerDirection) { steerDirection = steer; computeCockpitDrive(); }
+        }
+
+        function handleOrientation(e) {
+            if (!window.gyroModeActive) return;
+            const isLandscape = (window.innerWidth > window.innerHeight) || (Math.abs(window.orientation || 0) === 90);
+            let raw = isLandscape ? e.beta : e.gamma;
+            if (window.orientation === -90) raw = -raw;
+            if (raw !== null && raw !== undefined && !isNaN(raw)) processTilt(raw);
+        }
+
+        function handleMotion(e) {
+            if (!window.gyroModeActive || gyroSensorActive) return;
+            const acc = e.accelerationIncludingGravity; if (!acc) return;
+            const isLandscape = (window.innerWidth > window.innerHeight) || (Math.abs(window.orientation || 0) === 90);
+            let raw = isLandscape ? ((window.orientation === -90) ? ((acc.y || 0) / 9.8) * 45 : -((acc.y || 0) / 9.8) * 45) : ((acc.x || 0) / 9.8) * 45;
+            if (!isNaN(raw) && Math.abs(raw) > 0.05) processTilt(raw);
+        }
+
+        function computeCockpitDrive() {
+            if (!cockpitActive) return;
+            let cmd = 'stop';
+            if (steerDirection === -1) cmd = 'left'; else if (steerDirection === 1) cmd = 'right';
+            else if (gasHeld) cmd = 'forward'; else if (brakeHeld) cmd = 'backward';
+
+            if (cmd !== 'stop') {
+                cockpitDriveCmd = cmd; sendCommand(cmd);
+                if (!cockpitHeartbeat) cockpitHeartbeat = setInterval(() => { if (cockpitDriveCmd !== 'stop') sendCommand(cockpitDriveCmd); }, 500);
+            } else {
+                cockpitDriveCmd = 'stop'; if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; } sendCommand('stop');
+            }
+        }
+
+        function resetDriving() {
+            resetWheel(); gasHeld = false; brakeHeld = false;
+            if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
+            sendCommand('stop');
+        }
+
+        function pressGas(down, e) { if (e) e.preventDefault(); gasHeld = down; computeCockpitDrive(); }
+        function pressBrake(down, e) { if (e) e.preventDefault(); brakeHeld = down; computeCockpitDrive(); }
+
+        const wheel = document.getElementById('steerWheel');
+        function startWheel(e) {
+            e.preventDefault(); if (isDraggingWheel) return;
+            const t = e.changedTouches ? e.changedTouches[0] : e;
+            wheelTouchId = e.changedTouches ? t.identifier : null;
+            isDraggingWheel = true; wheelStartX = t.clientX;
+        }
+        function moveWheel(e) {
+            if (!isDraggingWheel) return;
+            let clientX = null;
+            if (e.changedTouches) { for (let i = 0; i < e.touches.length; i++) { if (e.touches[i].identifier === wheelTouchId) { clientX = e.touches[i].clientX; break; } } }
+            else clientX = e.clientX;
+            if (clientX === null) return;
+            let dx = Math.max(-50, Math.min(50, clientX - wheelStartX));
+            wheelAngle = (dx / 50) * 60; wheel.style.transform = `rotate(${wheelAngle}deg)`;
+            steerDirection = (wheelAngle < -18) ? -1 : ((wheelAngle > 18) ? 1 : 0);
+            computeCockpitDrive();
+        }
+        function endWheel(e) {
+            if (!isDraggingWheel) return;
+            if (e && e.changedTouches) { for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === wheelTouchId) { resetWheel(); return; } } }
+            else resetWheel();
+        }
+        function resetWheel() {
+            isDraggingWheel = false; wheelTouchId = null;
+            if (!window.gyroModeActive) { wheelAngle = 0; wheel.style.transform = 'rotate(0deg)'; steerDirection = 0; computeCockpitDrive(); }
+        }
+
+        wheel.addEventListener('touchstart', startWheel, { passive: false });
+        window.addEventListener('touchmove', moveWheel, { passive: true });
+        window.addEventListener('touchend', endWheel);
+        window.addEventListener('touchcancel', endWheel);
+        wheel.addEventListener('mousedown', startWheel);
+        window.addEventListener('mousemove', moveWheel);
+        window.addEventListener('mouseup', resetWheel);
+
+        function updateRulePanels(mode) {
+            document.getElementById('ruleDistBox').style.display = (mode === 'distance') ? 'block' : 'none';
+            document.getElementById('ruleLdrBox').style.display = (mode === 'ldr') ? 'block' : 'none';
+            document.getElementById('ruleDhtBox').style.display = (mode === 'dht11' || mode === 'dht22') ? 'block' : 'none';
+            document.getElementById('ruleOledBox').style.display = (mode === 'oled') ? 'block' : 'none';
+            document.getElementById('ruleRgbBox').style.display = (mode === 'rgb') ? 'block' : 'none';
+            document.getElementById('ruleAccelBox').style.display = (mode === 'accel') ? 'block' : 'none';
+        }
+
+        function switchMode(m) {
+            document.getElementById('readout').innerText = (m === 'idle') ? "Safe Mode (Idle)" : "Connecting...";
+            document.getElementById('modSelect').value = m;
+            updateRulePanels(m);
+            fetchApi('/setMode?mode=' + m);
+        }
+
+        function applyDistRule() { fetchApi('/setDistConfig?dist=' + document.getElementById('distThreshSlider').value + '&action=' + document.getElementById('distActionSelect').value); }
+        function applyLdrRule() { fetchApi('/setLdrConfig?action=' + document.getElementById('ldrActionSelect').value); }
+        function applyDhtRule() { fetchApi('/setDhtConfig?temp=' + document.getElementById('tempThreshInput').value + '&action=' + document.getElementById('dhtActionSelect').value); }
+        function applyAdxlRule() { fetchApi('/setAdxlConfig?angle=' + document.getElementById('adxlAngleSelect').value + '&action=' + document.getElementById('adxlActionSelect').value); }
+        function applyModAccelRule() { fetchApi('/setModAccelConfig?angle=' + document.getElementById('modAccelAngleSelect').value + '&action=' + document.getElementById('modAccelActionSelect').value); }
+        function toggleOledInputs(val) { document.getElementById('oledTextInputs').style.display = (val === "2") ? "block" : "none"; }
+        function applyOledRule() { fetchApi('/setOledConfig?mode=' + document.getElementById('oledModeSelect').value + '&l1=' + encodeURIComponent(document.getElementById('oledL1').value) + '&l2=' + encodeURIComponent(document.getElementById('oledL2').value)); }
+
+        function applyCustomRgb() {
+            const hex = document.getElementById('rgbColorPick').value;
+            fetchApi('/setRgbCustom?r=' + parseInt(hex.substr(1, 2), 16) + '&g=' + parseInt(hex.substr(3, 2), 16) + '&b=' + parseInt(hex.substr(5, 2), 16));
+        }
+        function sendRgbBright(v) { fetchApi('/setRgbBrightness?b=' + v); }
+
+        function resetModularRules(e) {
+            if (e) { if (e.preventDefault) e.preventDefault(); if (e.stopPropagation) e.stopPropagation(); }
+            fetchApi('/resetModRules').then(() => {
+                let ds = document.getElementById('distThreshSlider'); if (ds) ds.value = 60;
+                let dt = document.getElementById('distValTxt'); if (dt) dt.innerText = "60 mm (6 cm)";
+                let da = document.getElementById('distActionSelect'); if (da) da.value = "0";
+                let la = document.getElementById('ldrActionSelect'); if (la) la.value = "1";
+                let tt = document.getElementById('tempThreshInput'); if (tt) tt.value = 38;
+                let dhta = document.getElementById('dhtActionSelect'); if (dhta) dhta.value = "1";
+                let om = document.getElementById('oledModeSelect'); if (om) om.value = "0";
+                let ol1 = document.getElementById('oledL1'); if (ol1) ol1.value = "SNAP RACER";
+                let ol2 = document.getElementById('oledL2'); if (ol2) ol2.value = "SYSTEM ACTIVE";
+                let ma = document.getElementById('modAccelAngleSelect'); if (ma) ma.value = "35";
+                let maa = document.getElementById('modAccelActionSelect'); if (maa) maa.value = "1";
+            });
+            return false;
+        }
+
+        let isPolling = false;
+        function updateTelemetry() {
+            if (isPolling) return;
+            isPolling = true;
+            const ctl = new AbortController();
+            const tm = setTimeout(() => ctl.abort(), 600);
+
+            fetch(ESP_HOST + '/data', { cache: 'no-store', signal: ctl.signal })
+                .then(r => r.json())
+                .then(d => {
+                    let b = document.getElementById('plugStatus');
+                    if (b) { b.className = "status-badge " + (d.connected ? "connected" : "removed"); b.innerText = d.connected ? "● SENSOR DETECTED" : "⚠️ SENSOR UNPLUGGED"; }
+                    let rd = document.getElementById('readout');
+                    if (rd && d.reading !== undefined) rd.innerText = d.reading;
+                    let ms = document.getElementById('modSelect');
+                    if (ms && ms.value !== d.mode) { ms.value = d.mode; updateRulePanels(d.mode); }
+
+                    let slider = document.getElementById('speedSlider');
+                    if (slider && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 2500) && currentDriveDir === 'stop') {
+                        slider.value = d.pwm; updateSpeedUI(d.pwm);
+                    }
+                    if (d.imu_ok !== undefined) {
+                        liveTelemetry.pitch = Number(d.pitch) || 0;
+                        liveTelemetry.roll = Number(d.roll) || 0;
+                        liveTelemetry.tilt = Number(d.tilt) || 0;
+                        liveTelemetry.dist = Number(d.dist_mm) || -1;
+                        let pTxt = document.getElementById('imuPitchTxt'); if (pTxt) pTxt.innerText = liveTelemetry.pitch.toFixed(1) + "°";
+                        let rTxt = document.getElementById('imuRollTxt'); if (rTxt) rTxt.innerText = liveTelemetry.roll.toFixed(1) + "°";
+                        let tTxt = document.getElementById('imuTiltTxt'); if (tTxt) tTxt.innerText = liveTelemetry.tilt.toFixed(1) + "°";
+                        let axTxt = document.getElementById('imuAxTxt'); if (axTxt && d.ax !== undefined) axTxt.innerText = Number(d.ax).toFixed(1);
+                        let ayTxt = document.getElementById('imuAyTxt'); if (ayTxt && d.ay !== undefined) ayTxt.innerText = Number(d.ay).toFixed(1);
+                        let azTxt = document.getElementById('imuAzTxt'); if (azTxt && d.az !== undefined) azTxt.innerText = Number(d.az).toFixed(1);
+                        let tAlert = document.getElementById('tiltAlertBadge'); if (tAlert) tAlert.style.display = d.tilt_alert ? "inline-block" : "none";
+                    }
+                })
+                .catch(() => { })
+                .finally(() => {
+                    clearTimeout(tm);
+                    isPolling = false;
+                    setTimeout(updateTelemetry, (currentDriveDir === 'stop') ? 350 : 600);
+                });
+        }
+        updateTelemetry();
+    </script>
+</body>
+
+</html>
