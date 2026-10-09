@@ -55,9 +55,7 @@
   </category>
 
   <!-- Variables -->
-  
-
-  <sep></sep>
+  <category name="Variables" colour="330" custom="VARIABLE"></category>
 
   <!-- Custom Hardware -->
     <category name="Motor" colour="110">
@@ -216,4 +214,17 @@
 		<block type="qtpi_humidity_read"></block>
 		<block type="qtpi_aht20_get_aht20"></block>
 	</category>
-    </xml>
+		<!-- System -->
+	<category name="System" colour="60">
+		<block type="qtpi_neo_sleep">
+		<value name="duration">
+			<shadow type="math_number"><field name="NUM">1</field></shadow>
+		</value>
+		</block>
+		<block type="qtpi_neo_sleep_ms">
+		<value name="duration">
+			<shadow type="math_number"><field name="NUM">500</field></shadow>
+		</value>
+		</block>
+	</category>
+	</xml>

@@ -1496,6 +1496,25 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 260,
     "tooltip": "Show / update all the aht20 controlled by the referenced aht20 object.",
     "helpUrl": "https://schoolrobotics.com/docs/micropython/aht20.html"
+  },
+  // System Sleep Blocks
+  {
+    "type": "qtpi_neo_sleep",
+    "message0": "Sleep %1 seconds",
+    "args0": [{ "type": "input_value", "name": "duration", "check": "Number" }],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "tooltip": "Wait for a specified number of seconds."
+  },
+  {
+    "type": "qtpi_neo_sleep_ms",
+    "message0": "Sleep %1 milliseconds",
+    "args0": [{ "type": "input_value", "name": "duration", "check": "Number" }],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 210,
+    "tooltip": "Wait for a specified number of milliseconds."
   }
 ]);
 Blockly.defineBlocksWithJsonArray([{

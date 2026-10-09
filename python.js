@@ -419,3 +419,15 @@ registerPythonBlock('qtpi_aht20_get_aht20', function (a) {
 registerPythonBlock('lists_create_empty', function (a) {
         return ["[]", Blockly.Python.ORDER_ATOMIC];
 });
+// Sleep Generators
+registerPythonBlock('qtpi_neo_sleep', function(block) {
+  Blockly.Python.definitions_['import_neo_sleep'] = 'from time import sleep';
+  const duration = Blockly.Python.valueToCode(block, 'duration', Blockly.Python.ORDER_ATOMIC) || '0';
+  return `sleep(${duration})\n`;
+});
+
+registerPythonBlock('qtpi_neo_sleep_ms', function(block) {
+  Blockly.Python.definitions_['import_neo_sleep_ms'] = 'from time import sleep_ms';
+  const duration = Blockly.Python.valueToCode(block, 'duration', Blockly.Python.ORDER_ATOMIC) || '0';
+  return `sleep_ms(${duration})\n`;
+});
