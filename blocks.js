@@ -1,20 +1,25 @@
 Blockly.defineBlocksWithJsonArray([
-  // Buzzer Blocks
   {
     "type": "qtpi_buzzer_initialize",
-    "message0": "Buzzer Port %1 Onboard %2 %3",
+    "message0": "Buzzer Onboard %1 %2",
     "args0": [
       {
         "type": "field_dropdown",
-        "name": "port",
-        "options": [["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"]]
+        "name": "ob",
+        "options": [
+          [
+            "True",
+            "True"
+          ],
+          [
+            "False",
+            "False"
+          ]
+        ]
       },
       {
-        "type": "field_dropdown",
-        "name": "ob",
-        "options": [["True", "True"], ["False", "False"]]
-      },
-      { "type": "input_dummy" }
+        "type": "input_dummy"
+      }
     ],
     "output": "buzzer_object",
     "colour": 260,
@@ -24,8 +29,16 @@ Blockly.defineBlocksWithJsonArray([
     "type": "qtpi_buzzer_buzz",
     "message0": "Buzzer %1 Buzz for %2 sec",
     "args0": [
-      { "type": "input_value", "name": "buzzer_object", "check": "buzzer_object" },
-      { "type": "input_value", "name": "secs", "check": "Number" }
+      {
+        "type": "input_value",
+        "name": "buzzer_object",
+        "check": "buzzer_object"
+      },
+      {
+        "type": "input_value",
+        "name": "secs",
+        "check": "Number"
+      }
     ],
     "previousStatement": null,
     "nextStatement": null,
@@ -36,7 +49,11 @@ Blockly.defineBlocksWithJsonArray([
     "type": "qtpi_buzzer_off",
     "message0": "Buzzer Off %1",
     "args0": [
-      { "type": "input_value", "name": "buzzer_object", "check": "buzzer_object" }
+      {
+        "type": "input_value",
+        "name": "buzzer_object",
+        "check": "buzzer_object"
+      }
     ],
     "previousStatement": null,
     "nextStatement": null,
@@ -47,30 +64,38 @@ Blockly.defineBlocksWithJsonArray([
     "type": "qtpi_buzzer_on",
     "message0": "Buzzer On %1",
     "args0": [
-      { "type": "input_value", "name": "buzzer_object", "check": "buzzer_object" }
+      {
+        "type": "input_value",
+        "name": "buzzer_object",
+        "check": "buzzer_object"
+      }
     ],
     "previousStatement": null,
     "nextStatement": null,
     "colour": 260,
     "tooltip": "Turn buzzer on."
   },
-
-  // LED Blocks
   {
     "type": "qtpi_led_initialize",
-    "message0": "LED Port %1 Onboard %2 %3",
+    "message0": "LED Onboard %1 %2",
     "args0": [
       {
         "type": "field_dropdown",
-        "name": "port",
-        "options": [["1", "1"], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"]]
+        "name": "ob",
+        "options": [
+          [
+            "True",
+            "True"
+          ],
+          [
+            "False",
+            "False"
+          ]
+        ]
       },
       {
-        "type": "field_dropdown",
-        "name": "ob",
-        "options": [["True", "True"], ["False", "False"]]
-      },
-      { "type": "input_dummy" }
+        "type": "input_dummy"
+      }
     ],
     "output": "led_object",
     "colour": 260,
@@ -80,8 +105,16 @@ Blockly.defineBlocksWithJsonArray([
     "type": "qtpi_led_brightness",
     "message0": "LED %1 Brightness %2",
     "args0": [
-      { "type": "input_value", "name": "led_object", "check": "led_object" },
-      { "type": "input_value", "name": "brightness", "check": "Number" }
+      {
+        "type": "input_value",
+        "name": "led_object",
+        "check": "led_object"
+      },
+      {
+        "type": "input_value",
+        "name": "brightness",
+        "check": "Number"
+      }
     ],
     "previousStatement": null,
     "nextStatement": null,
@@ -92,19 +125,27 @@ Blockly.defineBlocksWithJsonArray([
     "type": "qtpi_led_off",
     "message0": "LED Off %1",
     "args0": [
-      { "type": "input_value", "name": "led_object", "check": "led_object" }
+      {
+        "type": "input_value",
+        "name": "led_object",
+        "check": "led_object"
+      }
     ],
     "previousStatement": null,
     "nextStatement": null,
     "colour": 260,
     "tooltip": "Turn LED off."
   },
-
-  // System Sleep Blocks
   {
     "type": "qtpi_neo_sleep",
     "message0": "Sleep %1 seconds",
-    "args0": [{ "type": "input_value", "name": "duration", "check": "Number" }],
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "duration",
+        "check": "Number"
+      }
+    ],
     "previousStatement": null,
     "nextStatement": null,
     "colour": 210,
@@ -113,48 +154,22 @@ Blockly.defineBlocksWithJsonArray([
   {
     "type": "qtpi_neo_sleep_ms",
     "message0": "Sleep %1 milliseconds",
-    "args0": [{ "type": "input_value", "name": "duration", "check": "Number" }],
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "duration",
+        "check": "Number"
+      }
+    ],
     "previousStatement": null,
     "nextStatement": null,
     "colour": 210,
     "tooltip": "Wait for a specified number of milliseconds."
-  }
-  ,
-  // Added by script
+  },
   {
     "type": "qtpi_argb_initialize",
-    "message0": "ARGB port %1 with %2 %3 pixel[s] Onboard %4",
+    "message0": "ARGB with %1 %2 pixel[s] Onboard %3",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "6",
-            "6"
-          ]
-        ]
-      },
       {
         "type": "input_dummy"
       },
@@ -544,38 +559,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_buzzer_initialize",
-    "message0": "Buzzer Port %1  Onboard %2 %3",
+    "message0": "Buzzer Onboard %1 %2",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "6",
-            "6"
-          ]
-        ]
-      },
       {
         "type": "field_dropdown",
         "name": "ob",
@@ -657,38 +642,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_display_oled_initialize",
-    "message0": "OLED Port %1 %2 width %3 height %4",
+    "message0": "OLED %1 width %2 height %3",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "6",
-            "6"
-          ]
-        ]
-      },
       {
         "type": "input_dummy"
       },
@@ -899,38 +854,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_ldr_initialize",
-    "message0": "LDR Port %1  Onboard %2 %3",
+    "message0": "LDR Onboard %1 %2",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "6",
-            "6"
-          ]
-        ]
-      },
       {
         "type": "field_dropdown",
         "name": "ob",
@@ -1003,34 +928,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_motor_initialize",
-    "message0": "Motor Port %1 Onboard %2",
+    "message0": "Motor Onboard %1",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "",
-            ""
-          ]
-        ]
-      },
       {
         "type": "field_dropdown",
         "name": "ob",
@@ -1084,38 +983,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_mpu6050_initialize",
-    "message0": "MPU6050 Port %1  Onboard %2 %3",
+    "message0": "MPU6050 Onboard %1 %2",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "6",
-            "6"
-          ]
-        ]
-      },
       {
         "type": "field_dropdown",
         "name": "ob",
@@ -1297,30 +1166,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_pumpmotor_initialize",
-    "message0": "Pump Motor Port %1 Onboard %2",
+    "message0": "Pump Motor Onboard %1",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ]
-        ]
-      },
       {
         "type": "field_dropdown",
         "name": "ob",
@@ -1368,38 +1215,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_servo_initialize",
-    "message0": "Servo Port %1  %2 step %3 delay %4 start position %5 Onboard %6",
+    "message0": "Servo %1 step %2 delay %3 start position %4 Onboard %5",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "6",
-            "6"
-          ]
-        ]
-      },
       {
         "type": "input_dummy"
       },
@@ -1512,38 +1329,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_tof_initialize",
-    "message0": "TOF Port %1  Onboard %2 %3",
+    "message0": "TOF Onboard %1 %2",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "6",
-            "6"
-          ]
-        ]
-      },
       {
         "type": "field_dropdown",
         "name": "ob",
@@ -1613,9 +1400,7 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 260,
     "tooltip": "enable tof by the referenced tof object.",
     "helpUrl": "https://schoolrobotics.com/docs/micropython/tof.html"
-  }
-  ,
-  // Added AHT20
+  },
   {
     "type": "qtpi_read_temperature_value",
     "message0": "read temperature value from %1",
@@ -1642,38 +1427,8 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "qtpi_aht20_initialize",
-    "message0": "AHT20 Port %1  Onboard %2 %3",
+    "message0": "AHT20 Onboard %1 %2",
     "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "port",
-        "options": [
-          [
-            "1",
-            "1"
-          ],
-          [
-            "2",
-            "2"
-          ],
-          [
-            "3",
-            "3"
-          ],
-          [
-            "4",
-            "4"
-          ],
-          [
-            "5",
-            "5"
-          ],
-          [
-            "6",
-            "6"
-          ]
-        ]
-      },
       {
         "type": "field_dropdown",
         "name": "ob",

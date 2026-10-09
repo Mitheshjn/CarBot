@@ -8,7 +8,7 @@ function registerPythonBlock(type, generatorFn) {
 // Buzzer Generators
 registerPythonBlock('qtpi_buzzer_initialize', function (a) {
         Blockly.Python.definitions_.import_buzzer = "from uqtpy.actuators.buzzer import Buzzer";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return ["Buzzer(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
@@ -27,7 +27,7 @@ registerPythonBlock('qtpi_buzzer_off', function (a) {
 // LED Generators
 registerPythonBlock('qtpi_led_initialize', function (a) {
         Blockly.Python.definitions_.import_led = "from uqtpy.actuators.led import LED";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return ["0" === b ? "LED(ob=" + a + ")" : "LED(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
@@ -57,7 +57,7 @@ registerPythonBlock('qtpi_neo_sleep_ms', function (a) {
 // Added by script
 registerPythonBlock('qtpi_argb_initialize', function (a) {
         Blockly.Python.definitions_.import_argb = "from uqtpy.actuators.argb import ARGB";
-        var b = a.getFieldValue("port"),
+        var b = ("1"),
                 c = a.getFieldValue("n");
         a = a.getFieldValue("ob");
         return ["0" === b ? "ARGB( pixels=" + c + ",ob=" + a + ")" : "ARGB(port=" + b + ", pixels=" + c + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
@@ -152,7 +152,7 @@ registerPythonBlock('qtpi_argb_set', function (a) {
 
 registerPythonBlock('qtpi_buzzer_initialize', function (a) {
         Blockly.Python.definitions_.import_buzzer = "from uqtpy.actuators.buzzer import Buzzer";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return ["Buzzer(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
@@ -177,7 +177,7 @@ registerPythonBlock('qtpi_display_oled_initialize', function (a) {
         Blockly.Python.definitions_.import_display_oled = "from uqtpy.actuators.display import OLED";
         var b = Blockly.Python.valueToCode(a, "height", Blockly.Python.ORDER_NONE) || "0",
                 c = Blockly.Python.valueToCode(a, "width", Blockly.Python.ORDER_NONE) || "0";
-        a = a.getFieldValue("port");
+        a = ("1");
         return ["0" === a ? "OLED(height=" + b + ", width=" + c + ")" : "OLED(port=" + a + ", height=" + b + ", width=" + c + ")", Blockly.Python.ORDER_MEMBER]
 });
 
@@ -231,7 +231,7 @@ registerPythonBlock('qtpi_display_oled_draw_rect', function (a) {
 
 registerPythonBlock('qtpi_ldr_initialize', function (a) {
         Blockly.Python.definitions_.import_ldr = "from uqtpy.sensors.ldr import LDR";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return ["0" === b ? "LDR(ob=" + a + ")" : "LDR(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
@@ -253,7 +253,7 @@ registerPythonBlock('qtpi_ldr_disable', function (a) {
 
 registerPythonBlock('qtpi_motor_initialize', function (a) {
         Blockly.Python.definitions_.import_motor = "from uqtpy.actuators.motor import Motor";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return [0 < b.length ? "Motor(port=" + b + ",ob=" + a + ")" : "Motor(ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
@@ -268,7 +268,7 @@ registerPythonBlock('qtpi_motor_rotate', function (a) {
 
 registerPythonBlock('qtpi_mpu6050_initialize', function (a) {
         Blockly.Python.definitions_.import_mpu6050 = "from uqtpy.sensors.mpu6050 import MPU6050";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return ["0" === b ? "MPU6050(ob=" + a + ")" : "MPU6050(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
@@ -325,7 +325,7 @@ registerPythonBlock('qtpi_mpu6050_get_mpu6050', function (a) {
 
 registerPythonBlock('qtpi_pumpmotor_initialize', function (a) {
         Blockly.Python.definitions_.import_pumpmotor = "from uqtpy.actuators.pumpmotor import PumpMotor";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return ["PumpMotor(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
@@ -339,7 +339,7 @@ registerPythonBlock('qtpi_pumpmotor_run', function (a) {
 
 registerPythonBlock('qtpi_servo_initialize', function (a) {
         Blockly.Python.definitions_.import_servo = "from uqtpy.actuators.servo import Servo";
-        var b = a.getFieldValue("port"),
+        var b = ("1"),
                 c = Blockly.Python.valueToCode(a, "step", Blockly.Python.ORDER_NONE) || "1",
                 d = Blockly.Python.valueToCode(a, "delay", Blockly.Python.ORDER_NONE) || "1",
                 e = a.getFieldValue("start_angle");
@@ -367,7 +367,7 @@ registerPythonBlock('qtpi_servo_current_position', function (a) {
 
 registerPythonBlock('qtpi_tof_initialize', function (a) {
         Blockly.Python.definitions_.import_tof = "from uqtpy.sensors.tof import TOF";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return ["0" === b ? "TOF(ob=" + a + ")" : "TOF(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
@@ -395,7 +395,7 @@ registerPythonBlock('qtpi_tof_disable', function (a) {
 // Added AHT20
 registerPythonBlock('qtpi_aht20_initialize', function (a) {
         Blockly.Python.definitions_.import_aht20 = "from uqtpy.sensors.aht20 import AHT20";
-        var b = a.getFieldValue("port");
+        var b = ("1");
         a = a.getFieldValue("ob");
         return ["0" === b ? "AHT20(ob=" + a + ")" : "AHT20(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
