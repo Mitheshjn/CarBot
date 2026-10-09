@@ -58,6 +58,7 @@
 		</block>
 	</category>
 	<category name="CAT_MATH" colour="#008000">
+		<block type="lists_create_empty"></block>
 		<block type="math_number">
 			<field name="NUM">
 				123

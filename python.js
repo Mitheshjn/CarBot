@@ -416,3 +416,6 @@ registerPythonBlock('qtpi_aht20_get_aht20', function (a) {
         Blockly.Python.definitions_.import_aht20 = "from uqtpy.sensors.aht20 import AHT20";
         return [Blockly.Python.valueToCode(a, "aht20_object", Blockly.Python.ORDER_MEMBER) + ".read_temperature_humidity()", Blockly.Python.ORDER_MEMBER]
 });
+registerPythonBlock('lists_create_empty', function (a) {
+        return ["[]", Blockly.Python.ORDER_ATOMIC];
+});

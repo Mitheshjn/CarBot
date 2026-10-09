@@ -14,13 +14,13 @@
   <script src="https://unpkg.com/blockly/python_compressed.js"></script>
 
   <!-- Custom Block Definitions & Python Generators -->
-  <script src="blocks.js"></script>
-  <script src="python.js"></script>
+  <script>document.write('<script src="blocks.js?v=' + Date.now() + '"><\\/script>');</script>
+  <script>document.write('<script src="python.js?v=' + Date.now() + '"><\\/script>');</script>
 </head>
 <body>
 
   <header>
-    <h1>ESP32 / MicroPython Blockly Studio</h1>
+    <h1></h1>
     <button onclick="copyPythonCode()">Copy Python Code</button>
   </header>
 
@@ -36,8 +36,8 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
-        // 1. Fetch external toolbox.xml
-        const response = await fetch('toolbox.xml');
+        // 1. Fetch external toolbox.xml (with cache busting)
+        const response = await fetch('toolbox.xml?v=' + new Date().getTime());
         const toolboxText = await response.text();
         const parser = new DOMParser();
         const toolboxXml = parser.parseFromString(toolboxText, 'text/xml').documentElement;

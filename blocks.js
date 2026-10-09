@@ -1498,3 +1498,11 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/aht20.html"
   }
 ]);
+Blockly.defineBlocksWithJsonArray([{
+        "type": "lists_create_empty",
+        "message0": "create empty list",
+        "output": "Array",
+        "colour": 260,
+        "tooltip": "Creates an empty list.",
+        "helpUrl": ""
+}]);
