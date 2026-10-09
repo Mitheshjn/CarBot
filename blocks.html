@@ -55,56 +55,151 @@ pre,.log{margin:0;background:#090f1b;border:1px solid #273953;border-radius:7px;
 
 <script>
 const $=id=>document.getElementById(id);
-const H={sensor:120,drive:25,state:45,control:260,logic:15,data:165,debug:0};
-const CAT={sensor:'Sensors',drive:'Drive & Actuators',state:'Motion & State',control:'Control & Events',logic:'Logic & Math',data:'Variables',debug:'Debug'};
+const H={sensor:120,drive:25,state:45,control:260,logic:15,data:165,debug:0,motor:220,argb:290,servo:330,mpu:200,distance:180,dht:160,ldr:140,oled:100,buzzer:80};
+const CAT={motor:'Motors',argb:'ARGB',servo:'Servo',mpu:'MPU',distance:'Distance',dht:'AHT22',ldr:'LDR',oled:'OLED',buzzer:'Buzzer',sensor:'Sensors',drive:'Drive & Actuators',state:'Motion & State',control:'Control & Events',logic:'Logic & Math',data:'Variables',debug:'Debug'};
 // type, category, message, args, kind  (o=number out, b=boolean out, x=text out, a=any out, s=statement, h=hat)
 // args: d:A|B dropdown, i:text field, f0 number field, n60 number slot, a0 any slot (number default), t:text slot, b bool slot, s statement
 const S=[
-['mpu','sensor','MPU %1',['d:accel X|accel Y|accel Z|gyro X|gyro Y|gyro Z'],'o'],['distance','sensor','distance %1',['d:cm|mm|in'],'o'],
-['temperature','sensor','temperature (DHT) %1',['d:°C|°F'],'o'],['humidity','sensor','humidity (DHT) %1',['d:%'],'o'],['light','sensor','light level (LDR)',[],'o'],
-['move','drive','move %1 at speed %2',['d:forward|backward|left|right','n60'],'s'],['drive','drive','drive %1 %2 cm at speed %3',['d:forward|backward','n50','n60'],'s'],
-['turn','drive','turn %1 %2 °',['d:left|right','n90'],'s'],['stop','drive','stop motors',[],'s'],['motor','drive','motors L %1 R %2',['n50','n50'],'s'],
-['servo','drive','servo %1 angle %2',['d:S1|S2|S3','n90'],'s'],['gripper','drive','gripper %1',['d:open|close|toggle'],'s'],['buzzer','drive','buzzer %1 Hz for %2 ms',['n440','n200'],'s'],
-['rgb','drive','RGB LED %1',['d:red|green|blue|yellow|cyan|purple|white|off'],'s'],['led','drive','LED %1 %2',['d:L1|L2|L3','d:on|off'],'s'],['relay','drive','relay %1 %2',['d:R1|R2','d:on|off'],'s'],
-['fan','drive','fan speed %1',['n50'],'s'],['pump','drive','pump power %1',['n50'],'s'],['vibrate','drive','vibrate %1 ms',['n200'],'s'],
-['goF','drive','move forward at speed %1',['n60'],'s'],['goB','drive','move backward at speed %1',['n60'],'s'],['spinL','drive','turn left at speed %1',['n50'],'s'],['spinR','drive','turn right at speed %1',['n50'],'s'],
-['isMoving','state','rover is %1',['d:moving forward|moving backward|turning left|turning right|stopped'],'b'],['whenState','state','when rover starts %1 do %2',['d:moving forward|moving backward|turning left|turning right|stopped','s'],'h'],
-['ledIs','state','LED %1 is %2',['d:L1|L2|L3','d:on|off'],'b'],['rgbIs','state','RGB LED is %1',['d:red|green|blue|yellow|cyan|purple|white|off'],'b'],['relayIs','state','relay %1 is %2',['d:R1|R2','d:on|off'],'b'],
-['gripIs','state','gripper is %1',['d:open|closed'],'b'],['blocked','state','rover is blocked',[],'b'],['near','state','obstacle within %1 cm',['n20'],'b'],
-['event','control','on %1 do %2',['d:startup|button|obstacle|low battery|message','s'],'h'],['every','control','every %1 ms do %2',['n1000','s'],'h'],['proc','control','procedure %1 %2',['i:myRoutine','s'],'h'],
-['if','control','if %1 then %2 else %3',['b','s','s'],'s'],['repeat','control','repeat %1 times %2',['n5','s'],'s'],['for','control','for i from %1 to %2 %3',['n1','n10','s'],'s'],
-['while','control','while %1 %2',['b','s'],'s'],['waitu','control','wait until %1',['b'],'s'],['break','control','break loop',[],'s'],['wait','control','wait %1 ms',['n500'],'s'],
-['call','control','call %1',['i:myRoutine'],'s'],['halt','control','stop program',[],'s'],
-['compare','logic','%1 %2 %3',['a0','d:=|≠|>|<|≥|≤','a0'],'b'],['logic','logic','%1 %2 %3',['b','d:AND|OR|XOR','b'],'b'],['not','logic','not %1',['b'],'b'],
-['math','logic','%1 %2 %3',['n0','d:+|−|×|÷|%|^','n0'],'o'],['mathfn','logic','%1 of %2',['d:abs|sqrt|round|ceil|floor|sin|cos|tan','n0'],'o'],
-['clamp','logic','clamp %1 min %2 max %3',['n0','n0','n100'],'o'],['map','logic','map %1 from %2–%3 to %4–%5',['n0','n0','n1023','n0','n100'],'o'],
-['random','logic','random %1 to %2',['n0','n100'],'o'],['num','logic','%1',['f0'],'o'],['str','logic','“%1”',['i:hello'],'x'],['bool','logic','%1',['d:true|false'],'b'],
-
-['setvar','data','set %1 to %2',['i:counter','a0'],'s'],['getvar','data','get %1',['i:counter'],'a'],['inc','data','change %1 by %2',['i:counter','n1'],'s'],
-['log','debug','log %1',['t:Hello rover'],'s'],['dbg','debug','debug LED %1',['d:blink|fast|error'],'s']
+  ['mpu','mpu','MPU %1',['d:accel X|accel Y|accel Z|gyro X|gyro Y|gyro Z'],'o'],
+  ['distance','distance','distance %1',['d:cm|mm|in'],'o'],
+  ['temperature','dht','temperature (DHT) %1',['d:°C|°F'],'o'],
+  ['humidity','dht','humidity (DHT) %1',['d:%'],'o'],
+  ['light','ldr','light level (LDR)',[],'o'],
+  ['move','motor','move %1 at speed %2',['d:forward|backward|left|right','n60'],'s'],
+  ['drive','motor','drive %1 %2 cm at speed %3',['d:forward|backward','n50','n60'],'s'],
+  ['turn','motor','turn %1 %2 °',['d:left|right','n90'],'s'],
+  ['stop','motor','stop motors',[],'s'],
+  ['motor','motor','motors L %1 R %2',['n50','n50'],'s'],
+  ['servo','servo','servo %1 angle %2',['d:S1|S2|S3','n90'],'s'],
+  ['gripper','servo','gripper %1',['d:open|close|toggle'],'s'],
+  ['buzzer','buzzer','buzzer %1 Hz for %2 ms',['n440','n200'],'s'],
+  ['rgb','argb','RGB LED %1',['d:red|green|blue|yellow|cyan|purple|white|off'],'s'],
+  ['led','drive','LED %1 %2',['d:L1|L2|L3','d:on|off'],'s'],
+  ['relay','drive','relay %1 %2',['d:R1|R2','d:on|off'],'s'],
+  ['fan','drive','fan speed %1',['n50'],'s'],
+  ['pump','drive','pump power %1',['n50'],'s'],
+  ['vibrate','drive','vibrate %1 ms',['n200'],'s'],
+  ['goF','motor','move forward at speed %1',['n60'],'s'],
+  ['goB','motor','move backward at speed %1',['n60'],'s'],
+  ['spinL','motor','turn left at speed %1',['n50'],'s'],
+  ['spinR','motor','turn right at speed %1',['n50'],'s'],
+  ['isMoving','state','rover is %1',['d:moving forward|moving backward|turning left|turning right|stopped'],'b'],
+  ['whenState','state','when rover starts %1 do %2',['d:moving forward|moving backward|turning left|turning right|stopped','s'],'h'],
+  ['ledIs','state','LED %1 is %2',['d:L1|L2|L3','d:on|off'],'b'],
+  ['rgbIs','state','RGB LED is %1',['d:red|green|blue|yellow|cyan|purple|white|off'],'b'],
+  ['relayIs','state','relay %1 is %2',['d:R1|R2','d:on|off'],'b'],
+  ['gripIs','state','gripper is %1',['d:open|closed'],'b'],
+  ['blocked','state','rover is blocked',[],'b'],
+  ['near','state','obstacle within %1 cm',['n20'],'b'],
+  ['event','control','on %1 do %2',['d:startup|button|obstacle|low battery|message','s'],'h'],
+  ['every','control','every %1 ms do %2',['n1000','s'],'h'],
+  ['proc','control','procedure %1 %2',['i:myRoutine','s'],'h'],
+  ['if','control','if %1 then %2 else %3',['b','s','s'],'s'],
+  ['repeat','control','repeat %1 times %2',['n5','s'],'s'],
+  ['for','control','for i from %1 to %2 %3',['n1','n10','s'],'s'],
+  ['while','control','while %1 %2',['b','s'],'s'],
+  ['waitu','control','wait until %1',['b'],'s'],
+  ['break','control','break loop',[],'s'],
+  ['wait','control','wait %1 ms',['n500'],'s'],
+  ['call','control','call %1',['i:myRoutine'],'s'],
+  ['halt','control','stop program',[],'s'],
+  ['compare','logic','%1 %2 %3',['a0','d:=|≠|>|<|≥|≤','a0'],'b'],
+  ['logic','logic','%1 %2 %3',['b','d:AND|OR|XOR','b'],'b'],
+  ['not','logic','not %1',['b'],'b'],
+  ['math','logic','%1 %2 %3',['n0','d:+|−|×|÷|%|^','n0'],'o'],
+  ['mathfn','logic','%1 of %2',['d:abs|sqrt|round|ceil|floor|sin|cos|tan','n0'],'o'],
+  ['clamp','logic','clamp %1 min %2 max %3',['n0','n0','n100'],'o'],
+  ['map','logic','map %1 from %2–%3 to %4–%5',['n0','n0','n1023','n0','n100'],'o'],
+  ['random','logic','random %1 to %2',['n0','n100'],'o'],
+  ['num','logic','%1',['f0'],'o'],
+  ['str','logic','“%1”',['i:hello'],'x'],
+  ['bool','logic','%1',['d:true|false'],'b'],
+  ['setvar','data','set %1 to %2',['i:counter','a0'],'s'],
+  ['getvar','data','get %1',['i:counter'],'a'],
+  ['inc','data','change %1 by %2',['i:counter','n1'],'s'],
+  ['log','debug','log %1',['t:Hello rover'],'s'],
+  ['dbg','debug','debug LED %1',['d:blink|fast|error'],'s'],
+  ['aht_init','dht','AHT20 Port %1 Onboard %2',['d:1|2|3|4','d:True|False'],'s'],
+  ['aht_temp','dht','Read Temperature Value %1',['v'],'ov'],
+  ['aht_hum','dht','Read Humidity Value %1',['v'],'ov'],
+  ['aht_read','dht','Read AHT20 Values %1',['v'],'sv'],
+  ['ldr_init','ldr','LDR Port %1 Onboard %2',['d:1|2|3|4','d:True|False'],'s'],
+  ['ldr_read','ldr','Read LDR Value from %1',['v'],'ov'],
+  ['ldr_enable','ldr','Enable LDR %1',['v'],'sv'],
+  ['ldr_disable','ldr','Disable LDR %1',['v'],'sv'],
+  ['oled_init','oled','OLED Port %1 width %2 height %3',['d:1|2','v','v'],'sv'],
+  ['oled_clear','oled','OLED Clear %1',['v'],'sv'],
+  ['oled_display','oled','OLED Display %1',['v'],'sv'],
+  ['oled_pixel','oled','OLED Display Pixel %1 x %2 y %3',['v','v','v'],'sv'],
+  ['oled_text','oled','OLED Display Text %1 text %2 row %3 column %4',['v','e','v','v'],'sv'],
+  ['oled_line','oled','OLED Display line %1 Start row %2 Start column %3 End row %4 End column %5',['v','v','v','v','v'],'sv'],
+  ['oled_rect','oled','OLED Display Rectangle %1 Start row %2 Start column %3 End row %4 End column %5 Infill %6',['v','v','v','v','v','d:True|False'],'sv'],
+  ['buz_init','buzzer','Buzzer Port %1 Onboard %2',['d:1|2|3|4','d:True|False'],'s'],
+  ['buz_on','buzzer','Buzzer On %1',['v'],'sv'],
+  ['buz_off','buzzer','Buzzer Off %1',['v'],'sv'],
+  ['buz_sec','buzzer','Buzzer Buzz %1 secs %2',['v','v'],'sv'],
+  ['argb_init','argb','ARGB port %1 with %2 pixel(s) Onboard %3',['d:1|2|3|4','v','d:True|False'],'s'],
+  ['argb_clear','argb','ARGB Clear all pixels %1',['v'],'sv'],
+  ['argb_display','argb','ARGB Display %1',['v'],'sv'],
+  ['argb_red','argb','ARGB Red %1 pixel(s) %2 brightness %3',['v','v','v'],'sv'],
+  ['argb_green','argb','ARGB Green %1 pixel(s) %2 brightness %3',['v','v','v'],'sv'],
+  ['argb_blue','argb','ARGB Blue %1 pixel(s) %2 brightness %3',['v','v','v'],'sv'],
+  ['argb_yellow','argb','ARGB Yellow %1 pixel(s) %2',['v','v'],'sv'],
+  ['argb_orange','argb','ARGB Orange %1 pixel(s) %2',['v','v'],'sv'],
+  ['argb_violet','argb','ARGB Violet %1 pixel(s) %2',['v','v'],'sv'],
+  ['argb_indigo','argb','ARGB Indigo %1 pixel(s) %2',['v','v'],'sv'],
+  ['argb_white','argb','ARGB White %1 pixel(s) %2',['v','v'],'sv'],
+  ['argb_rgb','argb','ARGB %1 pixel(s) %2 with red %3 green %4 blue %5 show %6',['v','v','v','v','v','d:True|False'],'sv'],
+  ['servo_init2','servo','Servo Port %1 step %2 delay %3 start position %4 Onboard %5',['d:1|2|3|4','n10','n10','n90','d:True|False'],'s'],
+  ['servo_rot2','servo','Rotate %1 degree %2',['v','v'],'sv'],
+  ['servo_sweep','servo','Servo Sweep %1 start angle %2 stop angle %3',['v','v','v'],'sv'],
+  ['servo_pos','servo','Get Current Position %1',['v'],'ov'],
+  ['mpu_init','mpu','MPU6050 Port %1 Onboard %2',['d:1|2|3|4','d:True|False'],'s'],
+  ['mpu_gyro','mpu','Read Gyro Value %1',['v'],'ov'],
+  ['mpu_accel','mpu','Read Accelerometer Value %1',['v'],'ov'],
+  ['mpu_read','mpu','Read MPU6050 Values %1',['v'],'sv'],
+  ['tof_init','distance','TOF Port %1 Onboard %2',['d:1|2|3|4','d:True|False'],'s'],
+  ['tof_read','distance','TOF Read Distance in Millimeter %1',['v'],'ov'],
+  ['tof_ena','distance','Enable TOF value Read %1',['v'],'sv'],
+  ['tof_dis','distance','Disable TOF %1',['v'],'sv'],
+  ['motor_init','motor','Motor Port %1 Onboard %2',['d:1|2|3|4','d:True|False'],'s'],
+  ['motor_rot','motor','Rotate Motor %1 speed %2 direction %3',['v','v','v'],'sv']
 ];
 const R={};S.forEach(r=>R[r[0]]={c:r[1],m:r[2],a:r[3],k:r[4]});
 Blockly.defineBlocksWithJsonArray(S.map(([type,c,m,a,k])=>{
-  const j={type,message0:m,colour:H[c],inputsInline:!a.includes('s')};
+  const j={type,message0:m,colour:H[c],inputsInline:!(a.includes('s') || (k && k.includes('v')))};
   if(a.length)j.args0=a.map((s,i)=>{const n='A'+i,q=s[0];
     if(q=='d')return{type:'field_dropdown',name:n,options:s.slice(2).split('|').map(x=>[x,x])};
     if(q=='i')return{type:'field_input',name:n,text:s.slice(2)};
     if(q=='f')return{type:'field_number',name:n,value:+s.slice(1)};
     if(q=='s')return{type:'input_statement',name:n};
     return{type:'input_value',name:n,check:q=='n'?'Number':q=='b'?'Boolean':null}});
-  if(k=='s'){j.previousStatement=null;j.nextStatement=null}
-  else if(k!='h')j.output={o:'Number',b:'Boolean',x:'String',a:null}[k];
+  if(k=='s' || k=='sv'){j.previousStatement=null;j.nextStatement=null}
+  else if(k!='h')j.output={o:'Number',b:'Boolean',x:'String',a:null,ov:'Number',av:null}[k];
   return j}));
 function snip(t){return `<block type="${t}">`+R[t].a.map((s,i)=>'na'.includes(s[0])?`<value name="A${i}"><shadow type="num"><field name="A0">${s.slice(1)||0}</field></shadow></value>`:s[0]=='t'?`<value name="A${i}"><shadow type="str"><field name="A0">${s.slice(2)}</field></shadow></value>`:'').join('')+'</block>'}
 
 // ---------- hardware ----------
 const hw=[
-['IMU','Accelerometer, gyro, compass','I2C SDA/SCL',['mpu','heading']],['Ultrasonic','Front distance','TRIG D5 • ECHO D6',['distance']],['IR','Obstacle / edge','D2 / D3',['ir']],
-['Environment','Temp, humidity, pressure, gas','I2C / A0–A1',['temperature','humidity','pressure','gas']],['Light & sound','Ambient sensors','A7 / A8',['light','sound']],['RGB color','Object color','I2C',['color']],
-['Line array','Line following','A2–A5',['line']],['Servos','Arm / pan / steering','PWM S1–S3',['servo','gripper']],['RGB / LEDs','Status lights','PWM R9 G10 B11',['rgb','led']],['Buzzer','Sound','D12',['buzzer']],
-['Motor driver','Differential drive','PWM M1/M2',['move','drive','turn','stop','motor','goF','goB','spinL','spinR']],['Encoder','Wheel distance / speed','D18/D19',['encoder']],['GPS','Coordinates','UART',['gps']],
-['Camera / AI','Vision & tracking','USB / Wi-Fi',['object','target','camera','follow','scan']],['Fan / pump','Cooling / liquids','PWM',['fan','pump']],['Relay','External loads','R1/R2',['relay']],
-['Vibration','Haptics','D13',['vibrate']],['Touch / flame / PIR','Digital sensors','D7–D9',['touch','flame','pir']],['Radio','Rover messaging','Wi-Fi',['send','broadcast','sync']]
+  ['IMU','Accelerometer, gyro, compass','I2C SDA/SCL',['mpu','heading']],
+  ['Ultrasonic','Front distance','TRIG D5 • ECHO D6',['distance']],
+  ['IR','Obstacle / edge','D2 / D3',['ir']],
+  ['Environment','Temp, humidity, pressure, gas','I2C / A0–A1',['temperature','humidity','pressure','gas']],
+  ['Light & sound','Ambient sensors','A7 / A8',['light','sound']],
+  ['RGB color','Object color','I2C',['color']],
+  ['Line array','Line following','A2–A5',['line']],
+  ['Servos','Arm / pan / steering','PWM S1–S3',['servo','gripper']],
+  ['RGB / LEDs','Status lights','PWM R9 G10 B11',['rgb','led']],
+  ['Buzzer','Sound','D12',['buzzer']],
+  ['Motor driver','Differential drive','PWM M1/M2',['move','drive','turn','stop','motor','goF','goB','spinL','spinR']],
+  ['Encoder','Wheel distance / speed','D18/D19',['encoder']],
+  ['GPS','Coordinates','UART',['gps']],
+  ['Camera / AI','Vision & tracking','USB / Wi-Fi',['object','target','camera','follow','scan']],
+  ['Fan / pump','Cooling / liquids','PWM',['fan','pump']],
+  ['Relay','External loads','R1/R2',['relay']],
+  ['Vibration','Haptics','D13',['vibrate']],
+  ['Touch / flame / PIR','Digital sensors','D7–D9',['touch','flame','pir']],
+  ['Radio','Rover messaging','Wi-Fi',['send','broadcast','sync']]
 ].map(x=>({n:x[0],d:x[1],p:x[2],t:x[3],on:true}));
 let off=new Set();
 if($('hwgrid'))$('hwgrid').innerHTML=hw.map((m,i)=>`<div class="hw"><h4>${m.n}</h4><p>${m.d}</p><div class="pins">${m.p}</div><label><input type="checkbox" checked onchange="hw[${i}].on=this.checked;hwCheck()"> Installed</label></div>`).join('');
@@ -113,9 +208,9 @@ function hwCheck(){off=new Set(hw.filter(m=>!m.on).flatMap(m=>m.t));
   document.querySelectorAll('.block-btn').forEach(x=>x.classList.toggle('off',off.has(x.dataset.type)))}
 
 // ---------- workspace ----------
-const theme=Blockly.Theme.defineTheme('rover',{base:Blockly.Themes.Zelos,componentStyles:{workspaceBackgroundColour:'#0e1726',scrollbarColour:'#4a5f82',insertionMarkerColour:'#fff',insertionMarkerOpacity:.3,toolboxBackgroundColour:'#080d18',toolboxForegroundColour:'#91a2bb',flyoutBackgroundColour:'#111b2d',flyoutForegroundColour:'#cbd5e1',flyoutOpacity:0.98}});
+const theme=Blockly.Theme.defineTheme('rover',{base:Blockly.Themes.Classic,componentStyles:{workspaceBackgroundColour:'#0e1726',scrollbarColour:'#4a5f82',insertionMarkerColour:'#fff',insertionMarkerOpacity:.3,toolboxBackgroundColour:'#080d18',toolboxForegroundColour:'#91a2bb',flyoutBackgroundColour:'#111b2d',flyoutForegroundColour:'#cbd5e1',flyoutOpacity:0.98}});
 const tbx='<xml>'+Object.keys(CAT).map(c=>`<category name="${CAT[c]}" colour="${H[c]}">`+S.filter(r=>r[1]==c).map(r=>snip(r[0])).join('')+`</category>`).join('')+'</xml>';
-const ws=Blockly.inject('blockly',{toolbox:tbx,theme,renderer:'zelos',grid:{spacing:20,length:3,colour:'#25344c',snap:true},zoom:{controls:true,wheel:true,startScale:.85,maxScale:1.5,minScale:.4},trashcan:true,move:{scrollbars:true,drag:true,wheel:false}});
+const ws=Blockly.inject('blockly',{toolbox:tbx,theme,grid:{spacing:20,length:3,colour:'#25344c',snap:true},zoom:{controls:true,wheel:true,startScale:.85,maxScale:1.5,minScale:.4},trashcan:true,move:{scrollbars:true,drag:true,wheel:false}});
 let loading=false;
 function place(t,x,y){const b=Blockly.Xml.domToBlock(Blockly.utils.xml.textToDom('<xml>'+snip(t)+'</xml>').firstChild,ws);
   b.moveTo(Blockly.utils.svgMath.screenToWsCoordinates(ws,new Blockly.utils.Coordinate(x,y)));b.select();hwCheck();return b}
