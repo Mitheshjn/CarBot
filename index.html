@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Blockly to Python Generator</title>
+  <link rel="icon" href="data:,">
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Blockly Core & Python Engine -->
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/blockly/python_compressed.js"></script>
+
+  <!-- Custom Block Definitions & Python Generators -->
+  <script src="blocks.js"></script>
+  <script src="python.js"></script>
+</head>
+<body>
+
+  <header>
+    <h1>ESP32 / MicroPython Blockly Studio</h1>
+    <button onclick="copyPythonCode()">Copy Python Code</button>
+  </header>
+
+  <!-- Required DOM Containers -->
+  <div id="main-container">
+    <div id="blocklyArea">
+      <div id="blocklyDiv"></div>
+    </div>
+    <div id="codeArea">
+      <div class="title">Generated Python Code</div>
+      <pre id="pythonCode"># Connect blocks to generate code...</pre>
+    </div>
+  </div>
+
+  <script>
+    let workspace;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // 1. Fetch external toolbox.xml
+        const response = await fetch('toolbox.xml');
+        const toolboxText = await response.text();
+        const parser = new DOMParser();
+        const toolboxXml = parser.parseFromString(toolboxText, 'text/xml').documentElement;
+
+        // 2. Inject Blockly into #blocklyDiv
+        workspace = Blockly.inject('blocklyDiv', {
+          toolbox: toolboxXml,
+          media: 'https://unpkg.com/blockly/media/',
+          grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
+          zoom: { controls: true, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
+          trashcan: true
+        });
+
+        // 3. Real-time Python Code Generator
+        workspace.addChangeListener((event) => {
+          if (event.isUiEvent) return;
+          updatePythonCode();
+        });
+
+        window.addEventListener('resize', () => Blockly.svgResize(workspace), false);
+      } catch (err) {
+        console.error('Failed to load toolbox or inject workspace:', err);
+      }
+    });
+
+    function updatePythonCode() {
+      if (!workspace) return;
+      try {
+        const code = Blockly.Python.workspaceToCode(workspace);
+        document.getElementById('pythonCode').textContent = code || '# Connect blocks to generate code...';
+      } catch (e) {
+        document.getElementById('pythonCode').textContent = '# Error generating code:\n# ' + e.message;
+      }
+    }
+
+    function copyPythonCode() {
+      const codeText = document.getElementById('pythonCode').textContent;
+      navigator.clipboard.writeText(codeText).then(() => {
+        alert('Python code copied to clipboard!');
+      });
+    }
+  </script>
+</body>
+</html>

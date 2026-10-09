@@ -1,0 +1,91 @@
+<xml xmlns="https://developers.google.com/blockly/xml" id="toolbox">
+  <!-- Logic -->
+  <category name="Logic" colour="#ffb400">
+    <block type="controls_if"></block>
+    <block type="logic_compare"></block>
+    <block type="logic_operation"></block>
+    <block type="logic_negate"></block>
+    <block type="logic_boolean"></block>
+  </category>
+
+  <!-- Loops -->
+  <category name="Loops" colour="#123456">
+    <block type="controls_repeat_ext">
+      <value name="TIMES">
+        <shadow type="math_number"><field name="NUM">10</field></shadow>
+      </value>
+    </block>
+    <block type="controls_whileUntil"></block>
+    <block type="controls_for">
+      <value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      <value name="TO"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+      <value name="BY"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+    </block>
+    <block type="controls_flow_statements"></block>
+  </category>
+
+  <!-- Math -->
+  <category name="Math" colour="#008000">
+    <block type="math_number"><field name="NUM">0</field></block>
+    <block type="math_arithmetic">
+      <value name="A"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      <value name="B"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+    </block>
+    <block type="math_single">
+      <value name="NUM"><shadow type="math_number"><field name="NUM">9</field></shadow></value>
+    </block>
+  </category>
+
+  <!-- Text -->
+  <category name="Text" colour="160">
+    <block type="text"></block>
+    <block type="text_print">
+      <value name="TEXT">
+        <shadow type="text"><field name="TEXT">Hello QtPi</field></shadow>
+      </value>
+    </block>
+    <block type="text_join"></block>
+    <block type="text_length"></block>
+  </category>
+
+  <!-- Variables -->
+  <category name="Variables" colour="330" custom="VARIABLE"></category>
+
+  <sep></sep>
+
+  <!-- Custom Actuators -->
+  <category name="QtPi Actuators" colour="200">
+    <category name="Buzzer" colour="32">
+      <block type="qtpi_buzzer_initialize"></block>
+      <block type="qtpi_buzzer_buzz">
+        <value name="secs">
+          <shadow type="math_number"><field name="NUM">1</field></shadow>
+        </value>
+      </block>
+      <block type="qtpi_buzzer_off"></block>
+    </category>
+    <category name="LED" colour="210">
+      <block type="qtpi_led_initialize"></block>
+      <block type="qtpi_led_brightness">
+        <value name="brightness">
+          <shadow type="math_number"><field name="NUM">512</field></shadow>
+        </value>
+      </block>
+      <block type="qtpi_led_off"></block>
+    </category>
+  </category>
+
+  <!-- System -->
+  <category name="System" colour="60">
+    <block type="qtpi_neo_sleep">
+      <value name="duration">
+        <shadow type="math_number"><field name="NUM">1</field></shadow>
+      </value>
+    </block>
+    <block type="qtpi_neo_sleep_ms">
+      <value name="duration">
+        <shadow type="math_number"><field name="NUM">500</field></shadow>
+      </value>
+    </block>
+  </category>
+</xml>
