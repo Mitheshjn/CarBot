@@ -402,13 +402,13 @@ registerPythonBlock('qtpi_aht20_initialize', function (a) {
 
 registerPythonBlock('qtpi_temperature_read', function (a) {
         Blockly.Python.definitions_.import_aht20 = "from uqtpy.sensors.aht20 import AHT20";
-        Blockly.Python.valueToCode(a, "pixel", Blockly.Python.ORDER_NONE);
+
         return [Blockly.Python.valueToCode(a, "aht20_object", Blockly.Python.ORDER_MEMBER) + ".read_temperature()", Blockly.Python.ORDER_MEMBER]
 });
 
 registerPythonBlock('qtpi_humidity_read', function (a) {
         Blockly.Python.definitions_.import_aht20 = "from uqtpy.sensors.aht20 import AHT20";
-        Blockly.Python.valueToCode(a, "pixel", Blockly.Python.ORDER_NONE);
+
         return [Blockly.Python.valueToCode(a, "aht20_object", Blockly.Python.ORDER_MEMBER) + ".read_humidity()", Blockly.Python.ORDER_MEMBER]
 });
 

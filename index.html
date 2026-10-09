@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Blockly to Python Generator</title>
   <link rel="icon" href="data:,">
 
@@ -28,10 +29,6 @@
     <div id="blocklyArea">
       <div id="blocklyDiv"></div>
     </div>
-    <div id="codeArea">
-      <div class="title">Generated Python Code</div>
-      <pre id="pythonCode"># Connect blocks to generate code...</pre>
-    </div>
   </div>
 
   <script>
@@ -51,6 +48,8 @@
           media: 'https://unpkg.com/blockly/media/',
           grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
           zoom: { controls: true, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
+          move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
+          theme: Blockly.Themes.Classic,
           trashcan: true
         });
 
@@ -67,20 +66,23 @@
     });
 
     function updatePythonCode() {
-      if (!workspace) return;
-      try {
-        const code = Blockly.Python.workspaceToCode(workspace);
-        document.getElementById('pythonCode').textContent = code || '# Connect blocks to generate code...';
-      } catch (e) {
-        document.getElementById('pythonCode').textContent = '# Error generating code:\n# ' + e.message;
-      }
+      // Python code section removed for mobile layout
     }
 
     function copyPythonCode() {
-      const codeText = document.getElementById('pythonCode').textContent;
-      navigator.clipboard.writeText(codeText).then(() => {
-        alert('Python code copied to clipboard!');
-      });
+      if (!workspace) return;
+      try {
+        const codeText = Blockly.Python.workspaceToCode(workspace);
+        if(!codeText) {
+          alert('No blocks connected yet!');
+          return;
+        }
+        navigator.clipboard.writeText(codeText).then(() => {
+          alert('Python code copied to clipboard!');
+        });
+      } catch (e) {
+        alert('Error generating code: ' + e.message);
+      }
     }
   </script>
 </body>
