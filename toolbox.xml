@@ -7,7 +7,6 @@
     <block type="logic_negate"></block>
     <block type="logic_boolean"></block>
   </category>
-
   <!-- Loops -->
   <category name="Loops" colour="#123456">
     <block type="controls_repeat_ext">
@@ -23,7 +22,6 @@
     </block>
     <block type="controls_flow_statements"></block>
   </category>
-
   <!-- Math -->
   <category name="Math" colour="#008000">
     <block type="lists_create_with">
@@ -41,7 +39,6 @@
 		<block type="math_round"><value name="NUM"><shadow type="math_number"><field name="NUM">3.1</field></shadow></value></block>
 		<block type="math_random_int"><value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value><value name="TO"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>
 	</category>
-
   <!-- Text -->
   <category name="Text" colour="160">
     <block type="text"></block>
@@ -53,10 +50,8 @@
     <block type="text_join"></block>
     <block type="text_length"></block>
   </category>
-
   <!-- Variables -->
   <category name="Variables" colour="330" custom="VARIABLE"></category>
-
   <!-- Custom Hardware -->
     <category name="Motor" colour="110">
 				<block type="qtpi_motor_initialize">
@@ -78,16 +73,6 @@
 				<block type="qtpi_argb_green">
 				</block>
 				<block type="qtpi_argb_blue">
-				</block>
-				<block type="qtpi_argb_orange">
-				</block>
-				<block type="qtpi_argb_violet">
-				</block>
-				<block type="qtpi_argb_indigo">
-				</block>
-				<block type="qtpi_argb_white">
-				</block>
-				<block type="qtpi_argb_yellow">
 				</block>
 				<block type="qtpi_argb_set">
 					<value name="red">
@@ -112,7 +97,6 @@
 						</shadow>
 					</value>
 				</block>
-				
 			</category>
     <category name="Servo" colour="230">
 				<block type="qtpi_servo_initialize">
@@ -132,10 +116,6 @@
 					</value>
 				</block>
 				<block type="qtpi_servo_rotate"></block>
-				<block type="qtpi_servo_sweep">
-				</block>
-				<block type="qtpi_servo_current_position">
-				</block>
 			</category>
     <category name="MPU6050" colour="224">
 				<block type="qtpi_mpu6050_initialize">
@@ -152,30 +132,17 @@
 				</block>
 				<block type="qtpi_mpu6050_get_accel">
 				</block>
-				<block type="qtpi_mpu6050_get_temp">
-				</block>
-				<block type="qtpi_mpu6050_get_mpu6050">
-				</block>
 			</category>
     <category name="TOF" colour="180">
 				<block type="qtpi_tof_initialize">
 				</block>
 				<block type="qtpi_tof_read_distance">
 				</block>
-				<block type="qtpi_tof_enable">
-				</block>
-				<block type="qtpi_tof_disable">
-				</block>
 			</category>
-    
     <category name="LDR" colour="165">
 				<block type="qtpi_ldr_initialize">
 				</block>
 				<block type="qtpi_ldr_read">
-				</block>
-				<block type="qtpi_ldr_enable">
-				</block>
-				<block type="qtpi_ldr_disable">
 				</block>
 			</category>
     <category name="OLED" colour="180">
@@ -207,12 +174,10 @@
 					</value>
 				</block>
 			</category>
-
     <category name="AHT20" colour="120">
 		<block type="qtpi_aht20_initialize"></block>
 		<block type="qtpi_temperature_read"></block>
 		<block type="qtpi_humidity_read"></block>
-		<block type="qtpi_aht20_get_aht20"></block>
 	</category>
 		<!-- System -->
 	<category name="System" colour="60">

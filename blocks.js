@@ -423,141 +423,6 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
   },
   {
-    "type": "qtpi_argb_orange",
-    "message0": "ARGB Orange %1 pixel(s) %2",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "argb_object",
-        "check": "argb_object",
-        "align": "RIGHT"
-      },
-      {
-        "type": "input_value",
-        "name": "pixel",
-        "check": [
-          "Number",
-          "Array"
-        ],
-        "align": "RIGHT"
-      }
-    ],
-    "inputsInline": false,
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "turns led into Orange color of selected pixel",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
-  },
-  {
-    "type": "qtpi_argb_indigo",
-    "message0": "ARGB Indigo %1 pixel(s) %2",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "argb_object",
-        "check": "argb_object",
-        "align": "RIGHT"
-      },
-      {
-        "type": "input_value",
-        "name": "pixel",
-        "check": [
-          "Number",
-          "Array"
-        ],
-        "align": "RIGHT"
-      }
-    ],
-    "inputsInline": false,
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "turns led into INDIGO color of selected pixel",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
-  },
-  {
-    "type": "qtpi_argb_violet",
-    "message0": "ARGB Violet %1 pixel(s) %2",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "argb_object",
-        "check": "argb_object",
-        "align": "RIGHT"
-      },
-      {
-        "type": "input_value",
-        "name": "pixel",
-        "check": [
-          "Number",
-          "Array"
-        ],
-        "align": "RIGHT"
-      }
-    ],
-    "inputsInline": false,
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "turns led into VIOLET color of selected pixel",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
-  },
-  {
-    "type": "qtpi_argb_yellow",
-    "message0": "ARGB Yellow %1 pixel(s) %2",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "argb_object",
-        "check": "argb_object",
-        "align": "RIGHT"
-      },
-      {
-        "type": "input_value",
-        "name": "pixel",
-        "check": [
-          "Number",
-          "Array"
-        ],
-        "align": "RIGHT"
-      }
-    ],
-    "inputsInline": false,
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "turns led into YELLOW color of selected pixel",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
-  },
-  {
-    "type": "qtpi_argb_white",
-    "message0": "ARGB White %1 pixel(s) %2",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "argb_object",
-        "check": "argb_object",
-        "align": "RIGHT"
-      },
-      {
-        "type": "input_value",
-        "name": "pixel",
-        "check": [
-          "Number",
-          "Array"
-        ],
-        "align": "RIGHT"
-      }
-    ],
-    "inputsInline": false,
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "turns led into WHITE color of selected pixel",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
-  },
-  {
     "type": "qtpi_buzzer_initialize",
     "message0": "Buzzer Onboard %1 %2",
     "args0": [
@@ -895,38 +760,6 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/ldr.html#ldr"
   },
   {
-    "type": "qtpi_ldr_enable",
-    "message0": "Enable LDR  %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "ldr_object",
-        "check": "ldr_object"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "enable the referenced LDR object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/ldr.html#ldr"
-  },
-  {
-    "type": "qtpi_ldr_disable",
-    "message0": "Disable LDR %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "ldr_object",
-        "check": "ldr_object"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "disable the referenced LDR object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/ldr.html#ldr"
-  },
-  {
     "type": "qtpi_motor_initialize",
     "message0": "Motor Onboard %1",
     "args0": [
@@ -1135,36 +968,6 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "qtpi_mpu6050_get_temp",
-    "message0": "Read Temperature Value %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "mpu6050_object",
-        "check": "mpu6050_object"
-      }
-    ],
-    "output": "Number",
-    "colour": 260,
-    "tooltip": "Show / update all the mpu6050 controlled by the referenced mpu6050 object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
-  },
-  {
-    "type": "qtpi_mpu6050_get_mpu6050",
-    "message0": "Read MPU6050 Values %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "mpu6050_object",
-        "check": "mpu6050_object"
-      }
-    ],
-    "output": "String",
-    "colour": 260,
-    "tooltip": "Show / update all the mpu6050 controlled by the referenced mpu6050 object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
-  },
-  {
     "type": "qtpi_pumpmotor_initialize",
     "message0": "Pump Motor Onboard %1",
     "args0": [
@@ -1283,51 +1086,6 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://qtlearncodelab.github.io/qtpi-shared/docs/uqtpy/html/autoapi/uqtpy/actuators/servo/index.html#rotate"
   },
   {
-    "type": "qtpi_servo_sweep",
-    "message0": "Servo Sweep %1 start angle %2  stop angle %3 ",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "servo_object",
-        "check": "servo_object"
-      },
-      {
-        "type": "input_value",
-        "name": "start_angle",
-        "check": "Number",
-        "value": 0,
-        "min": 0
-      },
-      {
-        "type": "input_value",
-        "name": "end_angle",
-        "check": "Number",
-        "value": 0,
-        "min": 0
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": " Rotate the servo object.",
-    "helpUrl": "https://qtlearncodelab.github.io/qtpi-shared/docs/uqtpy/html/autoapi/uqtpy/actuators/servo/index.html#sweep"
-  },
-  {
-    "type": "qtpi_servo_current_position",
-    "message0": "Get Current Position %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "servo_object",
-        "check": "servo_object"
-      }
-    ],
-    "output": "Number",
-    "colour": 260,
-    "tooltip": "Get The current servo position",
-    "helpUrl": "https://qtlearncodelab.github.io/qtpi-shared/docs/uqtpy/html/autoapi/uqtpy/actuators/servo/index.html#position"
-  },
-  {
     "type": "qtpi_tof_initialize",
     "message0": "TOF Onboard %1 %2",
     "args0": [
@@ -1368,38 +1126,6 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 260,
     "tooltip": "Read values by the referenced tof object in mm unit.",
     "helpUrl": "https://schoolrobotics.com/docs/micropython/tof.html#tof"
-  },
-  {
-    "type": "qtpi_tof_enable",
-    "message0": "Enable TOF value Read %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "tof_object",
-        "check": "tof_object"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "enable tof for read distance value.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/tof.html"
-  },
-  {
-    "type": "qtpi_tof_disable",
-    "message0": "Disable TOF  %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "tof_object",
-        "check": "tof_object"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "enable tof by the referenced tof object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/tof.html"
   },
   {
     "type": "qtpi_read_temperature_value",
@@ -1483,25 +1209,15 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/temperature.html#temperature"
   },
   {
-    "type": "qtpi_aht20_get_aht20",
-    "message0": "Read AHT20 Values %1",
+    "type": "qtpi_neo_sleep",
+    "message0": "Sleep %1 seconds",
     "args0": [
       {
         "type": "input_value",
-        "name": "aht20_object",
-        "check": "aht20_object"
+        "name": "duration",
+        "check": "Number"
       }
     ],
-    "output": "String",
-    "colour": 260,
-    "tooltip": "Show / update all the aht20 controlled by the referenced aht20 object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/aht20.html"
-  },
-  // System Sleep Blocks
-  {
-    "type": "qtpi_neo_sleep",
-    "message0": "Sleep %1 seconds",
-    "args0": [{ "type": "input_value", "name": "duration", "check": "Number" }],
     "previousStatement": null,
     "nextStatement": null,
     "colour": 210,
@@ -1510,7 +1226,13 @@ Blockly.defineBlocksWithJsonArray([
   {
     "type": "qtpi_neo_sleep_ms",
     "message0": "Sleep %1 milliseconds",
-    "args0": [{ "type": "input_value", "name": "duration", "check": "Number" }],
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "duration",
+        "check": "Number"
+      }
+    ],
     "previousStatement": null,
     "nextStatement": null,
     "colour": 210,
@@ -1518,10 +1240,10 @@ Blockly.defineBlocksWithJsonArray([
   }
 ]);
 Blockly.defineBlocksWithJsonArray([{
-        "type": "lists_create_empty",
-        "message0": "create empty list",
-        "output": "Array",
-        "colour": 260,
-        "tooltip": "Creates an empty list.",
-        "helpUrl": ""
+  "type": "lists_create_empty",
+  "message0": "create empty list",
+  "output": "Array",
+  "colour": 260,
+  "tooltip": "Creates an empty list.",
+  "helpUrl": ""
 }]);

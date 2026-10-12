@@ -93,41 +93,6 @@ registerPythonBlock('qtpi_argb_blue', function (a) {
         return b + ".blue(pixels=" + c + ",  brightness=" + a + ")\n"
 });
 
-registerPythonBlock('qtpi_argb_orange', function (a) {
-        Blockly.Python.definitions_.import_argb = "from uqtpy.actuators.argb import ARGB";
-        var b = Blockly.Python.valueToCode(a, "argb_object", Blockly.Python.ORDER_MEMBER);
-        a = Blockly.Python.valueToCode(a, "pixel", Blockly.Python.ORDER_NONE) || "[]";
-        return b + ".orange(pixels=" + a + ")\n"
-});
-
-registerPythonBlock('qtpi_argb_yellow', function (a) {
-        Blockly.Python.definitions_.import_argb = "from uqtpy.actuators.argb import ARGB";
-        var b = Blockly.Python.valueToCode(a, "argb_object", Blockly.Python.ORDER_MEMBER);
-        a = Blockly.Python.valueToCode(a, "pixel", Blockly.Python.ORDER_NONE) || "[]";
-        return b + ".yellow(pixels=" + a + ")\n"
-});
-
-registerPythonBlock('qtpi_argb_white', function (a) {
-        Blockly.Python.definitions_.import_argb = "from uqtpy.actuators.argb import ARGB";
-        var b = Blockly.Python.valueToCode(a, "argb_object", Blockly.Python.ORDER_MEMBER);
-        a = Blockly.Python.valueToCode(a, "pixel", Blockly.Python.ORDER_NONE) || "[]";
-        return b + ".white(pixels=" + a + ")\n"
-});
-
-registerPythonBlock('qtpi_argb_indigo', function (a) {
-        Blockly.Python.definitions_.import_argb = "from uqtpy.actuators.argb import ARGB";
-        var b = Blockly.Python.valueToCode(a, "argb_object", Blockly.Python.ORDER_MEMBER);
-        a = Blockly.Python.valueToCode(a, "pixel", Blockly.Python.ORDER_NONE) || "[]";
-        return b + ".indigo(pixels=" + a + ")\n"
-});
-
-registerPythonBlock('qtpi_argb_violet', function (a) {
-        Blockly.Python.definitions_.import_argb = "from uqtpy.actuators.argb import ARGB";
-        var b = Blockly.Python.valueToCode(a, "argb_object", Blockly.Python.ORDER_MEMBER);
-        a = Blockly.Python.valueToCode(a, "pixel", Blockly.Python.ORDER_NONE) || "[]";
-        return b + ".violet(pixels=" + a + ")\n"
-});
-
 registerPythonBlock('qtpi_argb_clear_all', function (a) {
         Blockly.Python.definitions_.import_argb = "from uqtpy.actuators.argb import ARGB";
         return Blockly.Python.valueToCode(a, "argb_object", Blockly.Python.ORDER_MEMBER) + ".clear()\n"
@@ -241,15 +206,6 @@ registerPythonBlock('qtpi_ldr_read', function (a) {
         return [Blockly.Python.valueToCode(a, "ldr_object", Blockly.Python.ORDER_MEMBER) + ".read_ldr()", Blockly.Python.ORDER_MEMBER]
 });
 
-registerPythonBlock('qtpi_ldr_enable', function (a) {
-        Blockly.Python.definitions_.import_ldr = "from uqtpy.sensors.ldr import LDR";
-        return Blockly.Python.valueToCode(a, "ldr_object", Blockly.Python.ORDER_MEMBER) + ".enable_ldr()\n"
-});
-
-registerPythonBlock('qtpi_ldr_disable', function (a) {
-        Blockly.Python.definitions_.import_ldr = "from uqtpy.sensors.ldr import LDR";
-        return Blockly.Python.valueToCode(a, "ldr_object", Blockly.Python.ORDER_MEMBER) + ".disable_ldr()\n"
-});
 
 registerPythonBlock('qtpi_motor_initialize', function (a) {
         Blockly.Python.definitions_.import_motor = "from uqtpy.actuators.motor import Motor";
@@ -313,15 +269,6 @@ registerPythonBlock('qtpi_mpu6050_get_gyro', function (a) {
         return [Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".get_gyro()", Blockly.Python.ORDER_MEMBER]
 });
 
-registerPythonBlock('qtpi_mpu6050_get_temp', function (a) {
-        Blockly.Python.definitions_.import_mpu6050 = "from uqtpy.sensors.mpu6050 import MPU6050";
-        return [Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".get_temp()", Blockly.Python.ORDER_MEMBER]
-});
-
-registerPythonBlock('qtpi_mpu6050_get_mpu6050', function (a) {
-        Blockly.Python.definitions_.import_mpu6050 = "from uqtpy.sensors.mpu6050 import MPU6050";
-        return [Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".get_value()", Blockly.Python.ORDER_MEMBER]
-});
 
 registerPythonBlock('qtpi_pumpmotor_initialize', function (a) {
         Blockly.Python.definitions_.import_pumpmotor = "from uqtpy.actuators.pumpmotor import PumpMotor";
@@ -353,17 +300,6 @@ registerPythonBlock('qtpi_servo_rotate', function (a) {
         return Blockly.Python.valueToCode(a, "servo_object", Blockly.Python.ORDER_MEMBER) + ".rotate(stop_angle=" + b + ")\n"
 });
 
-registerPythonBlock('qtpi_servo_sweep', function (a) {
-        Blockly.Python.definitions_.import_servo = "from uqtpy.actuators.servo import Servo";
-        var b = Blockly.Python.valueToCode(a, "start_angle", Blockly.Python.ORDER_NONE) || "1",
-                c = Blockly.Python.valueToCode(a, "end_angle", Blockly.Python.ORDER_NONE) || "1";
-        return Blockly.Python.valueToCode(a, "servo_object", Blockly.Python.ORDER_MEMBER) + ".sweep(start_angle=" + b + ",stop_angle=" + c + ")\n"
-});
-
-registerPythonBlock('qtpi_servo_current_position', function (a) {
-        Blockly.Python.definitions_.import_servo = "from uqtpy.actuators.servo import Servo";
-        return [Blockly.Python.valueToCode(a, "servo_object", Blockly.Python.ORDER_MEMBER) + ".get_current_position()", Blockly.Python.ORDER_MEMBER]
-});
 
 registerPythonBlock('qtpi_tof_initialize', function (a) {
         Blockly.Python.definitions_.import_tof = "from uqtpy.sensors.tof import TOF";
@@ -382,15 +318,6 @@ registerPythonBlock('qtpi_tof_reset', function (a) {
         return [Blockly.Python.valueToCode(a, "tof_object", Blockly.Python.ORDER_MEMBER) + ".reset()", Blockly.Python.ORDER_MEMBER]
 });
 
-registerPythonBlock('qtpi_tof_enable', function (a) {
-        Blockly.Python.definitions_.import_tof = "from uqtpy.sensors.tof import TOF";
-        return Blockly.Python.valueToCode(a, "tof_object", Blockly.Python.ORDER_MEMBER) + ".enable()\n"
-});
-
-registerPythonBlock('qtpi_tof_disable', function (a) {
-        Blockly.Python.definitions_.import_tof = "from uqtpy.sensors.tof import TOF";
-        return Blockly.Python.valueToCode(a, "tof_object", Blockly.Python.ORDER_MEMBER) + ".disable()\n"
-});
 
 // Added AHT20
 registerPythonBlock('qtpi_aht20_initialize', function (a) {
@@ -412,22 +339,18 @@ registerPythonBlock('qtpi_humidity_read', function (a) {
         return [Blockly.Python.valueToCode(a, "aht20_object", Blockly.Python.ORDER_MEMBER) + ".read_humidity()", Blockly.Python.ORDER_MEMBER]
 });
 
-registerPythonBlock('qtpi_aht20_get_aht20', function (a) {
-        Blockly.Python.definitions_.import_aht20 = "from uqtpy.sensors.aht20 import AHT20";
-        return [Blockly.Python.valueToCode(a, "aht20_object", Blockly.Python.ORDER_MEMBER) + ".read_temperature_humidity()", Blockly.Python.ORDER_MEMBER]
-});
 registerPythonBlock('lists_create_empty', function (a) {
         return ["[]", Blockly.Python.ORDER_ATOMIC];
 });
 // Sleep Generators
-registerPythonBlock('qtpi_neo_sleep', function(block) {
-  Blockly.Python.definitions_['import_neo_sleep'] = 'from time import sleep';
-  const duration = Blockly.Python.valueToCode(block, 'duration', Blockly.Python.ORDER_ATOMIC) || '0';
-  return `sleep(${duration})\n`;
+registerPythonBlock('qtpi_neo_sleep', function (block) {
+        Blockly.Python.definitions_['import_neo_sleep'] = 'from time import sleep';
+        const duration = Blockly.Python.valueToCode(block, 'duration', Blockly.Python.ORDER_ATOMIC) || '0';
+        return `sleep(${duration})\n`;
 });
 
-registerPythonBlock('qtpi_neo_sleep_ms', function(block) {
-  Blockly.Python.definitions_['import_neo_sleep_ms'] = 'from time import sleep_ms';
-  const duration = Blockly.Python.valueToCode(block, 'duration', Blockly.Python.ORDER_ATOMIC) || '0';
-  return `sleep_ms(${duration})\n`;
+registerPythonBlock('qtpi_neo_sleep_ms', function (block) {
+        Blockly.Python.definitions_['import_neo_sleep_ms'] = 'from time import sleep_ms';
+        const duration = Blockly.Python.valueToCode(block, 'duration', Blockly.Python.ORDER_ATOMIC) || '0';
+        return `sleep_ms(${duration})\n`;
 });
