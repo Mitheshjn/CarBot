@@ -44,7 +44,7 @@
     <block type="text"></block>
     <block type="text_print">
       <value name="TEXT">
-        <shadow type="text"><field name="TEXT">Hello QtPi</field></shadow>
+        <shadow type="text"><field name="TEXT">Hello lib</field></shadow>
       </value>
     </block>
     <block type="text_join"></block>
@@ -54,31 +54,31 @@
   <category name="Variables" colour="330" custom="VARIABLE"></category>
   <!-- Custom Hardware -->
     <category name="Motor" colour="110">
-				<block type="qtpi_motor_initialize">
+				<block type="lib_motor_initialize">
 				</block>
-				<block type="qtpi_left_motor_initialize">
+				<block type="lib_left_motor_initialize">
 				</block>
-				<block type="qtpi_right_motor_initialize">
+				<block type="lib_right_motor_initialize">
 				</block>
-				<block type="qtpi_motor_rotate">
+				<block type="lib_motor_rotate">
 				</block>
 			</category>
     <category name="ARGB" colour="224">
-				<block type="qtpi_argb_initialize">
+				<block type="lib_argb_initialize">
 				</block>
-				<block type="qtpi_argb_clear">
+				<block type="lib_argb_clear">
 				</block>
-				<block type="qtpi_argb_clear_all">
+				<block type="lib_argb_clear_all">
 				</block>
-				<block type="qtpi_argb_show">
+				<block type="lib_argb_show">
 				</block>
-				<block type="qtpi_argb_red">
+				<block type="lib_argb_red">
 				</block>
-				<block type="qtpi_argb_green">
+				<block type="lib_argb_green">
 				</block>
-				<block type="qtpi_argb_blue">
+				<block type="lib_argb_blue">
 				</block>
-				<block type="qtpi_argb_set">
+				<block type="lib_argb_set">
 					<value name="red">
 						<shadow type="math_number">
 							<field name="NUM">
@@ -103,7 +103,7 @@
 				</block>
 			</category>
     <category name="Servo" colour="230">
-				<block type="qtpi_servo_initialize">
+				<block type="lib_servo_initialize">
 					<value name="step">
 						<shadow type="math_number">
 							<field name="NUM">
@@ -119,56 +119,56 @@
 						</shadow>
 					</value>
 				</block>
-				<block type="qtpi_servo_rotate"></block>
+				<block type="lib_servo_rotate"></block>
 			</category>
     <category name="MPU6050" colour="224">
-				<block type="qtpi_mpu6050_initialize">
+				<block type="lib_mpu6050_initialize">
 				</block>
-				<block type="qtpi_mpu6050_enable_gyro">
+				<block type="lib_mpu6050_enable_gyro">
 				</block>
-				<block type="qtpi_mpu6050_disable_gyro">
+				<block type="lib_mpu6050_disable_gyro">
 				</block>
-				<block type="qtpi_mpu6050_get_gyro">
+				<block type="lib_mpu6050_get_gyro">
 				</block>
-				<block type="qtpi_mpu6050_enable_accel">
+				<block type="lib_mpu6050_enable_accel">
 				</block>
-				<block type="qtpi_mpu6050_disable_accel">
+				<block type="lib_mpu6050_disable_accel">
 				</block>
-				<block type="qtpi_mpu6050_get_accel">
+				<block type="lib_mpu6050_get_accel">
 				</block>
 			</category>
     <category name="TOF" colour="180">
-				<block type="qtpi_tof_initialize">
+				<block type="lib_tof_initialize">
 				</block>
-				<block type="qtpi_tof_read_distance">
+				<block type="lib_tof_read_distance">
 				</block>
 			</category>
     <category name="LDR" colour="165">
-				<block type="qtpi_ldr_initialize">
+				<block type="lib_ldr_initialize">
 				</block>
-				<block type="qtpi_ldr_read">
+				<block type="lib_ldr_read">
 				</block>
 			</category>
     <category name="OLED" colour="180">
-				<block type="qtpi_display_oled_initialize">
+				<block type="lib_display_oled_initialize">
 				</block>
-				<block type="qtpi_display_oled_clear">
+				<block type="lib_display_oled_clear">
 				</block>
-				<block type="qtpi_display_oled_show">
+				<block type="lib_display_oled_show">
 				</block>
-				<block type="qtpi_display_oled_draw_pixel">
+				<block type="lib_display_oled_draw_pixel">
 				</block>
-				<block type="qtpi_display_oled_draw_text">
+				<block type="lib_display_oled_draw_text">
 				</block>
 			</category>
     <category name="Buzzer" colour="32">
-				<block type="qtpi_buzzer_initialize">
+				<block type="lib_buzzer_initialize">
 				</block>
-				<block type="qtpi_buzzer_on">
+				<block type="lib_buzzer_on">
 				</block>
-				<block type="qtpi_buzzer_off">
+				<block type="lib_buzzer_off">
 				</block>
-				<block type="qtpi_buzzer_buzz">
+				<block type="lib_buzzer_buzz">
 					<value name="secs">
 						<shadow type="math_number">
 							<field name="NUM">
@@ -179,18 +179,18 @@
 				</block>
 			</category>
     <category name="AHT20" colour="120">
-		<block type="qtpi_aht20_initialize"></block>
-		<block type="qtpi_temperature_read"></block>
-		<block type="qtpi_humidity_read"></block>
+		<block type="lib_aht20_initialize"></block>
+		<block type="lib_temperature_read"></block>
+		<block type="lib_humidity_read"></block>
 	</category>
 		<!-- System -->
 	<category name="System" colour="60">
-		<block type="qtpi_neo_sleep">
+		<block type="lib_neo_sleep">
 		<value name="duration">
 			<shadow type="math_number"><field name="NUM">1</field></shadow>
 		</value>
 		</block>
-		<block type="qtpi_neo_sleep_ms">
+		<block type="lib_neo_sleep_ms">
 		<value name="duration">
 			<shadow type="math_number"><field name="NUM">500</field></shadow>
 		</value>

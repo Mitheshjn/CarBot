@@ -132,6 +132,63 @@
     }
     #toast.success { background: #238636; }
     #toast.error { background: #da3633; }
+
+    /* Custom Floating HTML Workspace Controls */
+    .workspace-floating-controls {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+      user-select: none;
+    }
+    .workspace-floating-controls .ctrl-btn {
+      background: #ffffff;
+      color: #24292e;
+      border: 1px solid #d0d7de;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      border-radius: 8px;
+      padding: 0 10px;
+      min-width: 44px;
+      height: 38px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .workspace-floating-controls .ctrl-btn:hover {
+      background: #f6f8fa;
+      border-color: #0969da;
+      color: #0969da;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .workspace-floating-controls .ctrl-btn:active {
+      transform: translateY(0);
+      background: #eaeef2;
+    }
+    .workspace-floating-controls .ctrl-btn-danger {
+      font-size: 0.82rem;
+      color: #cf222e;
+    }
+    .workspace-floating-controls .ctrl-btn-danger:hover {
+      background: #ffebe9;
+      border-color: #cf222e;
+      color: #a40e26;
+    }
+    .workspace-floating-controls .ctrl-btn-danger.drag-over-delete {
+      background: #cf222e !important;
+      color: #ffffff !important;
+      border-color: #a40e26 !important;
+      transform: scale(1.12);
+      box-shadow: 0 4px 14px rgba(207, 34, 46, 0.45);
+    }
   </style>
 
   <!-- Blockly Core & Python Engine -->
@@ -139,18 +196,18 @@
   <script src="https://unpkg.com/blockly/python_compressed.js"></script>
 
   <!-- Custom Block Definitions & Python Generators -->
-  <script src="blocks.js?v=test2"></script>
-  <script src="python.js?v=test2"></script>
+  <script src="blocks.js?v=lib1"></script>
+  <script src="python.js?v=lib1"></script>
 </head>
 <body>
 
   <header>
     <h1>RoverBlocks</h1>
     <div class="header-actions">
-      <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁 Code</button>
-      <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">📋 Copy Python</button>
-      <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download XML</button>
-      <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload XML</button>
+      <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">View Code</button>
+      <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">Copy Python</button>
+      <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">Download XML</button>
+      <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">Upload XML</button>
       <input type="file" id="xmlFileInput" accept=".xml,text/xml" style="display: none;" onchange="handleXmlUpload(event)">
     </div>
   </header>
@@ -159,7 +216,15 @@
   <div id="main-container">
     <div id="blocklyArea">
       <div id="blocklyDiv"></div>
-      <div id="dragOverlay">📂 Drop XML file here to load blocks</div>
+      <div id="dragOverlay">Drop XML file here to load blocks</div>
+
+      <!-- Custom Floating HTML Workspace Controls -->
+      <div class="workspace-floating-controls" id="workspaceControls">
+        <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
+        <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
+        <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
+        <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnClear" onclick="workspaceClearAll()" title="Clear Workspace (or drag blocks here to delete)">Clear</button>
+      </div>
     </div>
   </div>
 
@@ -211,10 +276,10 @@
           toolbox: toolboxXml,
           media: 'https://unpkg.com/blockly/media/',
           grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
-          zoom: { controls: true, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
+          zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
           move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
           theme: Blockly.Themes.Classic,
-          trashcan: true
+          trashcan: false
         });
 
         // 3. Real-time updates when workspace changes
@@ -225,12 +290,111 @@
 
         window.addEventListener('resize', () => Blockly.svgResize(workspace), false);
 
-        // 4. Setup drag and drop for XML files
+        // 4. Setup Drag-to-Delete on the Clear button
+        const clearBtn = document.getElementById('btnClear');
+        if (clearBtn) {
+          // Register with Blockly's official ComponentManager if available
+          if (workspace.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
+            try {
+              const deleteArea = {
+                id: 'clearDeleteArea',
+                getClientRect: function() {
+                  const r = clearBtn.getBoundingClientRect();
+                  return new Blockly.utils.Rect(r.top, r.bottom, r.left, r.right);
+                },
+                wouldDelete: function() {
+                  return true;
+                }
+              };
+              workspace.getComponentManager().addComponent({
+                component: deleteArea,
+                weight: 0,
+                capabilities: [Blockly.ComponentManager.Capability.DELETE_AREA]
+              });
+            } catch (err) {
+              console.warn('ComponentManager deleteArea registration:', err);
+            }
+          }
+
+          // Active drag tracking & pointer release handler
+          let activeDraggedBlock = null;
+
+          workspace.addChangeListener((event) => {
+            if (event.type === Blockly.Events.BLOCK_DRAG) {
+              if (event.isStart) {
+                activeDraggedBlock = workspace.getBlockById(event.blockId);
+              } else {
+                activeDraggedBlock = null;
+                clearBtn.classList.remove('drag-over-delete');
+              }
+            }
+          });
+
+          window.addEventListener('pointermove', (e) => {
+            if (activeDraggedBlock || (Blockly.Gesture && Blockly.Gesture.inProgress && Blockly.Gesture.inProgress())) {
+              const r = clearBtn.getBoundingClientRect();
+              if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                clearBtn.classList.add('drag-over-delete');
+              } else {
+                clearBtn.classList.remove('drag-over-delete');
+              }
+            } else {
+              clearBtn.classList.remove('drag-over-delete');
+            }
+          });
+
+          window.addEventListener('pointerup', (e) => {
+            const r = clearBtn.getBoundingClientRect();
+            const isOverClear = (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
+            clearBtn.classList.remove('drag-over-delete');
+
+            if (isOverClear) {
+              const targetBlock = activeDraggedBlock || (Blockly.common && Blockly.common.getSelected ? Blockly.common.getSelected() : Blockly.selected);
+              if (targetBlock && targetBlock.isDeletable && targetBlock.isDeletable()) {
+                setTimeout(() => {
+                  try {
+                    targetBlock.dispose(false, true);
+                  } catch (e) {
+                    console.error('Failed to dispose block:', e);
+                  }
+                }, 10);
+              }
+            }
+          }, true);
+        }
+
+        // 5. Setup drag and drop for XML files
         setupDragAndDrop();
       } catch (err) {
         console.error('Failed to load toolbox or inject workspace:', err);
       }
     });
+
+    // --- Custom HTML Workspace Navigation Controls ---
+    function workspaceResetZoom() {
+      if (workspace) {
+        workspace.setScale(1.0);
+        workspace.scrollCenter();
+      }
+    }
+
+    function workspaceZoomIn() {
+      if (workspace) {
+        workspace.zoom(0, 0, 1);
+      }
+    }
+
+    function workspaceZoomOut() {
+      if (workspace) {
+        workspace.zoom(0, 0, -1);
+      }
+    }
+
+    function workspaceClearAll() {
+      if (workspace && confirm('Are you sure you want to clear all blocks from the workspace?')) {
+        workspace.clear();
+      }
+    }
 
     // --- Code Generation ---
 

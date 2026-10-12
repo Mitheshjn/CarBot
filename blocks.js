@@ -1,6 +1,6 @@
 Blockly.defineBlocksWithJsonArray([
   {
-    "type": "qtpi_buzzer_initialize",
+    "type": "lib_buzzer_initialize",
     "message0": "Buzzer Onboard %1 %2",
     "args0": [
       {
@@ -26,7 +26,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Initialize buzzer on specified port."
   },
   {
-    "type": "qtpi_buzzer_buzz",
+    "type": "lib_buzzer_buzz",
     "message0": "Buzzer %1 Buzz for %2 sec",
     "args0": [
       {
@@ -46,7 +46,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Buzz for specified seconds."
   },
   {
-    "type": "qtpi_buzzer_off",
+    "type": "lib_buzzer_off",
     "message0": "Buzzer Off %1",
     "args0": [
       {
@@ -61,7 +61,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Turn buzzer off."
   },
   {
-    "type": "qtpi_buzzer_on",
+    "type": "lib_buzzer_on",
     "message0": "Buzzer On %1",
     "args0": [
       {
@@ -76,7 +76,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Turn buzzer on."
   },
   {
-    "type": "qtpi_led_initialize",
+    "type": "lib_led_initialize",
     "message0": "LED Onboard %1 %2",
     "args0": [
       {
@@ -102,7 +102,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Initialize LED module."
   },
   {
-    "type": "qtpi_led_brightness",
+    "type": "lib_led_brightness",
     "message0": "LED %1 Brightness %2",
     "args0": [
       {
@@ -122,7 +122,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Set LED brightness (0 - 1023)."
   },
   {
-    "type": "qtpi_led_off",
+    "type": "lib_led_off",
     "message0": "LED Off %1",
     "args0": [
       {
@@ -137,7 +137,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Turn LED off."
   },
   {
-    "type": "qtpi_neo_sleep",
+    "type": "lib_neo_sleep",
     "message0": "Sleep %1 seconds",
     "args0": [
       {
@@ -152,7 +152,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Wait for a specified number of seconds."
   },
   {
-    "type": "qtpi_neo_sleep_ms",
+    "type": "lib_neo_sleep_ms",
     "message0": "Sleep %1 milliseconds",
     "args0": [
       {
@@ -167,7 +167,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Wait for a specified number of milliseconds."
   },
   {
-    "type": "qtpi_argb_initialize",
+    "type": "lib_argb_initialize",
     "message0": "ARGB with %1 %2 pixel[s] Onboard %3",
     "args0": [
       {
@@ -212,7 +212,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#argb.argb"
   },
   {
-    "type": "qtpi_argb_clear",
+    "type": "lib_argb_clear",
     "message0": "ARGB Clear  %1 pixel(s) %2",
     "args0": [
       {
@@ -236,7 +236,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#argb.argb.clear"
   },
   {
-    "type": "qtpi_argb_clear_all",
+    "type": "lib_argb_clear_all",
     "message0": "ARGB Clear all pixels %1",
     "args0": [
       {
@@ -252,7 +252,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#argb.argb.clear"
   },
   {
-    "type": "qtpi_argb_show",
+    "type": "lib_argb_show",
     "message0": "ARGB Display %1",
     "args0": [
       {
@@ -268,7 +268,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#argb.argb.show"
   },
   {
-    "type": "qtpi_argb_set",
+    "type": "lib_argb_set",
     "message0": "ARGB %1 pixel(s) %2 with red %3 green %4 blue %5 show %6",
     "args0": [
       {
@@ -325,7 +325,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
   },
   {
-    "type": "qtpi_argb_red",
+    "type": "lib_argb_red",
     "message0": "ARGB Red %1 pixel(s) %2 brightness %3",
     "args0": [
       {
@@ -358,7 +358,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
   },
   {
-    "type": "qtpi_argb_green",
+    "type": "lib_argb_green",
     "message0": "ARGB Green %1 pixel(s) %2 brightness %3",
     "args0": [
       {
@@ -390,7 +390,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
   },
   {
-    "type": "qtpi_argb_blue",
+    "type": "lib_argb_blue",
     "message0": "ARGB Blue %1 pixel(s) %2 brightness %3",
     "args0": [
       {
@@ -423,7 +423,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
   },
   {
-    "type": "qtpi_buzzer_initialize",
+    "type": "lib_buzzer_initialize",
     "message0": "Buzzer Onboard %1 %2",
     "args0": [
       {
@@ -450,7 +450,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/buzzer.html#Buzzer"
   },
   {
-    "type": "qtpi_buzzer_on",
+    "type": "lib_buzzer_on",
     "message0": "Buzzer On %1",
     "args0": [
       {
@@ -466,7 +466,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/buzzer.html#buzzer.on"
   },
   {
-    "type": "qtpi_buzzer_off",
+    "type": "lib_buzzer_off",
     "message0": "Buzzer Off %1",
     "args0": [
       {
@@ -482,7 +482,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/buzzer.html#buzzer.on"
   },
   {
-    "type": "qtpi_buzzer_buzz",
+    "type": "lib_buzzer_buzz",
     "message0": "Buzzer On %1 secs %2",
     "args0": [
       {
@@ -506,7 +506,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/buzzer.html#buzzer.off"
   },
   {
-    "type": "qtpi_display_oled_initialize",
+    "type": "lib_display_oled_initialize",
     "message0": "OLED %1 width %2 height %3",
     "args0": [
       {
@@ -532,7 +532,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/oled.html#oled"
   },
   {
-    "type": "qtpi_display_oled_clear",
+    "type": "lib_display_oled_clear",
     "message0": "OLED Clear %1",
     "args0": [
       {
@@ -549,7 +549,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/oled.html#oled"
   },
   {
-    "type": "qtpi_display_oled_show",
+    "type": "lib_display_oled_show",
     "message0": "OLED Display %1",
     "args0": [
       {
@@ -565,7 +565,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/oled.html#oled"
   },
   {
-    "type": "qtpi_display_oled_draw_pixel",
+    "type": "lib_display_oled_draw_pixel",
     "message0": "OLED Display Pixel %1 x %2 y %3",
     "args0": [
       {
@@ -595,7 +595,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/oled.html#oled"
   },
   {
-    "type": "qtpi_display_oled_draw_text",
+    "type": "lib_display_oled_draw_text",
     "message0": "OLED Display Text %1 text %2 row %3 column %4",
     "args0": [
       {
@@ -630,7 +630,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/oled.html#oled"
   },
   {
-    "type": "qtpi_display_oled_draw_line",
+    "type": "lib_display_oled_draw_line",
     "message0": "OLED Display line %1 Start row %2 Start column %3 End row %4 End column %5",
     "args0": [
       {
@@ -667,7 +667,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/oled.html#oled"
   },
   {
-    "type": "qtpi_display_oled_draw_rect",
+    "type": "lib_display_oled_draw_rect",
     "message0": "OLED Display Rectangle %1 Start row %2 Start column %3 End row %4 End column %5 Infill %6",
     "args0": [
       {
@@ -718,7 +718,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/oled.html#oled"
   },
   {
-    "type": "qtpi_ldr_initialize",
+    "type": "lib_ldr_initialize",
     "message0": "LDR Onboard %1 %2",
     "args0": [
       {
@@ -745,7 +745,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/ldr.html#ldr.ldr"
   },
   {
-    "type": "qtpi_ldr_read",
+    "type": "lib_ldr_read",
     "message0": "Read LDR Value from %1",
     "args0": [
       {
@@ -760,7 +760,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/ldr.html#ldr"
   },
   {
-    "type": "qtpi_motor_initialize",
+    "type": "lib_motor_initialize",
     "message0": "Motor Onboard %1",
     "args0": [
       {
@@ -785,7 +785,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
-    "type": "qtpi_left_motor_initialize",
+    "type": "lib_left_motor_initialize",
     "message0": "Left Motor Onboard %1",
     "args0": [
       {
@@ -810,7 +810,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
-    "type": "qtpi_right_motor_initialize",
+    "type": "lib_right_motor_initialize",
     "message0": "Right Motor Onboard %1",
     "args0": [
       {
@@ -835,7 +835,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
-    "type": "qtpi_motor_rotate",
+    "type": "lib_motor_rotate",
     "message0": "Rotate Motor %1 speed %2 direction %3",
     "args0": [
       {
@@ -865,7 +865,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
-    "type": "qtpi_mpu6050_initialize",
+    "type": "lib_mpu6050_initialize",
     "message0": "MPU6050 Onboard %1 %2",
     "args0": [
       {
@@ -892,7 +892,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html#mpu6050.mpu6050"
   },
   {
-    "type": "qtpi_mpu6050_enable_gyro",
+    "type": "lib_mpu6050_enable_gyro",
     "message0": "Enable Gyro value Read %1",
     "args0": [
       {
@@ -908,7 +908,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "qtpi_mpu6050_disable_gyro",
+    "type": "lib_mpu6050_disable_gyro",
     "message0": "Disable Gyro Read Value %1",
     "args0": [
       {
@@ -924,7 +924,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "qtpi_mpu6050_get_gyro",
+    "type": "lib_mpu6050_get_gyro",
     "message0": "Read Gyro Value %1",
     "args0": [
       {
@@ -939,7 +939,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "qtpi_mpu6050_enable_accel",
+    "type": "lib_mpu6050_enable_accel",
     "message0": "Enable Accel Read Value  %1",
     "args0": [
       {
@@ -955,7 +955,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "qtpi_mpu6050_disable_accel",
+    "type": "lib_mpu6050_disable_accel",
     "message0": "Disable Accel Read Value %1",
     "args0": [
       {
@@ -971,7 +971,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html#mpu6050.mpu6050.clear"
   },
   {
-    "type": "qtpi_mpu6050_get_accel",
+    "type": "lib_mpu6050_get_accel",
     "message0": "Read Accelerometer Value %1",
     "args0": [
       {
@@ -986,7 +986,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "qtpi_mpu6050_enable_temp",
+    "type": "lib_mpu6050_enable_temp",
     "message0": "Enable Read Temp Value  %1",
     "args0": [
       {
@@ -1002,7 +1002,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "qtpi_mpu6050_disa_temp",
+    "type": "lib_mpu6050_disa_temp",
     "message0": "Disable asdfdfadf  %1",
     "args0": [
       {
@@ -1018,7 +1018,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "qtpi_pumpmotor_initialize",
+    "type": "lib_pumpmotor_initialize",
     "message0": "Pump Motor Onboard %1",
     "args0": [
       {
@@ -1043,7 +1043,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
-    "type": "qtpi_pumpmotor_run",
+    "type": "lib_pumpmotor_run",
     "message0": "Pump Motor Run %1 speed %2",
     "args0": [
       {
@@ -1067,7 +1067,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
-    "type": "qtpi_servo_initialize",
+    "type": "lib_servo_initialize",
     "message0": "Servo %1 step %2 delay %3 start position %4 Onboard %5",
     "args0": [
       {
@@ -1110,10 +1110,10 @@ Blockly.defineBlocksWithJsonArray([
     "output": "servo_object",
     "colour": 260,
     "tooltip": "Make an object to control any attached Servo. Specify the Servo and the port to which they are attached.",
-    "helpUrl": "https://qtlearncodelab.github.io/qtpi-shared/docs/uqtpy/html/autoapi/uqtpy/actuators/servo/index.html#initialize"
+    "helpUrl": "https://qtlearncodelab.github.io/lib-shared/docs/uqtpy/html/autoapi/uqtpy/actuators/servo/index.html#initialize"
   },
   {
-    "type": "qtpi_servo_rotate",
+    "type": "lib_servo_rotate",
     "message0": "Rotate %1 degree %2",
     "args0": [
       {
@@ -1133,10 +1133,10 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": 260,
     "tooltip": " Rotate the servo object.",
-    "helpUrl": "https://qtlearncodelab.github.io/qtpi-shared/docs/uqtpy/html/autoapi/uqtpy/actuators/servo/index.html#rotate"
+    "helpUrl": "https://qtlearncodelab.github.io/lib-shared/docs/uqtpy/html/autoapi/uqtpy/actuators/servo/index.html#rotate"
   },
   {
-    "type": "qtpi_tof_initialize",
+    "type": "lib_tof_initialize",
     "message0": "TOF Onboard %1 %2",
     "args0": [
       {
@@ -1163,7 +1163,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/tof.html#tof"
   },
   {
-    "type": "qtpi_tof_read_distance",
+    "type": "lib_tof_read_distance",
     "message0": "TOF Read Distance in Millimeter %1 ",
     "args0": [
       {
@@ -1178,7 +1178,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/tof.html#tof"
   },
   {
-    "type": "qtpi_read_temperature_value",
+    "type": "lib_read_temperature_value",
     "message0": "read temperature value from %1",
     "args0": [
       {
@@ -1202,7 +1202,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://microbit-micropython.readthedocs.io/en/latest/microbit.html#microbit.temperature"
   },
   {
-    "type": "qtpi_aht20_initialize",
+    "type": "lib_aht20_initialize",
     "message0": "AHT20 Onboard %1 %2",
     "args0": [
       {
@@ -1229,7 +1229,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/temperature.html#temperature"
   },
   {
-    "type": "qtpi_temperature_read",
+    "type": "lib_temperature_read",
     "message0": "Read Temperature Value %1",
     "args0": [
       {
@@ -1244,7 +1244,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/temperature.html#temperature"
   },
   {
-    "type": "qtpi_humidity_read",
+    "type": "lib_humidity_read",
     "message0": "Read Humidity Value %1",
     "args0": [
       {
@@ -1259,7 +1259,7 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/temperature.html#temperature"
   },
   {
-    "type": "qtpi_neo_sleep",
+    "type": "lib_neo_sleep",
     "message0": "Sleep %1 seconds",
     "args0": [
       {
@@ -1274,7 +1274,7 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Wait for a specified number of seconds."
   },
   {
-    "type": "qtpi_neo_sleep_ms",
+    "type": "lib_neo_sleep_ms",
     "message0": "Sleep %1 milliseconds",
     "args0": [
       {

@@ -95,9 +95,59 @@ header button:active {
   position: relative;
 }
 
-/* Float controls upward safely to dodge bottom edges */
-.blocklyZoom, .blocklyTrash, .blocklyTrashcan {
-  translate: -5px -60px;
+/* Custom Floating HTML Workspace Controls */
+.workspace-floating-controls {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 50;
+  user-select: none;
+}
+
+.workspace-floating-controls .ctrl-btn {
+  background: #ffffff;
+  color: #24292e;
+  border: 1px solid #d0d7de;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 0 10px;
+  min-width: 42px;
+  height: 38px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.workspace-floating-controls .ctrl-btn:hover {
+  background: #f6f8fa;
+  border-color: #0969da;
+  color: #0969da;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.workspace-floating-controls .ctrl-btn:active {
+  transform: translateY(0);
+  background: #eaeef2;
+}
+
+.workspace-floating-controls .ctrl-btn-danger {
+  font-size: 0.8rem;
+  color: #cf222e;
+}
+
+.workspace-floating-controls .ctrl-btn-danger:hover {
+  background: #ffebe9;
+  border-color: #cf222e;
+  color: #a40e26;
 }
 
 #blocklyDiv {
