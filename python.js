@@ -207,13 +207,6 @@ registerPythonBlock('lib_ldr_read', function (a) {
 });
 
 
-registerPythonBlock('lib_motor_initialize', function (a) {
-        Blockly.Python.definitions_.import_motor = "from uqtpy.actuators.motor import Motor";
-        var b = ("1");
-        a = a.getFieldValue("ob");
-        return [0 < b.length ? "Motor(port=" + b + ",ob=" + a + ")" : "Motor(ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
-});
-
 registerPythonBlock('lib_left_motor_initialize', function (a) {
         Blockly.Python.definitions_.import_left_motor = "from uqtpy.actuators.motor import LeftMotor";
         var b = ("1");
@@ -353,9 +346,6 @@ registerPythonBlock('lib_humidity_read', function (a) {
         return [Blockly.Python.valueToCode(a, "aht20_object", Blockly.Python.ORDER_MEMBER) + ".read_humidity()", Blockly.Python.ORDER_MEMBER]
 });
 
-registerPythonBlock('lists_create_empty', function (a) {
-        return ["[]", Blockly.Python.ORDER_ATOMIC];
-});
 // Sleep Generators
 registerPythonBlock('lib_neo_sleep', function (block) {
         Blockly.Python.definitions_['import_neo_sleep'] = 'from time import sleep';

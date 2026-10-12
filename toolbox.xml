@@ -54,8 +54,6 @@
   <category name="Variables" colour="330" custom="VARIABLE"></category>
   <!-- Custom Hardware -->
     <category name="Motor" colour="110">
-				<block type="lib_motor_initialize">
-				</block>
 				<block type="lib_left_motor_initialize">
 				</block>
 				<block type="lib_right_motor_initialize">

@@ -760,31 +760,6 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/ldr.html#ldr"
   },
   {
-    "type": "lib_motor_initialize",
-    "message0": "Motor Onboard %1",
-    "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "ob",
-        "options": [
-          [
-            "True",
-            "True"
-          ],
-          [
-            "False",
-            "False"
-          ]
-        ]
-      }
-    ],
-    "inputsInline": false,
-    "output": "motor_object",
-    "colour": 260,
-    "tooltip": "",
-    "helpUrl": ""
-  },
-  {
     "type": "lib_left_motor_initialize",
     "message0": "Left Motor Onboard %1",
     "args0": [
@@ -1289,11 +1264,3 @@ Blockly.defineBlocksWithJsonArray([
     "tooltip": "Wait for a specified number of milliseconds."
   }
 ]);
-Blockly.defineBlocksWithJsonArray([{
-  "type": "lists_create_empty",
-  "message0": "create empty list",
-  "output": "Array",
-  "colour": 260,
-  "tooltip": "Creates an empty list.",
-  "helpUrl": ""
-}]);
