@@ -785,6 +785,56 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
+    "type": "qtpi_left_motor_initialize",
+    "message0": "Left Motor Onboard %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "ob",
+        "options": [
+          [
+            "True",
+            "True"
+          ],
+          [
+            "False",
+            "False"
+          ]
+        ]
+      }
+    ],
+    "inputsInline": false,
+    "output": "motor_object",
+    "colour": 260,
+    "tooltip": "",
+    "helpUrl": ""
+  },
+  {
+    "type": "qtpi_right_motor_initialize",
+    "message0": "Right Motor Onboard %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "ob",
+        "options": [
+          [
+            "True",
+            "True"
+          ],
+          [
+            "False",
+            "False"
+          ]
+        ]
+      }
+    ],
+    "inputsInline": false,
+    "output": "motor_object",
+    "colour": 260,
+    "tooltip": "",
+    "helpUrl": ""
+  },
+  {
     "type": "qtpi_motor_rotate",
     "message0": "Rotate Motor %1 speed %2 direction %3",
     "args0": [

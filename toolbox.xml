@@ -56,6 +56,10 @@
     <category name="Motor" colour="110">
 				<block type="qtpi_motor_initialize">
 				</block>
+				<block type="qtpi_left_motor_initialize">
+				</block>
+				<block type="qtpi_right_motor_initialize">
+				</block>
 				<block type="qtpi_motor_rotate">
 				</block>
 			</category>

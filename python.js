@@ -214,6 +214,20 @@ registerPythonBlock('qtpi_motor_initialize', function (a) {
         return [0 < b.length ? "Motor(port=" + b + ",ob=" + a + ")" : "Motor(ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
 
+registerPythonBlock('qtpi_left_motor_initialize', function (a) {
+        Blockly.Python.definitions_.import_left_motor = "from uqtpy.actuators.motor import LeftMotor";
+        var b = ("1");
+        a = a.getFieldValue("ob");
+        return [0 < b.length ? "LeftMotor(port=" + b + ",ob=" + a + ")" : "LeftMotor(ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
+});
+
+registerPythonBlock('qtpi_right_motor_initialize', function (a) {
+        Blockly.Python.definitions_.import_right_motor = "from uqtpy.actuators.motor import RightMotor";
+        var b = ("1");
+        a = a.getFieldValue("ob");
+        return [0 < b.length ? "RightMotor(port=" + b + ",ob=" + a + ")" : "RightMotor(ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
+});
+
 registerPythonBlock('qtpi_motor_rotate', function (a) {
         Blockly.Python.definitions_.import_motor = "from uqtpy.actuators.motor import Motor";
         var b = Blockly.Python.valueToCode(a, "motor_object", Blockly.Python.ORDER_MEMBER),
