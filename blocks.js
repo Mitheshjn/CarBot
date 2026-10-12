@@ -1177,8 +1177,8 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://microbit-micropython.readthedocs.io/en/latest/microbit.html#microbit.temperature"
   },
   {
-    "type": "lib_aht20_initialize",
-    "message0": "AHT20 Onboard %1 %2",
+    "type": "lib_dht22_initialize",
+    "message0": "DHT22 Onboard %1 %2",
     "args0": [
       {
         "type": "field_dropdown",
@@ -1198,9 +1198,9 @@ Blockly.defineBlocksWithJsonArray([
         "type": "input_dummy"
       }
     ],
-    "output": "aht20_object",
+    "output": "dht22_object",
     "colour": 260,
-    "tooltip": "Make an object to read any attached Temperature. Specifythe number of Temperature's and the port to which they are attached.",
+    "tooltip": "Make an object to read any attached Temperature. Specify the number of Temperature's and the port to which they are attached.",
     "helpUrl": "https://schoolrobotics.com/docs/micropython/temperature.html#temperature"
   },
   {
@@ -1209,8 +1209,8 @@ Blockly.defineBlocksWithJsonArray([
     "args0": [
       {
         "type": "input_value",
-        "name": "aht20_object",
-        "check": "aht20_object"
+        "name": "dht22_object",
+        "check": "dht22_object"
       }
     ],
     "output": "Number",
@@ -1224,8 +1224,8 @@ Blockly.defineBlocksWithJsonArray([
     "args0": [
       {
         "type": "input_value",
-        "name": "aht20_object",
-        "check": "aht20_object"
+        "name": "dht22_object",
+        "check": "dht22_object"
       }
     ],
     "output": "Number",

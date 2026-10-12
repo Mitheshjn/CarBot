@@ -176,8 +176,8 @@
 					</value>
 				</block>
 			</category>
-    <category name="AHT20" colour="120">
-		<block type="lib_aht20_initialize"></block>
+    <category name="DHT22" colour="120">
+		<block type="lib_dht22_initialize"></block>
 		<block type="lib_temperature_read"></block>
 		<block type="lib_humidity_read"></block>
 	</category>

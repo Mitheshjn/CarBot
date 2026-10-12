@@ -326,24 +326,24 @@ registerPythonBlock('lib_tof_reset', function (a) {
 });
 
 
-// Added AHT20
-registerPythonBlock('lib_aht20_initialize', function (a) {
-        Blockly.Python.definitions_.import_aht20 = "from uqtpy.sensors.aht20 import AHT20";
+// Added DHT22
+registerPythonBlock('lib_dht22_initialize', function (a) {
+        Blockly.Python.definitions_.import_dht22 = "from uqtpy.sensors.dht22 import DHT22";
         var b = ("1");
         a = a.getFieldValue("ob");
-        return ["0" === b ? "AHT20(ob=" + a + ")" : "AHT20(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
+        return ["0" === b ? "DHT22(ob=" + a + ")" : "DHT22(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
 });
 
 registerPythonBlock('lib_temperature_read', function (a) {
-        Blockly.Python.definitions_.import_aht20 = "from uqtpy.sensors.aht20 import AHT20";
+        Blockly.Python.definitions_.import_dht22 = "from uqtpy.sensors.dht22 import DHT22";
 
-        return [Blockly.Python.valueToCode(a, "aht20_object", Blockly.Python.ORDER_MEMBER) + ".read_temperature()", Blockly.Python.ORDER_MEMBER]
+        return [Blockly.Python.valueToCode(a, "dht22_object", Blockly.Python.ORDER_MEMBER) + ".read_temperature()", Blockly.Python.ORDER_MEMBER]
 });
 
 registerPythonBlock('lib_humidity_read', function (a) {
-        Blockly.Python.definitions_.import_aht20 = "from uqtpy.sensors.aht20 import AHT20";
+        Blockly.Python.definitions_.import_dht22 = "from uqtpy.sensors.dht22 import DHT22";
 
-        return [Blockly.Python.valueToCode(a, "aht20_object", Blockly.Python.ORDER_MEMBER) + ".read_humidity()", Blockly.Python.ORDER_MEMBER]
+        return [Blockly.Python.valueToCode(a, "dht22_object", Blockly.Python.ORDER_MEMBER) + ".read_humidity()", Blockly.Python.ORDER_MEMBER]
 });
 
 // Sleep Generators
