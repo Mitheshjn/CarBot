@@ -507,7 +507,7 @@ Blockly.defineBlocksWithJsonArray([
   },
   {
     "type": "lib_display_oled_initialize",
-    "message0": "OLED %1 width %2 height %3",
+    "message0": "OLED %1 width %2 height %3 Onboard %4",
     "args0": [
       {
         "type": "input_dummy"
@@ -523,6 +523,20 @@ Blockly.defineBlocksWithJsonArray([
         "name": "height",
         "check": "Number",
         "align": "RIGHT"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "ob",
+        "options": [
+          [
+            "True",
+            "True"
+          ],
+          [
+            "False",
+            "False"
+          ]
+        ]
       }
     ],
     "inputsInline": false,

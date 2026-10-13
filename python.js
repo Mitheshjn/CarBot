@@ -141,9 +141,10 @@ registerPythonBlock('lib_buzzer_buzz', function (a) {
 registerPythonBlock('lib_display_oled_initialize', function (a) {
         Blockly.Python.definitions_.import_display_oled = "from blocks.actuators.display import OLED";
         var b = Blockly.Python.valueToCode(a, "height", Blockly.Python.ORDER_NONE) || "0",
-                c = Blockly.Python.valueToCode(a, "width", Blockly.Python.ORDER_NONE) || "0";
+                c = Blockly.Python.valueToCode(a, "width", Blockly.Python.ORDER_NONE) || "0",
+                d = a.getFieldValue("ob");
         a = ("1");
-        return ["0" === a ? "OLED(height=" + b + ", width=" + c + ")" : "OLED(port=" + a + ", height=" + b + ", width=" + c + ")", Blockly.Python.ORDER_MEMBER]
+        return ["0" === a ? "OLED(height=" + b + ", width=" + c + ",ob=" + d + ")" : "OLED(port=" + a + ", height=" + b + ", width=" + c + ",ob=" + d + ")", Blockly.Python.ORDER_MEMBER]
 });
 
 registerPythonBlock('lib_display_oled_clear', function (a) {

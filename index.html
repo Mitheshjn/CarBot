@@ -189,6 +189,129 @@
       transform: scale(1.12);
       box-shadow: 0 4px 14px rgba(207, 34, 46, 0.45);
     }
+
+    /* ── Variable Name Dialog (light / minimal) ───────────────── */
+    #varDialogBackdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 20, 35, 0.40);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    #varDialogBackdrop.open {
+      display: flex;
+      animation: vdFadeIn 0.15s ease;
+    }
+    @keyframes vdFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    #varDialog {
+      background: #ffffff;
+      border: 1px solid #e2e6ea;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      width: min(92vw, 360px);
+      overflow: hidden;
+      animation: vdSlideUp 0.18s cubic-bezier(0.34, 1.4, 0.64, 1);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    @keyframes vdSlideUp {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+    #varDialogInner {
+      padding: 22px 20px 18px;
+    }
+    #varDialogTitle {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a1f2e;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    #varDialogTitle::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 16px;
+      border-radius: 2px;
+      background: #4f63d2;
+      flex-shrink: 0;
+    }
+    #varDialogInput {
+      width: 100%;
+      background: #f7f8fc;
+      border: 1.5px solid #dde1f0;
+      border-radius: 8px;
+      color: #1a1f2e;
+      font-size: 0.9rem;
+      font-family: inherit;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      caret-color: #4f63d2;
+    }
+    #varDialogInput::placeholder {
+      color: #adb4cc;
+    }
+    #varDialogInput:focus {
+      border-color: #4f63d2;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(79,99,210,0.12);
+    }
+    #varDialogError {
+      font-size: 0.72rem;
+      color: #d93025;
+      margin-top: 5px;
+      min-height: 16px;
+      display: none;
+    }
+    #varDialogError.visible { display: block; }
+    #varDialogFooter {
+      display: flex;
+      gap: 8px;
+      padding: 0 20px 18px;
+      justify-content: flex-end;
+    }
+    .vd-btn {
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.14s ease;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .vd-btn-cancel {
+      background: #f0f2f8;
+      color: #5a627a;
+      border: 1px solid #e0e3f0;
+    }
+    .vd-btn-cancel:hover  { background: #e4e7f5; }
+    .vd-btn-cancel:active { background: #d8dcf0; }
+    .vd-btn-ok {
+      background: #4f63d2;
+      color: #fff;
+    }
+    .vd-btn-ok:hover  { background: #3d50c0; }
+    .vd-btn-ok:active { background: #3044b0; transform: scale(0.97); }
+    /* Mobile */
+    @media (max-width: 480px) {
+      #varDialog { width: 90vw; }
+      #varDialogInner { padding: 18px 16px 14px; }
+      #varDialogFooter { padding: 0 16px 16px; }
+      .vd-btn { flex: 1; padding: 10px 12px; font-size: 0.88rem; }
+    }
   </style>
 
   <!-- Blockly Core & Python Engine (local offline copies) -->
@@ -223,7 +346,7 @@
         <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
         <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
         <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
-        <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnClear" onclick="workspaceClearAll()" title="Clear Workspace (or drag blocks here to delete)">Clear</button>
+        <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnClear" onclick="workspaceClearAll()" title="Delete all blocks (or drag blocks here to delete)">Delete</button>
       </div>
     </div>
   </div>
@@ -252,9 +375,189 @@
   <!-- Toast Notification -->
   <div id="toast"></div>
 
+  <!-- Custom Variable Name Dialog -->
+  <div id="varDialogBackdrop" role="dialog" aria-modal="true" aria-labelledby="varDialogTitle">
+    <div id="varDialog">
+      <div id="varDialogInner">
+        <div id="varDialogTitle">New Variable</div>
+        <input
+          id="varDialogInput"
+          type="text"
+          placeholder="e.g. mySpeed, counter, ledPin…"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          maxlength="64"
+        />
+        <div id="varDialogError"></div>
+      </div>
+      <div id="varDialogFooter">
+        <button class="vd-btn vd-btn-cancel" id="varDialogCancelBtn" type="button">Cancel</button>
+        <button class="vd-btn vd-btn-ok"     id="varDialogOkBtn"     type="button">Create</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let workspace;
     let activeTab = 'python';
+
+    /* ── Custom Variable-Name Dialog ──────────────────────────── */
+    (function () {
+      const backdrop  = document.getElementById('varDialogBackdrop');
+      const input     = document.getElementById('varDialogInput');
+      const okBtn     = document.getElementById('varDialogOkBtn');
+      const cancelBtn = document.getElementById('varDialogCancelBtn');
+      const errorEl   = document.getElementById('varDialogError');
+
+      let _resolve = null;
+
+      // Expose so the touch-fix below can call it
+      window._showVarDialog = function showVarDialog(defaultVal) {
+        return new Promise((resolve) => {
+          _resolve = resolve;
+          input.value = defaultVal || '';
+          errorEl.textContent = '';
+          errorEl.classList.remove('visible');
+          backdrop.classList.add('open');
+          // Small delay so the keyboard doesn't fight the animation on mobile
+          setTimeout(() => { try { input.focus(); } catch(_) {} }, 80);
+        });
+      };
+
+      function confirmDialog() {
+        const name = input.value.trim();
+        if (!name) {
+          errorEl.textContent = 'Variable name cannot be empty.';
+          errorEl.classList.add('visible');
+          input.focus();
+          return;
+        }
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+          errorEl.textContent = 'Letters, digits and underscores only. Must not start with a digit.';
+          errorEl.classList.add('visible');
+          input.focus();
+          return;
+        }
+        closeDialog(name);
+      }
+
+      function closeDialog(result) {
+        backdrop.classList.remove('open');
+        if (_resolve) { _resolve(result); _resolve = null; }
+      }
+
+      okBtn.addEventListener('click',  confirmDialog);
+      cancelBtn.addEventListener('click', () => closeDialog(null));
+      backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeDialog(null); });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter')  confirmDialog();
+        if (e.key === 'Escape') closeDialog(null);
+      });
+
+      /* ── Patch Blockly's prompt dialog ─────────────────────── */
+      function patchBlocklyDialog() {
+        if (typeof Blockly === 'undefined') return;
+
+        // Blockly ≥ 9 uses Blockly.dialog.setPrompt
+        if (Blockly.dialog && typeof Blockly.dialog.setPrompt === 'function') {
+          Blockly.dialog.setPrompt(function (message, defaultValue, callback) {
+            window._showVarDialog(defaultValue).then(callback);
+          });
+          return true;
+        }
+        // Older Blockly exposes Blockly.prompt
+        if (typeof Blockly.prompt === 'function') {
+          Blockly.prompt = function (message, defaultValue, callback) {
+            window._showVarDialog(defaultValue).then(callback);
+          };
+          return true;
+        }
+        return false;
+      }
+
+      patchBlocklyDialog();
+      document.addEventListener('DOMContentLoaded', patchBlocklyDialog);
+      setTimeout(patchBlocklyDialog, 500);
+      setTimeout(patchBlocklyDialog, 1500);
+
+      /* ── Mobile touch fix ──────────────────────────────────────
+         On touch screens Blockly's gesture handler can swallow the
+         touchstart on flyout buttons so the click never fires.
+         We track touch position & duration; if it's a short tap
+         (< 300 ms, moved < 10 px) we check whether the touch landed
+         on a Blockly FlyoutButton (the "Create variable..." text)
+         and fire it manually via Blockly's own callback.
+      ────────────────────────────────────────────────────────── */
+      let _touchStartX = 0, _touchStartY = 0, _touchStartTime = 0;
+
+      document.addEventListener('touchstart', function(e) {
+        if (backdrop.classList.contains('open')) return; // dialog already open
+        const t = e.touches[0];
+        _touchStartX = t.clientX;
+        _touchStartY = t.clientY;
+        _touchStartTime = Date.now();
+      }, { passive: true });
+
+      document.addEventListener('touchend', function(e) {
+        if (backdrop.classList.contains('open')) return;
+        const elapsed = Date.now() - _touchStartTime;
+        if (elapsed > 400) return; // too slow – not a tap
+
+        const t = e.changedTouches[0];
+        const dx = Math.abs(t.clientX - _touchStartX);
+        const dy = Math.abs(t.clientY - _touchStartY);
+        if (dx > 12 || dy > 12) return; // finger moved – it's a scroll/drag
+
+        // Hit-test: walk up from the element under the finger
+        let el = document.elementFromPoint(t.clientX, t.clientY);
+        while (el) {
+          // Blockly renders flyout buttons as <text> inside .blocklyFlyoutButton
+          if (el.classList && (
+            el.classList.contains('blocklyFlyoutButton') ||
+            el.classList.contains('blocklyFlyoutButtonShadow') ||
+            el.getAttribute('data-is-variable-button') === 'true'
+          )) {
+            // Let the normal click event fire naturally first (50 ms)
+            setTimeout(() => {
+              // If the dialog still hasn't opened, fire it ourselves
+              if (!backdrop.classList.contains('open')) {
+                window._showVarDialog('').then((name) => {
+                  if (name && typeof Blockly !== 'undefined' && workspace) {
+                    Blockly.Variables.createVariableButtonHandler(workspace, null, '');
+                  }
+                });
+              }
+            }, 80);
+            break;
+          }
+          // Also check if the text content mentions "Create variable"
+          if (el.tagName === 'text' || el.tagName === 'tspan') {
+            const txt = (el.textContent || '').toLowerCase();
+            if (txt.includes('create') && txt.includes('variable')) {
+              setTimeout(() => {
+                if (!backdrop.classList.contains('open')) {
+                  if (typeof Blockly !== 'undefined') {
+                    // Trigger click on the parent SVG button element
+                    let btn = el;
+                    while (btn && !btn.classList.contains('blocklyFlyoutButton')) {
+                      btn = btn.parentElement;
+                    }
+                    if (btn) {
+                      btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                    }
+                  }
+                }
+              }, 60);
+              break;
+            }
+          }
+          el = el.parentElement;
+        }
+      }, { passive: true });
+
+    })();
 
     // Polyfill / alias for Blockly versions where textToDom is under Blockly.utils.xml
     if (typeof Blockly !== 'undefined') {
