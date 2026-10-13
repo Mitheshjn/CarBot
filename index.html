@@ -6,18 +6,46 @@
   <title>Blockly to Python Generator</title>
   <link rel="icon" href="data:,">
 
-  <!-- External Stylesheet with cache busting -->
-  <link rel="stylesheet" href="style.css?v=2">
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css">
 
   <style>
-    /* Critical modal & overlay styling to prevent layout bleed */
-    .modal-backdrop {
-      display: none;
-      position: fixed;
+    /* Mobile-safe viewport fix for Android WebView */
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      position: fixed; /* Prevents elastic scroll & sizing collapse */
+    }
+
+    #main-container {
+      width: 100%;
+      height: calc(100% - 50px);
+      position: relative;
+      display: flex;
+    }
+
+    #blocklyArea {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    #blocklyDiv {
+      position: absolute;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
+    }
+
+    /* Modal & Dialog Styling */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-color: rgba(0, 0, 0, 0.7);
       z-index: 9999;
       justify-content: center;
@@ -32,7 +60,6 @@
       height: 80vh;
       max-height: 620px;
       border-radius: 8px;
-      box-shadow: 0 12px 36px rgba(0,0,0,0.6);
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -46,10 +73,7 @@
       background: #252526;
       border-bottom: 1px solid #333;
     }
-    .modal-tabs {
-      display: flex;
-      gap: 8px;
-    }
+    .modal-tabs { display: flex; gap: 8px; }
     .tab-btn {
       background: #2d2d30;
       color: #aaa;
@@ -71,11 +95,6 @@
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-      line-height: 1;
-      padding: 0 6px;
-    }
-    .modal-close-btn:hover {
-      color: #fff;
     }
     .modal-body {
       flex: 1;
@@ -109,7 +128,20 @@
     }
     #dragOverlay {
       display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(79, 99, 210, 0.15);
+      border: 3px dashed #4f63d2;
+      border-radius: 8px;
+      z-index: 150;
+      pointer-events: none;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #3344a0;
     }
+    #dragOverlay.active { display: flex; }
     #toast {
       position: fixed;
       bottom: 25px;
@@ -119,21 +151,17 @@
       color: #fff;
       padding: 10px 20px;
       border-radius: 6px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
       font-size: 0.9rem;
       z-index: 10000;
       transition: transform 0.25s ease, opacity 0.25s ease;
       opacity: 0;
       pointer-events: none;
     }
-    #toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     #toast.success { background: #238636; }
     #toast.error { background: #da3633; }
 
-    /* Custom Floating HTML Workspace Controls */
+    /* Custom Floating Controls */
     .workspace-floating-controls {
       position: absolute;
       bottom: 24px;
@@ -159,38 +187,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.15s ease;
-      font-family: inherit;
-    }
-    .workspace-floating-controls .ctrl-btn:hover {
-      background: #f6f8fa;
-      border-color: #0969da;
-      color: #0969da;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
-    .workspace-floating-controls .ctrl-btn:active {
-      transform: translateY(0);
-      background: #eaeef2;
     }
     .workspace-floating-controls .ctrl-btn-danger {
       font-size: 0.82rem;
       color: #cf222e;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .workspace-floating-controls .ctrl-btn-danger:hover {
+    .workspace-floating-controls .ctrl-btn-danger.drag-over {
       background: #ffebe9;
       border-color: #cf222e;
-      color: #a40e26;
-    }
-    .workspace-floating-controls .ctrl-btn-danger.drag-over-delete {
-      background: #cf222e !important;
-      color: #ffffff !important;
-      border-color: #a40e26 !important;
       transform: scale(1.12);
-      box-shadow: 0 4px 14px rgba(207, 34, 46, 0.45);
+      box-shadow: 0 4px 14px rgba(207, 34, 46, 0.35);
     }
 
-    /* ── Variable Name Dialog (light / minimal) ───────────────── */
+    /* Variable Name Dialog */
     #varDialogBackdrop {
       display: none;
       position: fixed;
@@ -200,77 +210,36 @@
       justify-content: center;
       align-items: center;
       backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
     }
-    #varDialogBackdrop.open {
-      display: flex;
-      animation: vdFadeIn 0.15s ease;
-    }
-    @keyframes vdFadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
+    #varDialogBackdrop.open { display: flex; }
     #varDialog {
       background: #ffffff;
-      border: 1px solid #e2e6ea;
       border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
       width: min(92vw, 360px);
       overflow: hidden;
-      animation: vdSlideUp 0.18s cubic-bezier(0.34, 1.4, 0.64, 1);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    @keyframes vdSlideUp {
-      from { opacity: 0; transform: translateY(16px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0)   scale(1);    }
-    }
-    #varDialogInner {
-      padding: 22px 20px 18px;
-    }
+    #varDialogInner { padding: 22px 20px 18px; }
     #varDialogTitle {
       font-size: 0.95rem;
       font-weight: 600;
       color: #1a1f2e;
       margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-    #varDialogTitle::before {
-      content: '';
-      display: inline-block;
-      width: 3px;
-      height: 16px;
-      border-radius: 2px;
-      background: #4f63d2;
-      flex-shrink: 0;
     }
     #varDialogInput {
       width: 100%;
       background: #f7f8fc;
       border: 1.5px solid #dde1f0;
       border-radius: 8px;
-      color: #1a1f2e;
       font-size: 0.9rem;
-      font-family: inherit;
       padding: 10px 12px;
       outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-      caret-color: #4f63d2;
-    }
-    #varDialogInput::placeholder {
-      color: #adb4cc;
-    }
-    #varDialogInput:focus {
-      border-color: #4f63d2;
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(79,99,210,0.12);
     }
     #varDialogError {
       font-size: 0.72rem;
       color: #d93025;
       margin-top: 5px;
-      min-height: 16px;
       display: none;
     }
     #varDialogError.visible { display: block; }
@@ -281,85 +250,181 @@
       justify-content: flex-end;
     }
     .vd-btn {
-      font-family: inherit;
       font-size: 0.85rem;
-      font-weight: 500;
       padding: 8px 18px;
       border-radius: 7px;
       border: none;
       cursor: pointer;
-      transition: all 0.14s ease;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
     }
-    .vd-btn-cancel {
-      background: #f0f2f8;
-      color: #5a627a;
-      border: 1px solid #e0e3f0;
-    }
-    .vd-btn-cancel:hover  { background: #e4e7f5; }
-    .vd-btn-cancel:active { background: #d8dcf0; }
-    .vd-btn-ok {
-      background: #4f63d2;
-      color: #fff;
-    }
-    .vd-btn-ok:hover  { background: #3d50c0; }
-    .vd-btn-ok:active { background: #3044b0; transform: scale(0.97); }
-    /* Mobile */
-    @media (max-width: 480px) {
-      #varDialog { width: 90vw; }
-      #varDialogInner { padding: 18px 16px 14px; }
-      #varDialogFooter { padding: 0 16px 16px; }
-      .vd-btn { flex: 1; padding: 10px 12px; font-size: 0.88rem; }
-    }
+    .vd-btn-cancel { background: #f0f2f8; color: #5a627a; }
+    .vd-btn-ok { background: #4f63d2; color: #fff; }
   </style>
 
-  <!-- Blockly Core & Python Engine (local offline copies) -->
+  <!-- Blockly Core & Python Engine -->
   <script src="blockly.min.js"></script>
   <script src="python_compressed.js"></script>
-
-  <!-- Custom Block Definitions & Python Generators -->
-  <script src="blocks.js?v=lib4"></script>
-  <script src="python.js?v=lib4"></script>
+  <script src="blocks.js"></script>
+  <script src="python.js"></script>
 </head>
 <body>
 
   <header>
     <h1></h1>
     <div class="header-actions">
-      <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">View Code</button>
-      <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">Copy Python</button>
-      <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">Download XML</button>
-      <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">Upload XML</button>
-      <input type="file" id="xmlFileInput" accept=".xml,text/xml" style="display: none;" onchange="handleXmlUpload(event)">
+      <button onclick="openCodeModal('python')" class="btn-secondary">View Code</button>
+      <button onclick="copyPythonCode()" class="btn-blue">Copy Python</button>
+      <button onclick="downloadXml()" class="btn-primary">Download XML</button>
+      <button onclick="triggerXmlUpload()" class="btn-amber">Upload XML</button>
+      <input type="file" id="xmlFileInput" accept=".xml,text/xml,application/xml" style="display: none;" onchange="handleXmlUpload(event)">
     </div>
   </header>
 
-  <!-- Required DOM Containers -->
   <div id="main-container">
     <div id="blocklyArea">
       <div id="blocklyDiv"></div>
-      <div id="dragOverlay">Drop XML file here to load blocks</div>
+      <div id="dragOverlay">Drop XML file here</div>
 
-      <!-- Custom Floating HTML Workspace Controls -->
       <div class="workspace-floating-controls" id="workspaceControls">
-        <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
-        <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
-        <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
-        <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnClear" onclick="workspaceClearAll()" title="Delete all blocks (or drag blocks here to delete)">Delete</button>
+        <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()">Center</button>
+        <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()">+</button>
+        <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()">−</button>
+        <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDelete" onclick="deleteSelectedBlock()" title="Drag a block here to delete">Delete</button>
       </div>
     </div>
   </div>
 
+  <!-- INLINE TOOLBOX: Completely avoids fetch(), CORS, and 404 errors -->
+  <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none;">
+    <category name="Logic" colour="#ffb400">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_operation"></block>
+      <block type="logic_negate"></block>
+      <block type="logic_boolean"></block>
+    </category>
+    <category name="Loops" colour="#123456">
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <shadow type="math_number"><field name="NUM">10</field></shadow>
+        </value>
+      </block>
+      <block type="controls_whileUntil"></block>
+      <block type="controls_for">
+        <value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+        <value name="TO"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+        <value name="BY"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      </block>
+      <block type="controls_flow_statements"></block>
+    </category>
+    <category name="Math" colour="#008000">
+      <block type="lists_create_with"><mutation items="0"></mutation></block>
+      <block type="lists_create_with"><mutation items="3"></mutation></block>
+      <block type="math_number"><field name="NUM">123</field></block>
+      <block type="math_arithmetic">
+        <value name="A"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+        <value name="B"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      </block>
+      <block type="math_single"><value name="NUM"><shadow type="math_number"><field name="NUM">9</field></shadow></value></block>
+      <block type="math_trig"><value name="NUM"><shadow type="math_number"><field name="NUM">45</field></shadow></value></block>
+      <block type="math_constant"></block>		
+      <block type="math_number_property"><value name="NUMBER_TO_CHECK"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+      <block type="math_round"><value name="NUM"><shadow type="math_number"><field name="NUM">3.1</field></shadow></value></block>
+      <block type="math_random_int">
+        <value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+        <value name="TO"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
+      </block>
+    </category>
+    <category name="Text" colour="160">
+      <block type="text"></block>
+      <block type="text_print">
+        <value name="TEXT"><shadow type="text"><field name="TEXT">Hello</field></shadow></value>
+      </block>
+      <block type="text_join"></block>
+      <block type="text_length"></block>
+    </category>
+    <category name="Variables" colour="330" custom="VARIABLE"></category>
+    <category name="Motor" colour="110">
+      <block type="lib_left_motor_initialize"></block>
+      <block type="lib_right_motor_initialize"></block>
+      <block type="lib_motor_rotate"></block>
+    </category>
+    <category name="ARGB" colour="224">
+      <block type="lib_argb_initialize"></block>
+      <block type="lib_argb_clear"></block>
+      <block type="lib_argb_clear_all"></block>
+      <block type="lib_argb_show"></block>
+      <block type="lib_argb_red"></block>
+      <block type="lib_argb_green"></block>
+      <block type="lib_argb_blue"></block>
+      <block type="lib_argb_set">
+        <value name="red"><shadow type="math_number"><field name="NUM">255</field></shadow></value>
+        <value name="green"><shadow type="math_number"><field name="NUM">255</field></shadow></value>
+        <value name="blue"><shadow type="math_number"><field name="NUM">255</field></shadow></value>
+      </block>
+    </category>
+    <category name="Servo" colour="230">
+      <block type="lib_servo_initialize">
+        <value name="step"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+        <value name="delay"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+      </block>
+      <block type="lib_servo_rotate"></block>
+    </category>
+    <category name="MPU6050" colour="224">
+      <block type="lib_mpu6050_initialize"></block>
+      <block type="lib_mpu6050_enable_gyro"></block>
+      <block type="lib_mpu6050_disable_gyro"></block>
+      <block type="lib_mpu6050_get_gyro"></block>
+      <block type="lib_mpu6050_enable_accel"></block>
+      <block type="lib_mpu6050_disable_accel"></block>
+      <block type="lib_mpu6050_get_accel"></block>
+    </category>
+    <category name="TOF" colour="180">
+      <block type="lib_tof_initialize"></block>
+      <block type="lib_tof_read_distance"></block>
+    </category>
+    <category name="LDR" colour="165">
+      <block type="lib_ldr_initialize"></block>
+      <block type="lib_ldr_read"></block>
+    </category>
+    <category name="OLED" colour="180">
+      <block type="lib_display_oled_initialize"></block>
+      <block type="lib_display_oled_clear"></block>
+      <block type="lib_display_oled_show"></block>
+      <block type="lib_display_oled_draw_pixel"></block>
+      <block type="lib_display_oled_draw_text"></block>
+    </category>
+    <category name="Buzzer" colour="32">
+      <block type="lib_buzzer_initialize"></block>
+      <block type="lib_buzzer_on"></block>
+      <block type="lib_buzzer_off"></block>
+      <block type="lib_buzzer_buzz">
+        <value name="secs"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      </block>
+    </category>
+    <category name="DHT22" colour="120">
+      <block type="lib_dht22_initialize"></block>
+      <block type="lib_temperature_read"></block>
+      <block type="lib_humidity_read"></block>
+    </category>
+    <category name="System" colour="60">
+      <block type="lib_neo_sleep">
+        <value name="duration"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      </block>
+      <block type="lib_neo_sleep_ms">
+        <value name="duration"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+      </block>
+    </category>
+  </xml>
+
   <!-- Code Viewer Modal -->
-  <div id="codeModal" class="modal-backdrop" style="display: none;" onclick="handleBackdropClick(event)">
+  <div id="codeModal" class="modal-backdrop" onclick="handleBackdropClick(event)">
     <div class="modal-content">
       <div class="modal-header">
         <div class="modal-tabs">
           <button id="tabPythonBtn" class="tab-btn active" onclick="switchTab('python')">Python</button>
           <button id="tabXmlBtn" class="tab-btn" onclick="switchTab('xml')">XML</button>
         </div>
-        <button class="modal-close-btn" onclick="closeCodeModal()" title="Close">&times;</button>
+        <button class="modal-close-btn" onclick="closeCodeModal()">&times;</button>
       </div>
       <div class="modal-body">
         <textarea id="modalCodeText" class="code-view" readonly spellcheck="false"></textarea>
@@ -372,29 +437,19 @@
     </div>
   </div>
 
-  <!-- Toast Notification -->
   <div id="toast"></div>
 
-  <!-- Custom Variable Name Dialog -->
-  <div id="varDialogBackdrop" role="dialog" aria-modal="true" aria-labelledby="varDialogTitle">
+  <!-- Custom Variable Dialog -->
+  <div id="varDialogBackdrop" role="dialog">
     <div id="varDialog">
       <div id="varDialogInner">
         <div id="varDialogTitle">New Variable</div>
-        <input
-          id="varDialogInput"
-          type="text"
-          placeholder="e.g. mySpeed, counter, ledPin…"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
-          maxlength="64"
-        />
+        <input id="varDialogInput" type="text" placeholder="e.g. speed, count" autocomplete="off" spellcheck="false" maxlength="64">
         <div id="varDialogError"></div>
       </div>
       <div id="varDialogFooter">
         <button class="vd-btn vd-btn-cancel" id="varDialogCancelBtn" type="button">Cancel</button>
-        <button class="vd-btn vd-btn-ok"     id="varDialogOkBtn"     type="button">Create</button>
+        <button class="vd-btn vd-btn-ok" id="varDialogOkBtn" type="button">Create</button>
       </div>
     </div>
   </div>
@@ -403,25 +458,22 @@
     let workspace;
     let activeTab = 'python';
 
-    /* ── Custom Variable-Name Dialog ──────────────────────────── */
+    // Variable dialog helper
     (function () {
       const backdrop  = document.getElementById('varDialogBackdrop');
       const input     = document.getElementById('varDialogInput');
       const okBtn     = document.getElementById('varDialogOkBtn');
       const cancelBtn = document.getElementById('varDialogCancelBtn');
       const errorEl   = document.getElementById('varDialogError');
-
       let _resolve = null;
 
-      // Expose so the touch-fix below can call it
-      window._showVarDialog = function showVarDialog(defaultVal) {
+      window._showVarDialog = function(defaultVal) {
         return new Promise((resolve) => {
           _resolve = resolve;
           input.value = defaultVal || '';
           errorEl.textContent = '';
           errorEl.classList.remove('visible');
           backdrop.classList.add('open');
-          // Small delay so the keyboard doesn't fight the animation on mobile
           setTimeout(() => { try { input.focus(); } catch(_) {} }, 80);
         });
       };
@@ -429,530 +481,366 @@
       function confirmDialog() {
         const name = input.value.trim();
         if (!name) {
-          errorEl.textContent = 'Variable name cannot be empty.';
+          errorEl.textContent = 'Name cannot be empty.';
           errorEl.classList.add('visible');
-          input.focus();
           return;
         }
-        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-          errorEl.textContent = 'Letters, digits and underscores only. Must not start with a digit.';
-          errorEl.classList.add('visible');
-          input.focus();
-          return;
-        }
-        closeDialog(name);
-      }
-
-      function closeDialog(result) {
         backdrop.classList.remove('open');
-        if (_resolve) { _resolve(result); _resolve = null; }
+        if (_resolve) { _resolve(name); _resolve = null; }
       }
 
-      okBtn.addEventListener('click',  confirmDialog);
-      cancelBtn.addEventListener('click', () => closeDialog(null));
-      backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeDialog(null); });
+      okBtn.addEventListener('click', confirmDialog);
+      cancelBtn.addEventListener('click', () => {
+        backdrop.classList.remove('open');
+        if (_resolve) { _resolve(null); _resolve = null; }
+      });
       input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter')  confirmDialog();
-        if (e.key === 'Escape') closeDialog(null);
+        if (e.key === 'Enter') confirmDialog();
+        if (e.key === 'Escape') backdrop.classList.remove('open');
       });
 
-      /* ── Patch Blockly's prompt dialog ─────────────────────── */
       function patchBlocklyDialog() {
         if (typeof Blockly === 'undefined') return;
-
-        // Blockly ≥ 9 uses Blockly.dialog.setPrompt
         if (Blockly.dialog && typeof Blockly.dialog.setPrompt === 'function') {
-          Blockly.dialog.setPrompt(function (message, defaultValue, callback) {
-            window._showVarDialog(defaultValue).then(callback);
-          });
-          return true;
+          Blockly.dialog.setPrompt((msg, def, cb) => window._showVarDialog(def).then(cb));
+        } else if (typeof Blockly.prompt === 'function') {
+          Blockly.prompt = (msg, def, cb) => window._showVarDialog(def).then(cb);
         }
-        // Older Blockly exposes Blockly.prompt
-        if (typeof Blockly.prompt === 'function') {
-          Blockly.prompt = function (message, defaultValue, callback) {
-            window._showVarDialog(defaultValue).then(callback);
-          };
-          return true;
-        }
-        return false;
       }
-
-      patchBlocklyDialog();
-      document.addEventListener('DOMContentLoaded', patchBlocklyDialog);
-      setTimeout(patchBlocklyDialog, 500);
-      setTimeout(patchBlocklyDialog, 1500);
-
-      /* ── Mobile touch fix ──────────────────────────────────────
-         On touch screens Blockly's gesture handler can swallow the
-         touchstart on flyout buttons so the click never fires.
-         We track touch position & duration; if it's a short tap
-         (< 300 ms, moved < 10 px) we check whether the touch landed
-         on a Blockly FlyoutButton (the "Create variable..." text)
-         and fire it manually via Blockly's own callback.
-      ────────────────────────────────────────────────────────── */
-      let _touchStartX = 0, _touchStartY = 0, _touchStartTime = 0;
-
-      document.addEventListener('touchstart', function(e) {
-        if (backdrop.classList.contains('open')) return; // dialog already open
-        const t = e.touches[0];
-        _touchStartX = t.clientX;
-        _touchStartY = t.clientY;
-        _touchStartTime = Date.now();
-      }, { passive: true });
-
-      document.addEventListener('touchend', function(e) {
-        if (backdrop.classList.contains('open')) return;
-        const elapsed = Date.now() - _touchStartTime;
-        if (elapsed > 400) return; // too slow – not a tap
-
-        const t = e.changedTouches[0];
-        const dx = Math.abs(t.clientX - _touchStartX);
-        const dy = Math.abs(t.clientY - _touchStartY);
-        if (dx > 12 || dy > 12) return; // finger moved – it's a scroll/drag
-
-        // Hit-test: walk up from the element under the finger
-        let el = document.elementFromPoint(t.clientX, t.clientY);
-        while (el) {
-          // Blockly renders flyout buttons as <text> inside .blocklyFlyoutButton
-          if (el.classList && (
-            el.classList.contains('blocklyFlyoutButton') ||
-            el.classList.contains('blocklyFlyoutButtonShadow') ||
-            el.getAttribute('data-is-variable-button') === 'true'
-          )) {
-            // Let the normal click event fire naturally first (50 ms)
-            setTimeout(() => {
-              // If the dialog still hasn't opened, fire it ourselves
-              if (!backdrop.classList.contains('open')) {
-                window._showVarDialog('').then((name) => {
-                  if (name && typeof Blockly !== 'undefined' && workspace) {
-                    Blockly.Variables.createVariableButtonHandler(workspace, null, '');
-                  }
-                });
-              }
-            }, 80);
-            break;
-          }
-          // Also check if the text content mentions "Create variable"
-          if (el.tagName === 'text' || el.tagName === 'tspan') {
-            const txt = (el.textContent || '').toLowerCase();
-            if (txt.includes('create') && txt.includes('variable')) {
-              setTimeout(() => {
-                if (!backdrop.classList.contains('open')) {
-                  if (typeof Blockly !== 'undefined') {
-                    // Trigger click on the parent SVG button element
-                    let btn = el;
-                    while (btn && !btn.classList.contains('blocklyFlyoutButton')) {
-                      btn = btn.parentElement;
-                    }
-                    if (btn) {
-                      btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                    }
-                  }
-                }
-              }, 60);
-              break;
-            }
-          }
-          el = el.parentElement;
-        }
-      }, { passive: true });
-
+      setTimeout(patchBlocklyDialog, 300);
     })();
 
-    // Polyfill / alias for Blockly versions where textToDom is under Blockly.utils.xml
-    if (typeof Blockly !== 'undefined') {
-      if (Blockly.Xml && !Blockly.Xml.textToDom && Blockly.utils && Blockly.utils.xml && Blockly.utils.xml.textToDom) {
-        Blockly.Xml.textToDom = Blockly.utils.xml.textToDom;
-      }
+    // Workspace initialization
+    function initBlockly() {
+      const toolboxElement = document.getElementById('toolbox');
+
+      workspace = Blockly.inject('blocklyDiv', {
+        toolbox: toolboxElement,
+        grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
+        zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
+        move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
+        theme: Blockly.Themes.Classic,
+        trashcan: false
+      });
+
+      // Force SVG resize to prevent clipped/invisible workspace on Android
+      setTimeout(() => {
+        Blockly.svgResize(workspace);
+      }, 100);
+
+      window.addEventListener('resize', () => Blockly.svgResize(workspace), false);
+      setupDragToDelete();
+      setupXmlDragAndDrop();
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      try {
-        // 1. Fetch external toolbox.xml (with cache busting)
-        const response = await fetch('toolbox.xml?v=' + new Date().getTime());
-        const toolboxText = await response.text();
-        const parser = new DOMParser();
-        const toolboxXml = parser.parseFromString(toolboxText, 'text/xml').documentElement;
+    function setupXmlDragAndDrop() {
+      const overlay = document.getElementById('dragOverlay');
+      if (!overlay) return;
 
-        // 2. Inject Blockly into #blocklyDiv
-        workspace = Blockly.inject('blocklyDiv', {
-          toolbox: toolboxXml,
-          media: 'https://unpkg.com/blockly/media/',
-          grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
-          zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
-          move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
-          theme: Blockly.Themes.Classic,
-          trashcan: false
-        });
-
-        // 3. Real-time updates when workspace changes
-        workspace.addChangeListener((event) => {
-          if (event.isUiEvent) return;
-          updateActiveCodeView();
-        });
-
-        window.addEventListener('resize', () => Blockly.svgResize(workspace), false);
-
-        // 4. Setup Drag-to-Delete on the Clear button
-        const clearBtn = document.getElementById('btnClear');
-        if (clearBtn) {
-          // Register with Blockly's official ComponentManager if available
-          if (workspace.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
-            try {
-              const deleteArea = {
-                id: 'clearDeleteArea',
-                getClientRect: function() {
-                  const r = clearBtn.getBoundingClientRect();
-                  return new Blockly.utils.Rect(r.top, r.bottom, r.left, r.right);
-                },
-                wouldDelete: function() {
-                  return true;
-                }
-              };
-              workspace.getComponentManager().addComponent({
-                component: deleteArea,
-                weight: 0,
-                capabilities: [Blockly.ComponentManager.Capability.DELETE_AREA]
-              });
-            } catch (err) {
-              console.warn('ComponentManager deleteArea registration:', err);
-            }
-          }
-
-          // Active drag tracking & pointer release handler
-          let activeDraggedBlock = null;
-
-          workspace.addChangeListener((event) => {
-            if (event.type === Blockly.Events.BLOCK_DRAG) {
-              if (event.isStart) {
-                activeDraggedBlock = workspace.getBlockById(event.blockId);
-              } else {
-                activeDraggedBlock = null;
-                clearBtn.classList.remove('drag-over-delete');
-              }
-            }
-          });
-
-          window.addEventListener('pointermove', (e) => {
-            if (activeDraggedBlock || (Blockly.Gesture && Blockly.Gesture.inProgress && Blockly.Gesture.inProgress())) {
-              const r = clearBtn.getBoundingClientRect();
-              if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
-                clearBtn.classList.add('drag-over-delete');
-              } else {
-                clearBtn.classList.remove('drag-over-delete');
-              }
-            } else {
-              clearBtn.classList.remove('drag-over-delete');
-            }
-          });
-
-          window.addEventListener('pointerup', (e) => {
-            const r = clearBtn.getBoundingClientRect();
-            const isOverClear = (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
-            clearBtn.classList.remove('drag-over-delete');
-
-            if (isOverClear) {
-              const targetBlock = activeDraggedBlock || (Blockly.common && Blockly.common.getSelected ? Blockly.common.getSelected() : Blockly.selected);
-              if (targetBlock && targetBlock.isDeletable && targetBlock.isDeletable()) {
-                setTimeout(() => {
-                  try {
-                    targetBlock.dispose(false, true);
-                  } catch (e) {
-                    console.error('Failed to dispose block:', e);
-                  }
-                }, 10);
-              }
-            }
-          }, true);
+      let counter = 0;
+      window.addEventListener('dragenter', (e) => {
+        if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
+          counter++;
+          overlay.classList.add('active');
         }
+      });
+      window.addEventListener('dragleave', () => {
+        counter = Math.max(0, counter - 1);
+        if (counter === 0) overlay.classList.remove('active');
+      });
+      window.addEventListener('dragover', (e) => {
+        if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
+          e.preventDefault();
+        }
+      });
+      window.addEventListener('drop', (e) => {
+        counter = 0;
+        overlay.classList.remove('active');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+          e.preventDefault();
+          const file = e.dataTransfer.files[0];
+          if (file.name.toLowerCase().endsWith('.xml') || file.type.includes('xml')) {
+            loadXmlFile(file);
+          } else {
+            showToast('Please drop an XML file', 'error');
+          }
+        }
+      });
+    }
 
-        // 5. Setup drag and drop for XML files
-        setupDragAndDrop();
-      } catch (err) {
-        console.error('Failed to load toolbox or inject workspace:', err);
-      }
-    });
+    window.addEventListener('DOMContentLoaded', initBlockly);
 
-    // --- Custom HTML Workspace Navigation Controls ---
-    function workspaceResetZoom() {
+    // Zoom controls
+    function workspaceResetZoom() { if (workspace) { workspace.setScale(1.0); workspace.scrollCenter(); } }
+    function workspaceZoomIn() { if (workspace) workspace.zoom(0, 0, 1); }
+    function workspaceZoomOut() { if (workspace) workspace.zoom(0, 0, -1); }
+    function deleteSelectedBlock() {
       if (workspace) {
-        workspace.setScale(1.0);
-        workspace.scrollCenter();
+        const selected = Blockly.selected;
+        if (selected && typeof selected.dispose === 'function') {
+          selected.dispose(true, true);
+          showToast('Block deleted', 'success');
+        } else {
+          showToast('Drag a block here to delete it', 'info');
+        }
       }
     }
 
-    function workspaceZoomIn() {
-      if (workspace) {
-        workspace.zoom(0, 0, 1);
+    function setupDragToDelete() {
+      const deleteBtn = document.getElementById('btnDelete');
+      if (!deleteBtn || !workspace) return;
+
+      // 1. Official Blockly ComponentManager DeleteArea registration
+      if (workspace.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
+        try {
+          const deleteArea = {
+            id: 'deleteButtonArea',
+            getClientRect: function () {
+              const r = deleteBtn.getBoundingClientRect();
+              return new Blockly.utils.Rect(r.top, r.bottom, r.left, r.right);
+            },
+            wouldDelete: function (element, couldConnect) {
+              return true;
+            }
+          };
+          workspace.getComponentManager().addComponent({
+            component: deleteArea,
+            weight: 0,
+            capabilities: [Blockly.ComponentManager.Capability.DELETE_AREA]
+          });
+        } catch (err) {
+          console.warn('ComponentManager deleteArea:', err);
+        }
       }
+
+      // 2. Gesture / Pointer-based drop detection (works across desktop & touch)
+      let isDraggingBlock = false;
+      let activeDragBlockId = null;
+      let lastPointerX = 0, lastPointerY = 0;
+
+      function isOverDeleteBtn(x, y) {
+        const r = deleteBtn.getBoundingClientRect();
+        return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+      }
+
+      function updatePointerPos(x, y) {
+        lastPointerX = x;
+        lastPointerY = y;
+        if (isDraggingBlock) {
+          if (isOverDeleteBtn(x, y)) {
+            deleteBtn.classList.add('drag-over');
+          } else {
+            deleteBtn.classList.remove('drag-over');
+          }
+        }
+      }
+
+      document.addEventListener('pointermove', (e) => updatePointerPos(e.clientX, e.clientY), { passive: true });
+      document.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches[0]) updatePointerPos(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+
+      function handleDropDelete(blockId) {
+        const wasOver = isOverDeleteBtn(lastPointerX, lastPointerY);
+        deleteBtn.classList.remove('drag-over');
+
+        if (wasOver) {
+          const targetId = blockId || activeDragBlockId;
+          const block = targetId ? workspace.getBlockById(targetId) : Blockly.selected;
+          if (block && typeof block.dispose === 'function' && !block.isDeadOrDying?.()) {
+            block.dispose(true, true);
+            showToast('Block deleted', 'success');
+          }
+        }
+      }
+
+      workspace.addChangeListener((e) => {
+        if (e.type === Blockly.Events.BLOCK_DRAG) {
+          if (e.isStart) {
+            isDraggingBlock = true;
+            activeDragBlockId = e.blockId;
+          } else {
+            handleDropDelete(e.blockId);
+            isDraggingBlock = false;
+            activeDragBlockId = null;
+          }
+        }
+      });
+
+      document.addEventListener('pointerup', () => {
+        if (isDraggingBlock) {
+          handleDropDelete();
+          isDraggingBlock = false;
+          activeDragBlockId = null;
+        }
+      }, { passive: true });
+
+      document.addEventListener('touchend', () => {
+        if (isDraggingBlock) {
+          handleDropDelete();
+          isDraggingBlock = false;
+          activeDragBlockId = null;
+        }
+      }, { passive: true });
     }
 
-    function workspaceZoomOut() {
-      if (workspace) {
-        workspace.zoom(0, 0, -1);
-      }
-    }
-
-    function workspaceClearAll() {
-      if (workspace && confirm('Are you sure you want to clear all blocks from the workspace?')) {
-        workspace.clear();
-      }
-    }
-
-    // --- Code Generation ---
-
+    // Code generators
     function generatePythonCode() {
       if (!workspace) return '';
-      try {
-        return Blockly.Python.workspaceToCode(workspace) || '';
-      } catch (e) {
-        console.error('Error generating Python:', e);
-        return '# Error generating code: ' + e.message;
+      try { return Blockly.Python.workspaceToCode(workspace) || ''; }
+      catch (e) { return '# Error: ' + e.message; }
+    }
+    // ---------- Robust XML helpers ----------
+    function textToDom(text) {
+      // Works with both old and new Blockly
+      if (Blockly.utils && Blockly.utils.xml && typeof Blockly.utils.xml.textToDom === 'function') {
+        return Blockly.utils.xml.textToDom(text);
       }
+      return Blockly.Xml.textToDom(text);
     }
 
     function generateXmlCode() {
       if (!workspace) return '';
       try {
-        const dom = Blockly.Xml.workspaceToDom(workspace);
-        return Blockly.Xml.domToPrettyText(dom);
+        // skipId = true → cleaner XML without random block IDs
+        const dom = Blockly.Xml.workspaceToDom(workspace, true);
+
+        // Prefer pretty text; fall back to compact if pretty is broken
+        if (typeof Blockly.Xml.domToPrettyText === 'function') {
+          return Blockly.Xml.domToPrettyText(dom);
+        }
+        return Blockly.Xml.domToText(dom);
       } catch (e) {
-        console.error('Error generating XML:', e);
+        console.error(e);
         return '<!-- Error generating XML: ' + e.message + ' -->';
       }
     }
 
-    // --- Copy & Download Features ---
-
     function copyPythonCode() {
-      const codeText = generatePythonCode();
-      if (!codeText.trim()) {
-        showToast('No blocks connected yet!', 'error');
-        return;
-      }
-      navigator.clipboard.writeText(codeText).then(() => {
-        showToast('Python code copied to clipboard!', 'success');
-      }).catch(() => {
-        fallbackCopyText(codeText, 'Python code copied!');
-      });
-    }
-
-    function copyXmlCode() {
-      const xmlText = generateXmlCode();
-      if (!xmlText.trim()) {
-        showToast('No blocks in workspace!', 'error');
-        return;
-      }
-      navigator.clipboard.writeText(xmlText).then(() => {
-        showToast('XML code copied to clipboard!', 'success');
-      }).catch(() => {
-        fallbackCopyText(xmlText, 'XML code copied!');
-      });
+      const code = generatePythonCode();
+      if (!code.trim()) { showToast('No blocks yet!', 'error'); return; }
+      navigator.clipboard.writeText(code).then(() => showToast('Python copied!', 'success'))
+      .catch(() => showToast('Copied!', 'success'));
     }
 
     function downloadXml() {
       if (!workspace) return;
-      const xmlText = generateXmlCode();
-      if (!xmlText || xmlText.trim() === '') {
-        showToast('Workspace is empty!', 'error');
+      if (workspace.getAllBlocks(false).length === 0) {
+        showToast('No blocks to download!', 'error');
         return;
       }
 
-      const blob = new Blob([xmlText], { type: 'text/xml;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-      a.href = url;
-      a.download = `roverblocks_${timestamp}.xml`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('XML file downloaded!', 'success');
-    }
+      const xml = generateXmlCode();
+      if (!xml || xml.startsWith('<!-- Error')) {
+        showToast('Could not generate valid XML', 'error');
+        return;
+      }
 
-    // --- Upload XML Feature ---
+      // Method that works better in Android WebViews
+      try {
+        const blob = new Blob([xml], { type: 'text/xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rover_blocks.xml';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 250);
+        showToast('XML downloaded!', 'success');
+      } catch (e) {
+        // Fallback for stubborn WebViews – open as data URL
+        const dataUrl = 'data:text/xml;charset=utf-8,' + encodeURIComponent(xml);
+        window.open(dataUrl, '_blank');
+        showToast('XML opened (save it manually)', 'success');
+      }
+    }
 
     function triggerXmlUpload() {
-      const input = document.getElementById('xmlFileInput');
-      if (input) {
-        input.value = ''; // Reset so the same file can be selected again
-        input.click();
+      const el = document.getElementById('xmlFileInput');
+      if (el) {
+        el.value = '';
+        el.click();
       }
     }
 
-    function handleXmlUpload(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        loadXmlStringToWorkspace(e.target.result, file.name);
-      };
-      reader.onerror = function() {
-        showToast('Failed to read XML file.', 'error');
-      };
-      reader.readAsText(file);
-    }
-
-    function loadXmlStringToWorkspace(xmlText, fileName) {
-      if (!workspace) return;
+    function loadXmlText(rawText) {
+      if (!rawText || !rawText.trim()) {
+        showToast('XML file is empty', 'error');
+        return;
+      }
       try {
-        let xmlDom;
-        if (typeof Blockly.utils !== 'undefined' && Blockly.utils.xml && typeof Blockly.utils.xml.textToDom === 'function') {
-          xmlDom = Blockly.utils.xml.textToDom(xmlText);
-        } else if (typeof Blockly.Xml !== 'undefined' && typeof Blockly.Xml.textToDom === 'function') {
-          xmlDom = Blockly.Xml.textToDom(xmlText);
-        } else {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-          if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
-            throw new Error('Invalid XML syntax.');
-          }
-          xmlDom = xmlDoc.documentElement;
+        // Remove BOM and normalize
+        const cleaned = rawText.replace(/^\uFEFF/, '').trim();
+
+        // Ensure it is wrapped in <xml> (some exports omit it)
+        let xmlText = cleaned;
+        if (!cleaned.toLowerCase().startsWith('<xml')) {
+          xmlText = '<xml xmlns="https://developers.google.com/blockly/xml">' + cleaned + '</xml>';
         }
 
+        const xml = textToDom(xmlText);
         workspace.clear();
-        Blockly.Xml.domToWorkspace(xmlDom, workspace);
+        Blockly.Xml.domToWorkspace(xml, workspace);
         Blockly.svgResize(workspace);
-        
-        // Center or scroll to blocks
-        const topBlocks = workspace.getTopBlocks(true);
-        if (topBlocks.length > 0 && workspace.scrollCenter) {
-          workspace.scrollCenter();
-        }
-
-        updateActiveCodeView();
-        showToast(`Loaded "${fileName || 'XML file'}" successfully!`, 'success');
+        workspace.scrollCenter();
+        showToast('Blocks loaded successfully!', 'success');
       } catch (err) {
-        console.error('Error importing XML:', err);
-        showToast('Error loading XML: ' + err.message, 'error');
+        console.error('XML Upload Error:', err);
+        showToast('Invalid XML file – ' + (err.message || 'parse error'), 'error');
       }
     }
 
-    // --- Drag and Drop Feature ---
-
-    function setupDragAndDrop() {
-      const mainContainer = document.getElementById('main-container');
-      const overlay = document.getElementById('dragOverlay');
-
-      window.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        if (overlay) overlay.style.display = 'flex';
-      });
-
-      window.addEventListener('dragleave', (e) => {
-        if (e.relatedTarget === null && overlay) {
-          overlay.style.display = 'none';
-        }
-      });
-
-      window.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (overlay) overlay.style.display = 'none';
-
-        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          const file = e.dataTransfer.files[0];
-          if (file.name.toLowerCase().endsWith('.xml') || file.type === 'text/xml') {
-            const reader = new FileReader();
-            reader.onload = (evt) => loadXmlStringToWorkspace(evt.target.result, file.name);
-            reader.readAsText(file);
-          } else {
-            showToast('Please drop a valid .xml file.', 'error');
-          }
-        }
-      });
+    function handleXmlUpload(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => loadXmlText(evt.target.result);
+      reader.onerror = () => showToast('Failed to read file', 'error');
+      reader.readAsText(file, 'UTF-8');
+      e.target.value = '';
     }
 
-    // --- Modal & Code View Tab Logic ---
-
-    function openCodeModal(tab = 'python') {
-      const modal = document.getElementById('codeModal');
-      if (!modal) return;
-      modal.style.display = 'flex';
+    // Modal tabs
+    function openCodeModal(tab) {
+      document.getElementById('codeModal').style.display = 'flex';
       switchTab(tab);
     }
-
     function closeCodeModal() {
-      const modal = document.getElementById('codeModal');
-      if (modal) modal.style.display = 'none';
+      document.getElementById('codeModal').style.display = 'none';
     }
-
-    function handleBackdropClick(event) {
-      if (event.target.id === 'codeModal') {
-        closeCodeModal();
-      }
+    function handleBackdropClick(e) {
+      if (e.target.id === 'codeModal') closeCodeModal();
     }
-
     function switchTab(tab) {
       activeTab = tab;
-      const tabPythonBtn = document.getElementById('tabPythonBtn');
-      const tabXmlBtn = document.getElementById('tabXmlBtn');
-      const downloadBtn = document.getElementById('modalDownloadXmlBtn');
-
+      const pyBtn = document.getElementById('tabPythonBtn');
+      const xmlBtn = document.getElementById('tabXmlBtn');
+      const dlXmlBtn = document.getElementById('modalDownloadXmlBtn');
+      const txt = document.getElementById('modalCodeText');
       if (tab === 'python') {
-        tabPythonBtn.classList.add('active');
-        tabXmlBtn.classList.remove('active');
-        if (downloadBtn) downloadBtn.style.display = 'none';
+        pyBtn.classList.add('active'); xmlBtn.classList.remove('active');
+        if (dlXmlBtn) dlXmlBtn.style.display = 'none';
+        txt.value = generatePythonCode();
       } else {
-        tabXmlBtn.classList.add('active');
-        tabPythonBtn.classList.remove('active');
-        if (downloadBtn) downloadBtn.style.display = 'inline-flex';
-      }
-
-      updateActiveCodeView();
-    }
-
-    function updateActiveCodeView() {
-      const textarea = document.getElementById('modalCodeText');
-      if (!textarea) return;
-
-      if (activeTab === 'python') {
-        textarea.value = generatePythonCode() || '# No blocks in workspace.';
-      } else {
-        textarea.value = generateXmlCode() || '<!-- No blocks in workspace. -->';
+        xmlBtn.classList.add('active'); pyBtn.classList.remove('active');
+        if (dlXmlBtn) dlXmlBtn.style.display = 'inline-block';
+        txt.value = generateXmlCode();
       }
     }
-
     function copyModalCode() {
-      const textarea = document.getElementById('modalCodeText');
-      if (!textarea || !textarea.value) return;
-
-      navigator.clipboard.writeText(textarea.value).then(() => {
-        showToast((activeTab === 'python' ? 'Python' : 'XML') + ' copied to clipboard!', 'success');
-      }).catch(() => {
-        fallbackCopyText(textarea.value, (activeTab === 'python' ? 'Python' : 'XML') + ' copied!');
-      });
+      const txt = document.getElementById('modalCodeText').value;
+      navigator.clipboard.writeText(txt).then(() => showToast('Copied!', 'success'));
     }
 
-    function fallbackCopyText(text, successMsg) {
-      const tempArea = document.createElement('textarea');
-      tempArea.value = text;
-      document.body.appendChild(tempArea);
-      tempArea.select();
-      try {
-        document.execCommand('copy');
-        showToast(successMsg, 'success');
-      } catch (err) {
-        showToast('Failed to copy text', 'error');
-      }
-      document.body.removeChild(tempArea);
-    }
-
-    // --- Toast Notification ---
-
-    let toastTimer;
-    function showToast(message, type = 'success') {
-      const toast = document.getElementById('toast');
-      if (!toast) return;
-
-      toast.textContent = message;
-      toast.className = 'show ' + (type === 'error' ? 'error' : 'success');
-
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        toast.className = '';
-      }, 2500);
+    function showToast(msg, type) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'show ' + (type || 'success');
+      setTimeout(() => t.className = '', 2500);
     }
   </script>
 </body>
