@@ -1,40 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Snap Racer Controller</title>
+    <link rel="icon" href="data:,">
+
+    <!-- External Stylesheet with cache busting -->
+    <link rel="stylesheet" href="style.css?v=2">
+
+    <!-- Blockly Core & Python Engine (Local Offline Copies) -->
+    <script src="blockly.min.js"></script>
+    <script src="python_compressed.js"></script>
+
+    <!-- Custom Block Definitions & Python Generators -->
+    <script src="blocks.js?v=lib4"></script>
+    <script src="python.js?v=lib4"></script>
+
     <style>
+        /* ================= SCROLLING & VIEWPORT FIXES ================= */
+        html {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+
+        body {
+            height: auto !important;
+            min-height: 100vh !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            touch-action: pan-y !important;
+            margin: 0;
+            padding: 12px 8px 100px 8px !important;
+            background: #0d0d0d !important;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            text-align: center;
+        }
+
         * {
             box-sizing: border-box;
             -webkit-user-select: none;
             user-select: none;
-            -webkit-tap-highlight-color: transparent
-        }
-
-        html,
-        body {
-            overscroll-behavior: none !important;
-            overscroll-behavior-y: none !important
-        }
-
-        body {
-            margin: 0;
-            padding: 12px 8px;
-            background: #0d0d0d;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-            text-align: center;
-            touch-action: manipulation
+            -webkit-tap-highlight-color: transparent;
         }
 
         h2 {
-            margin: 4px 0 10px;
+            margin: 0;
             font-size: 20px;
             font-weight: 600;
             letter-spacing: 1px;
-            color: #fff
+            color: #fff;
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 12px;
         }
 
         .panel {
@@ -44,7 +71,11 @@
             max-width: 360px;
             margin: 10px auto;
             padding: 14px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6)
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .panel-wide {
+            max-width: 820px;
         }
 
         .panel-title {
@@ -53,9 +84,10 @@
             text-transform: uppercase;
             letter-spacing: 1.5px;
             margin-bottom: 12px;
-            font-weight: 700
+            font-weight: 700;
         }
 
+        /* D-Pad Buttons */
         .ctrl-btn {
             display: inline-flex;
             align-items: center;
@@ -65,7 +97,7 @@
             border: none;
             border-radius: 10px;
             font-family: inherit;
-            transition: all .1s ease;
+            transition: all .06s ease;
             width: 68px;
             height: 50px;
             margin: 3px;
@@ -73,17 +105,17 @@
             font-weight: bold;
             background: #2d2d2d;
             color: #fff;
-            box-shadow: 0 3px 0 #151515
+            box-shadow: 0 3px 0 #151515;
         }
 
         .stop-btn {
             background: #c62828;
-            box-shadow: 0 3px 0 #8e0000
+            box-shadow: 0 3px 0 #8e0000;
         }
 
         .ctrl-btn:active {
             transform: translateY(3px);
-            box-shadow: none
+            box-shadow: none;
         }
 
         #dpadContainer {
@@ -91,7 +123,7 @@
             min-width: 236px;
             flex-shrink: 0;
             text-align: center;
-            white-space: nowrap
+            white-space: nowrap;
         }
 
         .slider-col {
@@ -105,7 +137,7 @@
             height: 160px;
             width: 56px;
             min-width: 56px;
-            flex-shrink: 0
+            flex-shrink: 0;
         }
 
         .slider-val {
@@ -116,7 +148,7 @@
             width: 48px;
             text-align: center;
             font-variant-numeric: tabular-nums;
-            display: inline-block
+            display: inline-block;
         }
 
         .v-slider {
@@ -129,7 +161,7 @@
             background: #2d2d2d;
             border-radius: 12px;
             outline: none;
-            touch-action: none
+            touch-action: none;
         }
 
         .v-slider::-webkit-slider-thumb {
@@ -139,7 +171,7 @@
             border-radius: 50%;
             background: #007aff;
             cursor: pointer;
-            touch-action: none
+            touch-action: none;
         }
 
         #wheelContainer {
@@ -148,7 +180,7 @@
             justify-content: center;
             width: 180px;
             height: 160px;
-            position: relative
+            position: relative;
         }
 
         .wheel-graphic {
@@ -159,7 +191,7 @@
             position: relative;
             background: #111;
             transition: transform .08s ease-out;
-            touch-action: none
+            touch-action: none;
         }
 
         .wheel-graphic:before {
@@ -170,7 +202,7 @@
             right: 0;
             height: 6px;
             background: #007aff;
-            transform: translateY(-50%)
+            transform: translateY(-50%);
         }
 
         .wheel-graphic:after {
@@ -181,7 +213,7 @@
             bottom: 0;
             width: 6px;
             background: #007aff;
-            transform: translateX(-50%)
+            transform: translateX(-50%);
         }
 
         .wheel-center {
@@ -193,7 +225,7 @@
             height: 24px;
             background: #fff;
             border-radius: 50%;
-            z-index: 2
+            z-index: 2;
         }
 
         .pedal-col {
@@ -202,7 +234,7 @@
             gap: 8px;
             margin-left: 10px;
             padding-left: 10px;
-            border-left: 1px solid #333
+            border-left: 1px solid #333;
         }
 
         .pedal-btn {
@@ -220,17 +252,17 @@
             font-weight: bold;
             color: #fff;
             background: #2e7d32;
-            box-shadow: 0 4px 0 #1b5e20
+            box-shadow: 0 4px 0 #1b5e20;
         }
 
         .brake-btn {
             background: #c62828;
-            box-shadow: 0 4px 0 #8e0000
+            box-shadow: 0 4px 0 #8e0000;
         }
 
         .pedal-btn:active {
             transform: translateY(4px);
-            box-shadow: none
+            box-shadow: none;
         }
 
         .switches-row {
@@ -239,25 +271,25 @@
             gap: 10px;
             align-items: center;
             margin-top: 14px;
-            padding: 0 4px
+            padding: 0 4px;
         }
 
         .switch-container {
             display: flex;
-            align-items: center
+            align-items: center;
         }
 
         .switch {
             position: relative;
             display: inline-block;
             width: 38px;
-            height: 22px
+            height: 22px;
         }
 
         .switch input {
             opacity: 0;
             width: 0;
-            height: 0
+            height: 0;
         }
 
         .slider {
@@ -268,7 +300,7 @@
             bottom: 0;
             background: #333;
             transition: .25s;
-            border-radius: 22px
+            border-radius: 22px;
         }
 
         .slider:before {
@@ -280,22 +312,22 @@
             bottom: 3px;
             background: #fff;
             transition: .25s;
-            border-radius: 50%
+            border-radius: 50%;
         }
 
         input:checked+.slider {
-            background: #007aff
+            background: #007aff;
         }
 
         input:checked+.slider:before {
-            transform: translateX(16px)
+            transform: translateX(16px);
         }
 
         .switch-label {
             font-size: 11px;
             margin-left: 7px;
             color: #aaa;
-            font-weight: 600
+            font-weight: 600;
         }
 
         .cam-wrapper {
@@ -306,7 +338,7 @@
             border-radius: 12px;
             overflow: hidden;
             background: #000;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5)
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
 
         #camFrame {
@@ -315,18 +347,7 @@
             border: none;
             background: #000;
             display: none;
-            object-fit: cover
-        }
-
-        #hudCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 320px;
-            height: 240px;
-            pointer-events: none;
-            z-index: 10;
-            display: none;
+            object-fit: cover;
         }
 
         #camError {
@@ -341,7 +362,7 @@
             padding: 20px;
             align-items: center;
             justify-content: center;
-            flex-direction: column
+            flex-direction: column;
         }
 
         .status-badge {
@@ -351,19 +372,19 @@
             font-size: 10px;
             font-weight: 700;
             margin-bottom: 10px;
-            letter-spacing: .5px
+            letter-spacing: .5px;
         }
 
         .connected {
             background: rgba(46, 125, 50, 0.15);
             color: #4caf50;
-            border: 1px solid rgba(46, 125, 50, 0.4)
+            border: 1px solid rgba(46, 125, 50, 0.4);
         }
 
         .removed {
             background: rgba(198, 40, 40, 0.15);
             color: #ef5350;
-            border: 1px solid rgba(198, 40, 40, 0.4)
+            border: 1px solid rgba(198, 40, 40, 0.4);
         }
 
         .telemetry-val {
@@ -371,12 +392,10 @@
             font-weight: bold;
             color: #007aff;
             min-height: 26px;
-            margin: 6px 0
+            margin: 6px 0;
         }
 
-        .mod-select,
-        .rule-select,
-        .rule-input {
+        .mod-select {
             width: 100%;
             padding: 10px;
             font-size: 12px;
@@ -386,38 +405,7 @@
             border: 1px solid #333;
             border-radius: 8px;
             outline: none;
-            margin-bottom: 8px
-        }
-
-        .rule-box {
-            background: #141414;
-            border: 1px solid #292929;
-            border-radius: 10px;
-            padding: 12px;
-            margin-top: 10px;
-            text-align: left
-        }
-
-        .rule-label {
-            font-size: 10px;
-            color: #888;
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 5px;
-            display: block
-        }
-
-        .rule-btn {
-            width: 100%;
-            padding: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            background: #007aff;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 4px
+            margin-bottom: 8px;
         }
 
         .rst-btn {
@@ -427,7 +415,7 @@
             border: 1px solid #444;
             background: #252525;
             color: #ff5252;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             cursor: pointer;
             display: inline-flex;
@@ -435,109 +423,419 @@
             justify-content: center;
             outline: none;
             padding: 0;
-            line-height: 1
+            line-height: 1;
+            transition: all 0.15s ease;
         }
 
-        .rgb-btn {
-            cursor: pointer;
+        /* ================= ROVERBLOCKS STUDIO PANEL ================= */
+        .rover-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .rover-header h1 {
+            margin: 0;
+            font-size: 15px;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .rover-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-primary,
+        .btn-secondary,
+        .btn-blue,
+        .btn-amber {
             border: none;
             border-radius: 6px;
-            width: 48%;
-            margin: 3px 1%;
-            padding: 9px 3px;
-            font-size: 11px;
-            font-weight: bold;
-            color: #fff;
-            display: inline-block
-        }
-
-        .rgb-off {
-            background: #2a2a2a;
-            color: #aaa
-        }
-
-        .rgb-rain {
-            background: linear-gradient(45deg, #ff4b4b, #ffb74b, #ffff4b, #4bff4b, #4b4bff, #944bd3)
-        }
-
-        .rgb-breath {
-            background: #555
-        }
-
-        .rgb-red {
-            background: #d32f2f
-        }
-
-        .rgb-green {
-            background: #2e7d32
-        }
-
-        .rgb-blue {
-            background: #1976d2
-        }
-
-        .rgb-police {
-            background: linear-gradient(90deg, #d32f2f 50%, #1976d2 50%)
-        }
-
-        .rgb-chase {
-            background: #00bcd4;
-            color: #000
-        }
-
-        .rgb-auto {
-            background: #8e24aa
-        }
-
-        .servo-btn {
+            padding: 6px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
             cursor: pointer;
-            border: none;
-            border-radius: 6px;
-            width: 18%;
-            margin: 2px 1%;
-            padding: 8px 0;
-            font-size: 11px;
-            font-weight: bold;
             color: #fff;
-            background: #2d2d2d;
-            display: inline-block;
-            text-align: center;
-            transition: background 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: opacity 0.15s ease;
         }
 
-        .servo-btn:active,
-        .servo-btn:hover {
-            background: #007aff;
+        .btn-primary {
+            background: #238636;
+        }
+
+        .btn-secondary {
+            background: #30363d;
+            color: #c9d1d9;
+        }
+
+        .btn-blue {
+            background: #0969da;
+        }
+
+        .btn-amber {
+            background: #d97706;
+        }
+
+        #main-container {
+            width: 100% !important;
+            height: auto !important;
+            position: relative !important;
+            overflow: visible !important;
+        }
+
+        #blocklyArea {
+            width: 100% !important;
+            height: 480px !important;
+            position: relative !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            border: 1px solid #333 !important;
+            background: #1e1e1e !important;
+        }
+
+        #blocklyDiv {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            text-align: left;
+        }
+
+        /* Drag Overlay */
+        #dragOverlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(9, 105, 218, 0.4);
+            border: 2px dashed #0969da;
+            z-index: 90;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            pointer-events: none;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Custom Floating HTML Workspace Controls */
+        .workspace-floating-controls {
+            position: absolute;
+            bottom: 18px;
+            right: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 80;
+            user-select: none;
+        }
+
+        .workspace-floating-controls .ctrl-btn {
+            background: #ffffff !important;
+            color: #24292e !important;
+            border: 1px solid #d0d7de !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+            border-radius: 8px !important;
+            padding: 0 10px !important;
+            min-width: 44px !important;
+            width: auto !important;
+            height: 36px !important;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.15s ease !important;
+            margin: 0 !important;
+        }
+
+        .workspace-floating-controls .ctrl-btn:hover {
+            background: #f6f8fa !important;
+            border-color: #0969da !important;
+            color: #0969da !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .workspace-floating-controls .ctrl-btn:active {
+            transform: translateY(0) !important;
+            background: #eaeef2 !important;
+        }
+
+        .workspace-floating-controls .ctrl-btn-danger {
+            font-size: 0.82rem !important;
+            color: #cf222e !important;
+        }
+
+        .workspace-floating-controls .ctrl-btn-danger:hover {
+            background: #ffebe9 !important;
+            border-color: #cf222e !important;
+            color: #a40e26 !important;
+        }
+
+        .workspace-floating-controls .ctrl-btn-danger.drag-over-delete {
+            background: #cf222e !important;
+            color: #ffffff !important;
+            border-color: #a40e26 !important;
+            transform: scale(1.12) !important;
+            box-shadow: 0 4px 14px rgba(207, 34, 46, 0.5) !important;
+        }
+
+        /* Rover Car Controls */
+        .rover-car-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+
+        .rover-car-btn {
+            flex: 1;
+            padding: 12px 10px;
+            font-size: 13px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .rover-btn-run {
+            background: #0284c7;
+        }
+
+        .rover-btn-run:hover {
+            background: #0369a1;
+        }
+
+        .rover-btn-stop {
+            background: #c62828;
+        }
+
+        .rover-btn-stop:hover {
+            background: #b71c1c;
+        }
+
+        /* High-Contrast Toolbox category styles */
+        .blocklyToolboxDiv {
+            background-color: #e5e7eb !important;
+            border-right: 1px solid #333 !important;
+            overflow-y: auto !important;
+        }
+
+        .blocklyTreeRow {
+            background-color: transparent !important;
+            padding: 4px 6px !important;
+            height: auto !important;
+        }
+
+        .blocklyToolboxDiv,
+        .blocklyToolboxDiv *,
+        .blocklyToolboxCategory,
+        .blocklyToolboxCategoryLabel,
+        .blocklyTreeRow,
+        .blocklyTreeLabel {
+            color: #111111 !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            opacity: 1 !important;
+            text-shadow: none !important;
+        }
+
+        .blocklyTreeRow:not(.blocklyTreeSelected):hover,
+        .blocklyToolboxCategory:not(.blocklyTreeSelected):hover {
+            background-color: #d1d5db !important;
+        }
+
+        .blocklyTreeSelected,
+        .blocklyTreeSelected *,
+        .blocklyTreeSelected .blocklyTreeLabel,
+        .blocklyTreeSelected .blocklyToolboxCategoryLabel {
+            color: #ffffff !important;
+            font-weight: bold !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            width: 90%;
+            max-width: 820px;
+            height: 80vh;
+            max-height: 620px;
+            border-radius: 8px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #3c3c3c;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #252526;
+            border-bottom: 1px solid #333;
+        }
+
+        .modal-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            background: #2d2d30;
+            color: #aaa;
+            border: 1px solid #3e3e42;
+            padding: 6px 14px;
+            font-size: 0.88rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: #0e639c;
+            color: #fff;
+            font-weight: 600;
+            border-color: #1177bb;
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            color: #aaa;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0 6px;
+        }
+
+        .modal-close-btn:hover {
+            color: #fff;
+        }
+
+        .modal-body {
+            flex: 1;
+            display: flex;
+            padding: 12px 16px;
+            overflow: hidden;
+            background: #181818;
+        }
+
+        .code-view {
+            flex: 1;
+            width: 100%;
+            background: #141414;
+            color: #9cdcfe;
+            font-family: Consolas, Monaco, "Courier New", monospace;
+            font-size: 0.85rem;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #2d2d2d;
+            overflow: auto;
+            white-space: pre;
+            resize: none;
+            outline: none;
+            user-select: text !important;
+            -webkit-user-select: text !important;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 10px 16px;
+            background: #252526;
+            border-top: 1px solid #333;
+        }
+
+        /* Toast Notifications */
+        #toast {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+            font-size: 0.9rem;
+            z-index: 10000;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        #toast.success {
+            background: #238636;
+        }
+
+        #toast.error {
+            background: #da3633;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>SNAP RACER</h2>
-
-    <div style="margin: 0 auto 10px; max-width: 360px; padding: 0 10px;">
-        <select class="rule-select" onchange="if (this.value) window.location.href = this.value;">
-            <option value="index.html" selected>Main Controller</option>
-            <option value="blocks.html">Blocks</option>
-        </select>
+    <div class="header-bar">
+        <h2>SNAP RACER</h2>
+        <button type="button" class="rst-btn" id="lockOrientBtn" onclick="toggleScreenLock()"
+            title="Lock Screen Rotation">🔓</button>
     </div>
 
-    <!-- LIVE FPV STREAM + FIGHTER JET HUD -->
+    <!-- LIVE FPV STREAM -->
     <div class="panel" id="cameraSection" style="display:none;padding:10px;margin-top:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span class="panel-title" style="margin-bottom:0;">Live FPV Stream & HUD</span>
-            <div style="display:flex;align-items:center;gap:8px;">
-                <label class="switch"><input type="checkbox" id="hudToggle" onchange="toggleHud(this.checked)"><span
-                        class="slider"></span></label>
-                <span style="font-size:10px;color:#00e5ff;font-weight:bold;">HUD</span>
-                <button type="button" class="rst-btn" onclick="camReload(event); return false;"
-                    title="Reload Stream">&#8635;</button>
-            </div>
+            <span class="panel-title" style="margin-bottom:0;">Live FPV Stream</span>
+            <button type="button" class="rst-btn" onclick="camReload(event); return false;"
+                title="Reload Stream">&#8635;</button>
         </div>
         <div class="cam-wrapper">
             <img id="camFrame" src="" alt="Stream" onload="onCamLoad()" onerror="onCamError()">
-            <canvas id="hudCanvas" width="320" height="240" style="display:none;"></canvas>
             <div id="camError">
                 <div style="font-size:30px;margin-bottom:8px;">📷</div>
                 <div style="font-size:14px;font-weight:700;color:#fff;">Camera Offline</div>
@@ -546,6 +844,7 @@
         </div>
     </div>
 
+    <!-- DRIVING CONTROLS & THROTTLE -->
     <div class="panel">
         <div class="panel-title">Driving Controls & Throttle</div>
         <div style="display:flex;justify-content:center;align-items:center;width:100%;">
@@ -603,80 +902,35 @@
         </div>
 
         <div class="switches-row">
-            <div class="switch-container"><label class="switch"><input type="checkbox" id="obsToggle"
-                        onchange="toggleObstacle(this.checked)"><span class="slider"></span></label><span id="obsLabel"
-                    class="switch-label">Auto-Brake: OFF</span></div>
             <div class="switch-container"><label class="switch"><input type="checkbox"
                         onchange="toggleHeadlights(this.checked)"><span class="slider"></span></label><span
                     id="headlightLabel" class="switch-label">Lights: OFF</span></div>
-        </div>
-        <div class="switches-row">
             <div class="switch-container"><label class="switch"><input type="checkbox" id="cockpitToggle"
                         onchange="toggleCockpitMode(this.checked)"><span class="slider"></span></label><span
                     id="cockpitLabel" class="switch-label">Cockpit Mode: OFF</span></div>
+        </div>
+        <div class="switches-row">
             <div class="switch-container"><label class="switch"><input type="checkbox"
                         onchange="toggleAddOns(this.checked)"><span class="slider"></span></label><span id="addOnLabel"
                     class="switch-label">Add-Ons: OFF</span></div>
-        </div>
-        <div class="switches-row">
-            <div class="switch-container"><label class="switch"><input type="checkbox" id="imuToggle"
-                        onchange="toggleImu(this.checked)"><span class="slider"></span></label><span id="imuLabel"
-                    class="switch-label">IMU HUD: OFF</span></div>
             <div class="switch-container"><label class="switch"><input type="checkbox" id="camToggle"
                         onchange="toggleCamera(this.checked)"><span class="slider"></span></label><span id="camLabel"
                     class="switch-label">Camera: OFF</span></div>
         </div>
-    </div>
-
-    <!-- INBUILT ACCELEROMETER TELEMETRY -->
-    <div class="panel" id="imuPanel" style="display:none;">
-        <div class="panel-title">Accelerometer / Orientation Telemetry</div>
-        <div id="imuStatusBadge" class="status-badge connected">● IMU ONLINE</div>
-        <div id="tiltAlertBadge" class="status-badge removed"
-            style="display:none;font-weight:800;background:rgba(255,0,0,0.25);">⚠️ ROLLOVER TILT DETECTED</div>
-        <div style="display:flex;justify-content:space-around;margin:6px 0;">
-            <div>
-                <div style="font-size:9px;color:#888;font-weight:bold;">PITCH</div>
-                <div id="imuPitchTxt" style="font-size:16px;font-weight:bold;color:#007aff;">0.0°</div>
-            </div>
-            <div>
-                <div style="font-size:9px;color:#888;font-weight:bold;">ROLL</div>
-                <div id="imuRollTxt" style="font-size:16px;font-weight:bold;color:#007aff;">0.0°</div>
-            </div>
-            <div>
-                <div style="font-size:9px;color:#888;font-weight:bold;">TOTAL TILT</div>
-                <div id="imuTiltTxt" style="font-size:16px;font-weight:bold;color:#007aff;">0.0°</div>
-            </div>
-        </div>
-        <div
-            style="display:flex;justify-content:space-around;font-size:10px;color:#aaa;margin-bottom:8px;background:#141414;padding:6px;border-radius:6px;border:1px solid #292929;">
-            <span>X: <b id="imuAxTxt" style="color:#fff;">0.0</b></span>
-            <span>Y: <b id="imuAyTxt" style="color:#fff;">0.0</b></span>
-            <span>Z: <b id="imuAzTxt" style="color:#fff;">9.8</b></span>
-        </div>
-        <div class="rule-box" style="margin-top:0;">
-            <span class="rule-label">Tilt Sensitivity:</span>
-            <select id="adxlAngleSelect" class="rule-select">
-                <option value="20">20° Angle (High Sensitivity)</option>
-                <option value="35" selected>35° Angle (Moderate Slope)</option>
-                <option value="50">50° Angle (Extreme Rollover)</option>
-            </select>
-            <span class="rule-label">Safety Action:</span>
-            <select id="adxlActionSelect" class="rule-select">
-                <option value="1" selected>Emergency Motor Cutoff</option>
-                <option value="2">Flash Hazard Warning Strobe</option>
-                <option value="0">Telemetry Only (No Action)</option>
-            </select>
-            <button class="rule-btn" onclick="applyAdxlRule()">Save Inbuilt IMU Rule</button>
+        <div class="switches-row">
+            <div class="switch-container"><label class="switch"><input type="checkbox" id="terminalToggle"
+                        onchange="toggleTerminal(this.checked)"><span class="slider"></span></label><span
+                    id="terminalLabel" class="switch-label">RoverBlocks: OFF</span></div>
         </div>
     </div>
 
+    <!-- MODULAR SENSOR PORT -->
     <div id="addOnsContainer" style="display:none;">
         <div class="panel">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                 <span class="panel-title" style="margin-bottom:0;">Modular Sensor Port</span>
                 <button type="button" class="rst-btn" onclick="resetModularRules(event); return false;"
-                    title="Reset Modular Sensor Rules">&#8635;</button>
+                    title="Reset Module to Safe Mode">&#8635;</button>
             </div>
             <div id="plugStatus" class="status-badge removed">Checking Port...</div>
             <div id="readout" class="telemetry-val">Safe Mode (Idle)</div>
@@ -691,304 +945,216 @@
                 <option value="accel">7. Accelerometer (Modular ADXL/MPU)</option>
                 <option value="servo">8. Servo Motor</option>
             </select>
+        </div>
+    </div>
 
-            <!-- DISTANCE RULES -->
-            <div id="ruleDistBox" class="rule-box" style="display:none;">
-                <span class="rule-label">WHEN Distance IS LESS THAN:</span>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <input type="range" id="distThreshSlider" min="20" max="400" step="10" value="60" style="width:75%"
-                        oninput="document.getElementById('distValTxt').innerText=this.value+' mm ('+(this.value/10).toFixed(0)+' cm)'">
-                    <span id="distValTxt" style="font-size:11px;font-weight:bold;color:#007aff;">60 mm (6 cm)</span>
-                </div>
-                <span class="rule-label">THEN ACTION:</span>
-                <select id="distActionSelect" class="rule-select">
-                    <option value="0">Brake & Reverse (Controlled by Auto-Brake Switch)</option>
-                    <option value="1">Emergency Stop Only (Always Active)</option>
-                    <option value="2">Pivot Turn Left (Always Active)</option>
-                    <option value="3">Pivot Turn Right (Always Active)</option>
-                    <option value="4">Hazard Strobe & Stop (Always Active)</option>
-                </select>
-                <button class="rule-btn" onclick="applyDistRule()">Save Distance Rule</button>
+    <!-- ================= ROVERBLOCKS STUDIO PANEL ================= -->
+    <div class="panel panel-wide" id="terminalPanel" style="display:none;">
+        <div class="rover-header">
+            <h1>RoverBlocks</h1>
+            <div class="rover-actions header-actions">
+                <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁
+                    Code</button>
+                <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">📋 Copy Python</button>
+                <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download
+                    XML</button>
+                <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload
+                    XML</button>
+                <input type="file" id="xmlFileInput" accept=".xml,text/xml" style="display: none;"
+                    onchange="handleXmlUpload(event)">
             </div>
+        </div>
 
-            <!-- LDR RULES -->
-            <div id="ruleLdrBox" class="rule-box" style="display:none;">
-                <span class="rule-label">WHEN Light Sensor (LDR) Detects Dark:</span>
-                <select id="ldrActionSelect" class="rule-select">
-                    <option value="1">Switch Front Headlights ON</option>
-                    <option value="2">Flash Hazard Warning Strobe</option>
-                    <option value="3">Emergency Stop</option>
-                    <option value="0">Monitor Only (No Action)</option>
-                </select>
-                <button class="rule-btn" onclick="applyLdrRule()">Save LDR Rule</button>
-            </div>
+        <div id="main-container">
+            <div id="blocklyArea">
+                <div id="blocklyDiv"></div>
+                <div id="dragOverlay">📂 Drop XML file here to load blocks</div>
 
-            <!-- DHT RULES -->
-            <div id="ruleDhtBox" class="rule-box" style="display:none;">
-                <span class="rule-label">WHEN Temp EXCEEDS (°C):</span>
-                <input type="number" id="tempThreshInput" class="rule-input" value="38" min="20" max="60">
-                <span class="rule-label">THEN ACTION:</span>
-                <select id="dhtActionSelect" class="rule-select">
-                    <option value="1">Overheat Warning (Hazard Lights)</option>
-                    <option value="2">Emergency Motor Cutoff</option>
-                    <option value="0">Monitor Only</option>
-                </select>
-                <button class="rule-btn" onclick="applyDhtRule()">Save Temp Rule</button>
-            </div>
-
-            <!-- OLED CUSTOMIZER -->
-            <div id="ruleOledBox" class="rule-box" style="display:none;">
-                <span class="rule-label">Screen Visual Mode:</span>
-                <select id="oledModeSelect" class="rule-select" onchange="toggleOledInputs(this.value)">
-                    <option value="0">1. Animated Robot Face & Nav HUD</option>
-                    <option value="1">2. Live Telemetry & Speedometer</option>
-                    <option value="2">3. Custom User Text Banner</option>
-                    <option value="3">4. Chrome Dino Game (F: Jump, B: Duck)</option>
-                    <option value="5">6. Space Invaders (L/R: Move, F: Fire)</option>
-                </select>
-                <div id="oledTextInputs" style="display:none;">
-                    <span class="rule-label">Line 1:</span><input type="text" id="oledL1" class="rule-input"
-                        maxlength="16" value="SNAP RACER">
-                    <span class="rule-label">Line 2:</span><input type="text" id="oledL2" class="rule-input"
-                        maxlength="20" value="RULE ACTIVATED">
-                </div>
-                <button class="rule-btn" onclick="applyOledRule()">Update OLED Screen</button>
-            </div>
-
-            <!-- RGB CUSTOMIZER -->
-            <div id="ruleRgbBox" class="rule-box" style="display:none;">
-                <span class="rule-label">Preset Animations:</span>
-                <div class="rgb-btn rgb-off" onclick="fetchApi('/setRgb?mode=off')">Off</div>
-                <div class="rgb-btn rgb-rain" onclick="fetchApi('/setRgb?mode=rainbow')">Rainbow</div>
-                <div class="rgb-btn rgb-breath" onclick="fetchApi('/setRgb?mode=breathing')">Breathing</div>
-                <div class="rgb-btn rgb-red" onclick="fetchApi('/setRgb?mode=red')">Red</div>
-                <div class="rgb-btn rgb-green" onclick="fetchApi('/setRgb?mode=green')">Green</div>
-                <div class="rgb-btn rgb-blue" onclick="fetchApi('/setRgb?mode=blue')">Blue</div>
-                <div class="rgb-btn rgb-police" onclick="fetchApi('/setRgb?mode=police')">Police</div>
-                <div class="rgb-btn rgb-chase" onclick="fetchApi('/setRgb?mode=chase')">Chase</div>
-                <div class="rgb-btn rgb-auto" onclick="fetchApi('/setRgb?mode=auto')">Auto Mode</div>
-                <div class="rgb-btn" style="background:linear-gradient(90deg,#00e676,#ffea00,#ff1744);color:#000;"
-                    onclick="fetchApi('/setRgb?mode=tacho')">Tachometer</div>
-
-                <span class="rule-label" style="margin-top:10px;">Color & Brightness:</span>
-                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
-                    <input type="color" id="rgbColorPick" value="#007aff"
-                        style="width:46px;height:34px;border:none;border-radius:6px;cursor:pointer;"
-                        onchange="applyCustomRgb()">
-                    <input type="range" id="rgbBrightSlider" min="10" max="255" value="80" style="flex:1"
-                        oninput="sendRgbBright(this.value)">
+                <!-- Custom Floating HTML Workspace Controls -->
+                <div class="workspace-floating-controls" id="workspaceControls">
+                    <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()"
+                        title="Center Workspace">Center</button>
+                    <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
+                    <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
+                    <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnClear" onclick="workspaceClearAll()"
+                        title="Clear Workspace (or drag blocks here to delete)">Clear</button>
                 </div>
             </div>
+        </div>
 
-            <!-- MODULAR ACCELEROMETER RULES -->
-            <div id="ruleAccelBox" class="rule-box" style="display:none;">
-                <span class="rule-label">Modular Accel Tilt Angle Threshold:</span>
-                <select id="modAccelAngleSelect" class="rule-select">
-                    <option value="20">20° Angle (High Sensitivity)</option>
-                    <option value="35" selected>35° Angle (Moderate Slope)</option>
-                    <option value="50">50° Angle (Extreme Rollover)</option>
-                </select>
-                <span class="rule-label">Safety Action:</span>
-                <select id="modAccelActionSelect" class="rule-select">
-                    <option value="1" selected>Emergency Motor Cutoff</option>
-                    <option value="2">Flash Hazard Warning Strobe</option>
-                    <option value="0">Monitor Only (No Action)</option>
-                </select>
-                <button class="rule-btn" onclick="applyModAccelRule()">Save Modular Accel Rule</button>
-            </div>
+        <!-- Car Hardware Run & Stop Actions -->
+        <div class="rover-car-controls">
+            <button class="rover-car-btn rover-btn-run" onclick="uploadRoverCode()">⬆ Upload &amp; Run on Car</button>
+            <button class="rover-car-btn rover-btn-stop" onclick="stopRoverCode()">■ Stop Car</button>
+        </div>
+    </div>
 
-            <!-- SERVO MOTOR CONTROL PANEL -->
-            <div id="ruleServoBox" class="rule-box" style="display:none;">
-                <span class="rule-label">Servo Angle: <span id="servoAngleTxt" style="color:#007aff;">90°</span></span>
-                <input type="range" id="servoSlider" min="0" max="180" value="90" style="width:100%;margin-bottom:12px;"
-                    oninput="updateServoFromSlider(this.value)">
-
-                <span class="rule-label">Quick Angle Presets:</span>
-                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                    <div class="servo-btn" onclick="sendServoAngle(0)">0°</div>
-                    <div class="servo-btn" onclick="sendServoAngle(45)">45°</div>
-                    <div class="servo-btn" onclick="sendServoAngle(90)">90°</div>
-                    <div class="servo-btn" onclick="sendServoAngle(135)">135°</div>
-                    <div class="servo-btn" onclick="sendServoAngle(180)">180°</div>
+    <!-- Code Viewer Modal -->
+    <div id="codeModal" class="modal-backdrop" style="display: none;" onclick="handleBackdropClick(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-tabs">
+                    <button id="tabPythonBtn" class="tab-btn active" onclick="switchTab('python')">Python</button>
+                    <button id="tabXmlBtn" class="tab-btn" onclick="switchTab('xml')">XML</button>
                 </div>
+                <button class="modal-close-btn" onclick="closeCodeModal()" title="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="modalCodeText" class="code-view" readonly spellcheck="false"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="modalCopyBtn" class="btn-secondary" onclick="copyModalCode()">📋 Copy</button>
+                <button id="modalDownloadXmlBtn" class="btn-primary" style="display: none;" onclick="downloadXml()">💾
+                    Download XML</button>
+                <button class="btn-secondary" onclick="closeCodeModal()">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast"></div>
+
     <script>
-        // ================= FIXED ABSOLUTE BASE URL =================
         const ESP_HOST = "http://192.168.4.1";
+        let isCamActive = false;
 
         function fetchApi(endpoint) {
             return fetch(ESP_HOST + endpoint, { cache: 'no-store' }).catch(() => { });
         }
 
-        let liveTelemetry = { pitch: 0, roll: 0, tilt: 0, pwm: 0, dist: -1 };
+        document.addEventListener('contextmenu', e => {
+            if (e.target && e.target.closest('#blocklyArea, #blocklyDiv, .blocklySvg, .blocklyWidgetDiv, .blocklyDropDownDiv, .blocklyTooltipDiv, .code-view')) return;
+            e.preventDefault();
+        });
 
-        let startTouchY = 0;
-        window.addEventListener('touchstart', function (e) {
-            if (e.touches.length === 1) startTouchY = e.touches[0].clientY;
-        }, { passive: true });
-
-        window.addEventListener('touchmove', function (e) {
-            if (e.target && e.target.closest && e.target.closest('#speedSlider, .v-slider, .slider-col, #sliderContainer, .ctrl-btn, #steerWheel, .wheel-graphic, .pedal-btn, .stop-btn, #servoSlider')) return;
-            if (e.touches.length === 1) {
-                const deltaY = e.touches[0].clientY - startTouchY;
-                const scrollPos = window.pageYOffset || document.documentElement.scrollTop || 0;
-                if (scrollPos <= 0 && deltaY > 0 && e.cancelable) e.preventDefault();
+        // ================= SCREEN ORIENTATION LOCK =================
+        let isOrientationLocked = false;
+        async function toggleScreenLock() {
+            const btn = document.getElementById('lockOrientBtn');
+            if (!isOrientationLocked) {
+                try {
+                    const mode = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
+                    if (screen.orientation && screen.orientation.lock) {
+                        await screen.orientation.lock(mode);
+                    } else if (screen.lockOrientation) {
+                        screen.lockOrientation(mode);
+                    }
+                    isOrientationLocked = true;
+                    if (btn) { btn.innerText = '🔒'; btn.style.color = '#00e5ff'; btn.style.borderColor = '#00e5ff'; }
+                } catch (err) {
+                    try {
+                        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+                            await document.documentElement.requestFullscreen();
+                        }
+                        const mode = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
+                        await screen.orientation.lock(mode);
+                        isOrientationLocked = true;
+                        if (btn) { btn.innerText = '🔒'; btn.style.color = '#00e5ff'; btn.style.borderColor = '#00e5ff'; }
+                    } catch (err2) {
+                        alert("Screen lock error: " + (err2.message || err.message));
+                    }
+                }
+            } else {
+                try {
+                    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+                    if (document.exitFullscreen && document.fullscreenElement) await document.exitFullscreen();
+                } catch (e) { }
+                isOrientationLocked = false;
+                if (btn) { btn.innerText = '🔓'; btn.style.color = '#ff5252'; btn.style.borderColor = '#444'; }
             }
-        }, { passive: false });
+        }
 
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        window.addEventListener('touchstart', e => {
-            if (e.target.closest('.ctrl-btn, .pedal-btn, .stop-btn')) e.preventDefault();
-        }, { passive: false });
-
+        // ================= INSTANT-RESPONSE DRIVE ENGINE =================
         let activePointerId = null, currentDriveDir = 'stop', driveHeartbeat = null;
-        function sendCommand(dir) { fetchApi('/' + dir); }
 
         function driveStart(dir, e) {
-            if (e) e.preventDefault();
-            if (activePointerId !== null && activePointerId !== e.pointerId) return;
-            activePointerId = e.pointerId; currentDriveDir = dir;
-            sendCommand(dir);
-            if (!driveHeartbeat) driveHeartbeat = setInterval(() => { if (currentDriveDir !== 'stop') sendCommand(currentDriveDir); }, 500);
+            if (e) {
+                e.preventDefault();
+                if (e.target && e.target.setPointerCapture && e.pointerId) {
+                    try { e.target.setPointerCapture(e.pointerId); } catch (err) { }
+                }
+            }
+            if (activePointerId !== null && e && activePointerId !== e.pointerId) return;
+            activePointerId = e ? e.pointerId : 1;
+            currentDriveDir = dir;
+            fetchApi('/' + dir);
+
+            if (driveHeartbeat) clearInterval(driveHeartbeat);
+            driveHeartbeat = setInterval(() => {
+                if (currentDriveDir !== 'stop') fetchApi('/' + currentDriveDir);
+            }, 200);
         }
 
         function driveStop(e) {
-            if (e) e.preventDefault();
-            if (activePointerId !== null && e && activePointerId !== e.pointerId) return;
-            currentDriveDir = 'stop'; activePointerId = null;
+            if (e) {
+                e.preventDefault();
+                if (activePointerId !== null && e.pointerId && activePointerId !== e.pointerId) return;
+            }
+            currentDriveDir = 'stop';
+            activePointerId = null;
             if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
-            sendCommand('stop');
+            fetchApi('/stop');
+            setTimeout(() => { if (currentDriveDir === 'stop') fetchApi('/stop'); }, 40);
         }
 
         function stopPress(e) {
-            if (e) e.preventDefault();
-            activePointerId = e ? e.pointerId : null; currentDriveDir = 'stop';
+            if (e) {
+                e.preventDefault();
+                if (e.target && e.target.setPointerCapture && e.pointerId) {
+                    try { e.target.setPointerCapture(e.pointerId); } catch (err) { }
+                }
+            }
+            activePointerId = e ? e.pointerId : 1;
+            currentDriveDir = 'stop';
             if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
-            sendCommand('stopStart');
+            fetchApi('/stopStart');
         }
 
         function stopRelease(e) {
             if (e) e.preventDefault();
-            activePointerId = null; sendCommand('stopEnd');
+            activePointerId = null;
+            fetchApi('/stopEnd');
         }
 
         window.addEventListener('pointerup', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
         window.addEventListener('pointercancel', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
+        window.addEventListener('blur', () => { if (currentDriveDir !== 'stop') driveStop(); });
 
-        function toggleObstacle(en) { document.getElementById('obsLabel').innerText = en ? "Auto-Brake: ON" : "Auto-Brake: OFF"; document.getElementById('obsLabel').style.color = en ? "#007aff" : "#aaa"; fetchApi('/setObstacle?enabled=' + (en ? 1 : 0)); }
-        function toggleHeadlights(en) { document.getElementById('headlightLabel').innerText = en ? "Lights: ON" : "Lights: OFF"; document.getElementById('headlightLabel').style.color = en ? "#007aff" : "#aaa"; fetchApi('/setFrontLed?state=' + (en ? 1 : 0)); }
-        function toggleAddOns(en) { document.getElementById('addOnLabel').innerText = en ? "Add-Ons: ON" : "Add-Ons: OFF"; document.getElementById('addOnLabel').style.color = en ? "#007aff" : "#aaa"; document.getElementById('addOnsContainer').style.display = en ? "block" : "none"; }
-        function toggleImu(en) { document.getElementById('imuLabel').innerText = en ? "IMU HUD: ON" : "IMU HUD: OFF"; document.getElementById('imuLabel').style.color = en ? "#007aff" : "#aaa"; document.getElementById('imuPanel').style.display = en ? "block" : "none"; }
-
-        // ================= HUD =================
-        const hudCanvas = document.getElementById('hudCanvas');
-        const hudCtx = hudCanvas ? hudCanvas.getContext('2d') : null;
-
-        function isHudActive() { const t = document.getElementById('hudToggle'); return t ? t.checked : false; }
-        function toggleHud(en) { const cv = document.getElementById('hudCanvas'); if (cv) { cv.style.display = en ? 'block' : 'none'; if (!en && hudCtx) hudCtx.clearRect(0, 0, cv.width, cv.height); } }
-
-        function renderHUD() {
-            const active = isHudActive();
-            const cv = document.getElementById('hudCanvas');
-            if (!hudCtx || !cv) { requestAnimationFrame(renderHUD); return; }
-            if (!active) { cv.style.display = 'none'; hudCtx.clearRect(0, 0, cv.width, cv.height); requestAnimationFrame(renderHUD); return; }
-
-            cv.style.display = 'block';
-            const w = cv.width, h = cv.height, cx = w / 2, cy = h / 2;
-            hudCtx.clearRect(0, 0, w, h);
-
-            const pitch = liveTelemetry.pitch || 0, roll = liveTelemetry.roll || 0, speed = liveTelemetry.pwm || 0, dist = liveTelemetry.dist;
-            hudCtx.save();
-            hudCtx.strokeStyle = "#00e5ff"; hudCtx.fillStyle = "#00e5ff"; hudCtx.lineWidth = 1.5; hudCtx.font = "bold 9px monospace";
-
-            hudCtx.beginPath();
-            hudCtx.moveTo(cx - 16, cy); hudCtx.lineTo(cx - 6, cy); hudCtx.lineTo(cx - 2, cy + 4); hudCtx.lineTo(cx, cy);
-            hudCtx.lineTo(cx + 2, cy + 4); hudCtx.lineTo(cx + 6, cy); hudCtx.lineTo(cx + 16, cy);
-            hudCtx.stroke();
-
-            hudCtx.save();
-            hudCtx.translate(cx, cy);
-            hudCtx.rotate((-roll * Math.PI) / 180);
-            const pitchPx = (pitch / 45) * 35;
-            hudCtx.beginPath(); hudCtx.moveTo(-50, pitchPx); hudCtx.lineTo(-18, pitchPx); hudCtx.moveTo(18, pitchPx); hudCtx.lineTo(50, pitchPx); hudCtx.stroke();
-            hudCtx.setLineDash([4, 4]); hudCtx.beginPath(); hudCtx.moveTo(-32, pitchPx - 20); hudCtx.lineTo(32, pitchPx - 20); hudCtx.moveTo(-32, pitchPx + 20); hudCtx.lineTo(32, pitchPx + 20); hudCtx.stroke();
-            hudCtx.setLineDash([]); hudCtx.restore();
-
-            hudCtx.strokeRect(10, 35, 14, 150);
-            const speedH = (speed / 255) * 146;
-            hudCtx.fillStyle = "rgba(0,229,255,0.35)"; hudCtx.fillRect(12, 183 - speedH, 10, speedH);
-            hudCtx.fillStyle = "#00e5ff"; hudCtx.fillText("PWM", 8, 30); hudCtx.fillText(speed.toString(), 9, 200);
-            hudCtx.fillText("PITCH: " + pitch.toFixed(0) + "°", 40, 20); hudCtx.fillText("ROLL: " + roll.toFixed(0) + "°", 220, 20);
-
-            if (dist > 0 && dist <= 300) {
-                const isWarning = dist <= 60;
-                hudCtx.fillStyle = isWarning ? "rgba(255,23,68,0.85)" : "rgba(255,171,0,0.85)";
-                hudCtx.strokeStyle = isWarning ? "#ff1744" : "#ffab00";
-                hudCtx.strokeRect(cx - 50, cy + 38, 100, 22); hudCtx.fillRect(cx - 48, cy + 40, 96, 18);
-                hudCtx.fillStyle = "#fff"; hudCtx.font = "bold 10px monospace"; hudCtx.textAlign = "center";
-                hudCtx.fillText(isWarning ? "⚠️ BRAKE " + dist + "mm" : "PROX: " + dist + "mm", cx, cy + 53);
-                hudCtx.textAlign = "left";
-            }
-            hudCtx.restore();
-            requestAnimationFrame(renderHUD);
-        }
-        requestAnimationFrame(renderHUD);
-
-        let camTimeout = null;
-        function onCamLoad() {
-            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-            const f = document.getElementById('camFrame'), e = document.getElementById('camError'), cv = document.getElementById('hudCanvas');
-            if (e) e.style.display = 'none';
-            if (f) f.style.display = 'block';
-            if (cv) cv.style.display = isHudActive() ? 'block' : 'none';
+        function toggleHeadlights(en) {
+            document.getElementById('headlightLabel').innerText = en ? "Lights: ON" : "Lights: OFF";
+            document.getElementById('headlightLabel').style.color = en ? "#007aff" : "#aaa";
+            fetchApi('/setFrontLed?state=' + (en ? 1 : 0));
         }
 
-        function onCamError() {
-            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-            const f = document.getElementById('camFrame'), e = document.getElementById('camError'), cv = document.getElementById('hudCanvas');
-            if (f) { f.style.display = 'none'; f.src = ''; }
-            if (cv) cv.style.display = 'none';
-            if (e) e.style.display = 'flex';
+        function toggleAddOns(en) {
+            document.getElementById('addOnLabel').innerText = en ? "Add-Ons: ON" : "Add-Ons: OFF";
+            document.getElementById('addOnLabel').style.color = en ? "#007aff" : "#aaa";
+            document.getElementById('addOnsContainer').style.display = en ? "block" : "none";
         }
 
-        function toggleCamera(en) {
-            document.getElementById('camLabel').innerText = en ? "Camera: ON" : "Camera: OFF";
-            document.getElementById('camLabel').style.color = en ? "#007aff" : "#aaa";
-            const s = document.getElementById('cameraSection'), f = document.getElementById('camFrame'), e = document.getElementById('camError'), cv = document.getElementById('hudCanvas');
-            if (s) s.style.display = en ? 'block' : 'none';
-            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-            if (en) {
-                if (e) e.style.display = 'none';
-                if (f) {
-                    f.style.display = 'none';
-                    camTimeout = setTimeout(onCamError, 3500);
-                    f.src = 'http://192.168.4.10:81/stream';
-                }
-            } else {
-                if (f) { f.src = ''; f.style.display = 'none'; }
-                if (cv) cv.style.display = 'none';
-                if (e) e.style.display = 'none';
+        function toggleTerminal(en) {
+            document.getElementById('terminalLabel').innerText = en ? "RoverBlocks: ON" : "RoverBlocks: OFF";
+            document.getElementById('terminalLabel').style.color = en ? "#007aff" : "#aaa";
+            document.getElementById('terminalPanel').style.display = en ? "block" : "none";
+            if (en && workspace) {
+                setTimeout(() => {
+                    Blockly.svgResize(workspace);
+                    if (workspace.scrollCenter) workspace.scrollCenter();
+                }, 60);
             }
         }
 
-        function camReload(event) {
-            if (event) { if (event.preventDefault) event.preventDefault(); if (event.stopPropagation) event.stopPropagation(); }
-            const f = document.getElementById('camFrame'), errBox = document.getElementById('camError');
-            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-            if (!f) return false;
-            f.onerror = null; f.src = '';
-            setTimeout(() => {
-                if (errBox) errBox.style.display = 'none';
-                f.onerror = onCamError; f.onload = onCamLoad;
-                camTimeout = setTimeout(onCamError, 4000);
-                f.src = 'http://192.168.4.10:81/stream?t=' + Date.now();
-            }, 60);
-            return false;
+        function switchMode(val) {
+            fetchApi('/setMode?mode=' + val);
         }
 
+        function resetModularRules(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            document.getElementById('modSelect').value = 'idle';
+            switchMode('idle');
+        }
+
+        // ================= SPEED SLIDER =================
         let isSliderActive = false, lastSliderInteractTime = 0, lastSliderSend = 0;
         function onSliderInput(val) {
             isSliderActive = true; lastSliderInteractTime = Date.now();
@@ -996,10 +1162,10 @@
             if (Date.now() - lastSliderSend > 70 || val == 0 || val == 255) { lastSliderSend = Date.now(); sendSpeed(val); }
         }
         function onSliderChange(val) { isSliderActive = false; lastSliderInteractTime = Date.now(); sendSpeed(val); }
-        function updateSpeedUI(val) { document.getElementById('speedReadout').innerText = val; liveTelemetry.pwm = parseInt(val); }
+        function updateSpeedUI(val) { document.getElementById('speedReadout').innerText = val; }
         function sendSpeed(val) { fetchApi('/setSpeed?pwm=' + val); }
 
-        // ================= COCKPIT & EMBEDDED GYRO =================
+        // ================= COCKPIT & GYRO =================
         let cockpitActive = false;
         window.gyroModeActive = false;
         let cockpitDriveCmd = 'stop', steerDirection = 0, gasHeld = false, brakeHeld = false, wheelAngle = 0, isDraggingWheel = false, wheelTouchId = null, wheelStartX = 0, cockpitHeartbeat = null;
@@ -1073,7 +1239,10 @@
                 gl.innerText = "Gyro: " + (tiltVal > 0 ? "+" : "") + tiltVal.toFixed(0) + "° (" + (steer === -1 ? "L" : (steer === 1 ? "R" : "C")) + ")";
                 gl.style.color = "#00e5ff";
             }
-            if (steer !== steerDirection) { steerDirection = steer; computeCockpitDrive(); }
+            if (steer !== steerDirection) {
+                steerDirection = steer;
+                computeCockpitDrive();
+            }
         }
 
         function handleOrientation(e) {
@@ -1099,17 +1268,22 @@
             else if (gasHeld) cmd = 'forward'; else if (brakeHeld) cmd = 'backward';
 
             if (cmd !== 'stop') {
-                cockpitDriveCmd = cmd; sendCommand(cmd);
-                if (!cockpitHeartbeat) cockpitHeartbeat = setInterval(() => { if (cockpitDriveCmd !== 'stop') sendCommand(cockpitDriveCmd); }, 500);
+                cockpitDriveCmd = cmd; fetchApi('/' + cmd);
+                if (cockpitHeartbeat) clearInterval(cockpitHeartbeat);
+                cockpitHeartbeat = setInterval(() => {
+                    if (cockpitDriveCmd !== 'stop') fetchApi('/' + cockpitDriveCmd);
+                }, 200);
             } else {
-                cockpitDriveCmd = 'stop'; if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; } sendCommand('stop');
+                cockpitDriveCmd = 'stop';
+                if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
+                fetchApi('/stop');
             }
         }
 
         function resetDriving() {
             resetWheel(); gasHeld = false; brakeHeld = false;
             if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
-            sendCommand('stop');
+            fetchApi('/stop');
         }
 
         function pressGas(down, e) { if (e) e.preventDefault(); gasHeld = down; computeCockpitDrive(); }
@@ -1125,22 +1299,39 @@
         function moveWheel(e) {
             if (!isDraggingWheel) return;
             let clientX = null;
-            if (e.changedTouches) { for (let i = 0; i < e.touches.length; i++) { if (e.touches[i].identifier === wheelTouchId) { clientX = e.touches[i].clientX; break; } } }
-            else clientX = e.clientX;
+            if (e.changedTouches) {
+                for (let i = 0; i < e.touches.length; i++) {
+                    if (e.touches[i].identifier === wheelTouchId) { clientX = e.touches[i].clientX; break; }
+                }
+            } else clientX = e.clientX;
             if (clientX === null) return;
             let dx = Math.max(-50, Math.min(50, clientX - wheelStartX));
-            wheelAngle = (dx / 50) * 60; wheel.style.transform = `rotate(${wheelAngle}deg)`;
-            steerDirection = (wheelAngle < -18) ? -1 : ((wheelAngle > 18) ? 1 : 0);
-            computeCockpitDrive();
+            wheelAngle = (dx / 50) * 60;
+            wheel.style.transform = `rotate(${wheelAngle}deg)`;
+
+            let newSteer = (wheelAngle < -18) ? -1 : ((wheelAngle > 18) ? 1 : 0);
+            if (newSteer !== steerDirection) {
+                steerDirection = newSteer;
+                computeCockpitDrive();
+            }
         }
         function endWheel(e) {
             if (!isDraggingWheel) return;
-            if (e && e.changedTouches) { for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === wheelTouchId) { resetWheel(); return; } } }
-            else resetWheel();
+            if (e && e.changedTouches) {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === wheelTouchId) { resetWheel(); return; }
+                }
+            } else resetWheel();
         }
         function resetWheel() {
             isDraggingWheel = false; wheelTouchId = null;
-            if (!window.gyroModeActive) { wheelAngle = 0; wheel.style.transform = 'rotate(0deg)'; steerDirection = 0; computeCockpitDrive(); }
+            if (!window.gyroModeActive) {
+                wheelAngle = 0; wheel.style.transform = 'rotate(0deg)';
+                if (steerDirection !== 0) {
+                    steerDirection = 0;
+                    computeCockpitDrive();
+                }
+            }
         }
 
         wheel.addEventListener('touchstart', startWheel, { passive: false });
@@ -1151,79 +1342,67 @@
         window.addEventListener('mousemove', moveWheel);
         window.addEventListener('mouseup', resetWheel);
 
-        function updateRulePanels(mode) {
-            document.getElementById('ruleDistBox').style.display = (mode === 'distance') ? 'block' : 'none';
-            document.getElementById('ruleLdrBox').style.display = (mode === 'ldr') ? 'block' : 'none';
-            document.getElementById('ruleDhtBox').style.display = (mode === 'dht11' || mode === 'dht22') ? 'block' : 'none';
-            document.getElementById('ruleOledBox').style.display = (mode === 'oled') ? 'block' : 'none';
-            document.getElementById('ruleRgbBox').style.display = (mode === 'rgb') ? 'block' : 'none';
-            document.getElementById('ruleAccelBox').style.display = (mode === 'accel') ? 'block' : 'none';
-            document.getElementById('ruleServoBox').style.display = (mode === 'servo') ? 'block' : 'none';
+        // ================= STREAMLINED CAMERA STREAM =================
+        let camTimeout = null;
+        function onCamLoad() {
+            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+            const f = document.getElementById('camFrame'), e = document.getElementById('camError');
+            if (e) e.style.display = 'none';
+            if (f) f.style.display = 'block';
         }
 
-        function switchMode(m) {
-            document.getElementById('readout').innerText = (m === 'idle') ? "Safe Mode (Idle)" : "Connecting...";
-            document.getElementById('modSelect').value = m;
-            updateRulePanels(m);
-            fetchApi('/setMode?mode=' + m);
+        function onCamError() {
+            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+            const f = document.getElementById('camFrame'), e = document.getElementById('camError');
+            if (f) { f.style.display = 'none'; f.src = ''; }
+            if (e) e.style.display = 'flex';
         }
 
-        function applyDistRule() { fetchApi('/setDistConfig?dist=' + document.getElementById('distThreshSlider').value + '&action=' + document.getElementById('distActionSelect').value); }
-        function applyLdrRule() { fetchApi('/setLdrConfig?action=' + document.getElementById('ldrActionSelect').value); }
-        function applyDhtRule() { fetchApi('/setDhtConfig?temp=' + document.getElementById('tempThreshInput').value + '&action=' + document.getElementById('dhtActionSelect').value); }
-        function applyAdxlRule() { fetchApi('/setAdxlConfig?angle=' + document.getElementById('adxlAngleSelect').value + '&action=' + document.getElementById('adxlActionSelect').value); }
-        function applyModAccelRule() { fetchApi('/setModAccelConfig?angle=' + document.getElementById('modAccelAngleSelect').value + '&action=' + document.getElementById('modAccelActionSelect').value); }
-        function toggleOledInputs(val) { document.getElementById('oledTextInputs').style.display = (val === "2") ? "block" : "none"; }
-        function applyOledRule() { fetchApi('/setOledConfig?mode=' + document.getElementById('oledModeSelect').value + '&l1=' + encodeURIComponent(document.getElementById('oledL1').value) + '&l2=' + encodeURIComponent(document.getElementById('oledL2').value)); }
-
-        function applyCustomRgb() {
-            const hex = document.getElementById('rgbColorPick').value;
-            fetchApi('/setRgbCustom?r=' + parseInt(hex.substr(1, 2), 16) + '&g=' + parseInt(hex.substr(3, 2), 16) + '&b=' + parseInt(hex.substr(5, 2), 16));
-        }
-        function sendRgbBright(v) { fetchApi('/setRgbBrightness?b=' + v); }
-
-        // ================= SERVO HELPERS =================
-        let lastServoSend = 0;
-        function updateServoFromSlider(val) {
-            document.getElementById('servoAngleTxt').innerText = val + '°';
-            if (Date.now() - lastServoSend > 50) {
-                lastServoSend = Date.now();
-                fetchApi('/setServo?angle=' + val);
+        function toggleCamera(en) {
+            isCamActive = en;
+            document.getElementById('camLabel').innerText = en ? "Camera: ON" : "Camera: OFF";
+            document.getElementById('camLabel').style.color = en ? "#007aff" : "#aaa";
+            const s = document.getElementById('cameraSection'), f = document.getElementById('camFrame'), e = document.getElementById('camError');
+            if (s) s.style.display = en ? 'block' : 'none';
+            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+            if (en) {
+                if (e) e.style.display = 'none';
+                if (f) {
+                    f.style.display = 'none';
+                    camTimeout = setTimeout(onCamError, 3500);
+                    f.src = 'http://192.168.4.10:81/stream';
+                }
+            } else {
+                if (f) { f.src = ''; f.style.display = 'none'; }
+                if (e) e.style.display = 'none';
             }
         }
 
-        function sendServoAngle(val) {
-            document.getElementById('servoSlider').value = val;
-            document.getElementById('servoAngleTxt').innerText = val + '°';
-            fetchApi('/setServo?angle=' + val);
-        }
-
-        function resetModularRules(e) {
-            if (e) { if (e.preventDefault) e.preventDefault(); if (e.stopPropagation) e.stopPropagation(); }
-            fetchApi('/resetModRules').then(() => {
-                let ds = document.getElementById('distThreshSlider'); if (ds) ds.value = 60;
-                let dt = document.getElementById('distValTxt'); if (dt) dt.innerText = "60 mm (6 cm)";
-                let da = document.getElementById('distActionSelect'); if (da) da.value = "0";
-                let la = document.getElementById('ldrActionSelect'); if (la) la.value = "1";
-                let tt = document.getElementById('tempThreshInput'); if (tt) tt.value = 38;
-                let dhta = document.getElementById('dhtActionSelect'); if (dhta) dhta.value = "1";
-                let om = document.getElementById('oledModeSelect'); if (om) om.value = "0";
-                let ol1 = document.getElementById('oledL1'); if (ol1) ol1.value = "SNAP RACER";
-                let ol2 = document.getElementById('oledL2'); if (ol2) ol2.value = "SYSTEM ACTIVE";
-                let ma = document.getElementById('modAccelAngleSelect'); if (ma) ma.value = "35";
-                let maa = document.getElementById('modAccelActionSelect'); if (maa) maa.value = "1";
-                let ss = document.getElementById('servoSlider'); if (ss) ss.value = 90;
-                let st = document.getElementById('servoAngleTxt'); if (st) st.innerText = "90°";
-            });
+        function camReload(event) {
+            if (event) { if (event.preventDefault) event.preventDefault(); if (event.stopPropagation) event.stopPropagation(); }
+            const f = document.getElementById('camFrame'), errBox = document.getElementById('camError');
+            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+            if (!f) return false;
+            f.onerror = null; f.src = '';
+            setTimeout(() => {
+                if (errBox) errBox.style.display = 'none';
+                f.onerror = onCamError; f.onload = onCamLoad;
+                camTimeout = setTimeout(onCamError, 4000);
+                f.src = 'http://192.168.4.10:81/stream?t=' + Date.now();
+            }, 60);
             return false;
         }
 
+        // ================= BALANCED TELEMETRY POLLING =================
         let isPolling = false;
         function updateTelemetry() {
-            if (isPolling) return;
+            if (isPolling) {
+                setTimeout(updateTelemetry, isCamActive ? 550 : 350);
+                return;
+            }
             isPolling = true;
             const ctl = new AbortController();
-            const tm = setTimeout(() => ctl.abort(), 600);
+            const tm = setTimeout(() => ctl.abort(), 300);
 
             fetch(ESP_HOST + '/data', { cache: 'no-store', signal: ctl.signal })
                 .then(r => r.json())
@@ -1232,35 +1411,462 @@
                     if (b) { b.className = "status-badge " + (d.connected ? "connected" : "removed"); b.innerText = d.connected ? "● SENSOR DETECTED" : "⚠️ SENSOR UNPLUGGED"; }
                     let rd = document.getElementById('readout');
                     if (rd && d.reading !== undefined) rd.innerText = d.reading;
-                    let ms = document.getElementById('modSelect');
-                    if (ms && ms.value !== d.mode) { ms.value = d.mode; updateRulePanels(d.mode); }
 
                     let slider = document.getElementById('speedSlider');
                     if (slider && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 2500) && currentDriveDir === 'stop') {
                         slider.value = d.pwm; updateSpeedUI(d.pwm);
-                    }
-                    if (d.imu_ok !== undefined) {
-                        liveTelemetry.pitch = Number(d.pitch) || 0;
-                        liveTelemetry.roll = Number(d.roll) || 0;
-                        liveTelemetry.tilt = Number(d.tilt) || 0;
-                        liveTelemetry.dist = Number(d.dist_mm) || -1;
-                        let pTxt = document.getElementById('imuPitchTxt'); if (pTxt) pTxt.innerText = liveTelemetry.pitch.toFixed(1) + "°";
-                        let rTxt = document.getElementById('imuRollTxt'); if (rTxt) rTxt.innerText = liveTelemetry.roll.toFixed(1) + "°";
-                        let tTxt = document.getElementById('imuTiltTxt'); if (tTxt) tTxt.innerText = liveTelemetry.tilt.toFixed(1) + "°";
-                        let axTxt = document.getElementById('imuAxTxt'); if (axTxt && d.ax !== undefined) axTxt.innerText = Number(d.ax).toFixed(1);
-                        let ayTxt = document.getElementById('imuAyTxt'); if (ayTxt && d.ay !== undefined) ayTxt.innerText = Number(d.ay).toFixed(1);
-                        let azTxt = document.getElementById('imuAzTxt'); if (azTxt && d.az !== undefined) azTxt.innerText = Number(d.az).toFixed(1);
-                        let tAlert = document.getElementById('tiltAlertBadge'); if (tAlert) tAlert.style.display = d.tilt_alert ? "inline-block" : "none";
                     }
                 })
                 .catch(() => { })
                 .finally(() => {
                     clearTimeout(tm);
                     isPolling = false;
-                    setTimeout(updateTelemetry, (currentDriveDir === 'stop') ? 350 : 600);
+                    setTimeout(updateTelemetry, isCamActive ? 550 : 350);
                 });
         }
         updateTelemetry();
+
+        // ================= OFFLINE BLOCKLY & CUSTOM WORKSPACE =================
+        let workspace;
+        let activeTab = 'python';
+
+        // Polyfill alias for Blockly versions where textToDom is under Blockly.utils.xml
+        if (typeof Blockly !== 'undefined') {
+            if (Blockly.Xml && !Blockly.Xml.textToDom && Blockly.utils && Blockly.utils.xml && Blockly.utils.xml.textToDom) {
+                Blockly.Xml.textToDom = Blockly.utils.xml.textToDom;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const blocklyArea = document.getElementById('blocklyArea');
+
+            if (typeof Blockly === 'undefined') {
+                if (blocklyArea) {
+                    blocklyArea.innerHTML = `
+                        <div style="padding: 24px 16px; color: #ef4444; font-family: sans-serif; text-align: center;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">⚠️</div>
+                            <div style="font-weight: bold; font-size: 15px; color: #fff;">Blockly Not Loaded (Offline Mode)</div>
+                            <div style="font-size: 12px; color: #aaa; margin-top: 8px; line-height: 1.5;">
+                                Ensure <b>blockly.min.js</b> and <b>python_compressed.js</b><br>
+                                are placed in the root of your flash memory / directory.
+                            </div>
+                        </div>`;
+                }
+                return;
+            }
+
+            try {
+                // 1. Fetch local toolbox.xml
+                const response = await fetch('toolbox.xml?v=' + new Date().getTime());
+                const toolboxText = await response.text();
+                const parser = new DOMParser();
+                const toolboxXml = parser.parseFromString(toolboxText, 'text/xml').documentElement;
+
+                // 2. Inject Blockly into #blocklyDiv (Offline Media mode)
+                workspace = Blockly.inject('blocklyDiv', {
+                    toolbox: toolboxXml,
+                    media: '', // Empty path uses offline fallback SVGs without querying remote CDNs
+                    grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
+                    zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
+                    move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
+                    theme: Blockly.Themes.Classic,
+                    trashcan: false
+                });
+
+                // 3. Real-time updates when workspace changes
+                workspace.addChangeListener((event) => {
+                    if (event.isUiEvent) return;
+                    updateActiveCodeView();
+                });
+
+                window.addEventListener('resize', () => {
+                    if (workspace && document.getElementById('terminalPanel').style.display !== 'none') {
+                        Blockly.svgResize(workspace);
+                    }
+                }, false);
+
+                // 4. Setup Drag-to-Delete on the Clear button
+                const clearBtn = document.getElementById('btnClear');
+                if (clearBtn) {
+                    if (workspace.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
+                        try {
+                            const deleteArea = {
+                                id: 'clearDeleteArea',
+                                getClientRect: function () {
+                                    const r = clearBtn.getBoundingClientRect();
+                                    return new Blockly.utils.Rect(r.top, r.bottom, r.left, r.right);
+                                },
+                                wouldDelete: function () {
+                                    return true;
+                                }
+                            };
+                            workspace.getComponentManager().addComponent({
+                                component: deleteArea,
+                                weight: 0,
+                                capabilities: [Blockly.ComponentManager.Capability.DELETE_AREA]
+                            });
+                        } catch (err) {
+                            console.warn('ComponentManager deleteArea registration:', err);
+                        }
+                    }
+
+                    let activeDraggedBlock = null;
+
+                    workspace.addChangeListener((event) => {
+                        if (event.type === Blockly.Events.BLOCK_DRAG) {
+                            if (event.isStart) {
+                                activeDraggedBlock = workspace.getBlockById(event.blockId);
+                            } else {
+                                activeDraggedBlock = null;
+                                clearBtn.classList.remove('drag-over-delete');
+                            }
+                        }
+                    });
+
+                    window.addEventListener('pointermove', (e) => {
+                        if (activeDraggedBlock || (Blockly.Gesture && Blockly.Gesture.inProgress && Blockly.Gesture.inProgress())) {
+                            const r = clearBtn.getBoundingClientRect();
+                            if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+                                clearBtn.classList.add('drag-over-delete');
+                            } else {
+                                clearBtn.classList.remove('drag-over-delete');
+                            }
+                        } else {
+                            clearBtn.classList.remove('drag-over-delete');
+                        }
+                    });
+
+                    window.addEventListener('pointerup', (e) => {
+                        const r = clearBtn.getBoundingClientRect();
+                        const isOverClear = (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
+                        clearBtn.classList.remove('drag-over-delete');
+
+                        if (isOverClear) {
+                            const targetBlock = activeDraggedBlock || (Blockly.common && Blockly.common.getSelected ? Blockly.common.getSelected() : Blockly.selected);
+                            if (targetBlock && targetBlock.isDeletable && targetBlock.isDeletable()) {
+                                setTimeout(() => {
+                                    try {
+                                        targetBlock.dispose(false, true);
+                                    } catch (err) {
+                                        console.error('Failed to dispose block:', err);
+                                    }
+                                }, 10);
+                            }
+                        }
+                    }, true);
+                }
+
+                // 5. Setup Drag-and-Drop for XML files
+                setupDragAndDrop();
+            } catch (err) {
+                console.error('Failed to load toolbox or inject workspace:', err);
+            }
+        });
+
+        // --- Custom Floating Navigation Controls ---
+        function workspaceResetZoom() {
+            if (workspace) {
+                workspace.setScale(1.0);
+                workspace.scrollCenter();
+            }
+        }
+
+        function workspaceZoomIn() {
+            if (workspace) {
+                workspace.zoom(0, 0, 1);
+            }
+        }
+
+        function workspaceZoomOut() {
+            if (workspace) {
+                workspace.zoom(0, 0, -1);
+            }
+        }
+
+        function workspaceClearAll() {
+            if (workspace && confirm('Are you sure you want to clear all blocks from the workspace?')) {
+                workspace.clear();
+            }
+        }
+
+        // --- Code Generation ---
+        function generatePythonCode() {
+            if (!workspace) return '';
+            try {
+                return Blockly.Python.workspaceToCode(workspace) || '';
+            } catch (e) {
+                console.error('Error generating Python:', e);
+                return '# Error generating code: ' + e.message;
+            }
+        }
+
+        function generateXmlCode() {
+            if (!workspace) return '';
+            try {
+                const dom = Blockly.Xml.workspaceToDom(workspace);
+                return Blockly.Xml.domToPrettyText(dom);
+            } catch (e) {
+                console.error('Error generating XML:', e);
+                return '<!-- Error generating XML: ' + e.message + ' -->';
+            }
+        }
+
+        // --- Copy & Download Features ---
+        function copyPythonCode() {
+            const codeText = generatePythonCode();
+            if (!codeText.trim()) {
+                showToast('No blocks connected yet!', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(codeText).then(() => {
+                showToast('Python code copied to clipboard!', 'success');
+            }).catch(() => {
+                fallbackCopyText(codeText, 'Python code copied!');
+            });
+        }
+
+        function copyXmlCode() {
+            const xmlText = generateXmlCode();
+            if (!xmlText.trim()) {
+                showToast('No blocks in workspace!', 'error');
+                return;
+            }
+            navigator.clipboard.writeText(xmlText).then(() => {
+                showToast('XML code copied to clipboard!', 'success');
+            }).catch(() => {
+                fallbackCopyText(xmlText, 'XML code copied!');
+            });
+        }
+
+        function downloadXml() {
+            if (!workspace) return;
+            const xmlText = generateXmlCode();
+            if (!xmlText || xmlText.trim() === '') {
+                showToast('Workspace is empty!', 'error');
+                return;
+            }
+
+            const blob = new Blob([xmlText], { type: 'text/xml;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+            a.href = url;
+            a.download = `roverblocks_${timestamp}.xml`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('XML file downloaded!', 'success');
+        }
+
+        // --- Upload XML Feature ---
+        function triggerXmlUpload() {
+            const input = document.getElementById('xmlFileInput');
+            if (input) {
+                input.value = '';
+                input.click();
+            }
+        }
+
+        function handleXmlUpload(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                loadXmlStringToWorkspace(e.target.result, file.name);
+            };
+            reader.onerror = function () {
+                showToast('Failed to read XML file.', 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        function loadXmlStringToWorkspace(xmlText, fileName) {
+            if (!workspace) return;
+            try {
+                let xmlDom;
+                if (typeof Blockly.utils !== 'undefined' && Blockly.utils.xml && typeof Blockly.utils.xml.textToDom === 'function') {
+                    xmlDom = Blockly.utils.xml.textToDom(xmlText);
+                } else if (typeof Blockly.Xml !== 'undefined' && typeof Blockly.Xml.textToDom === 'function') {
+                    xmlDom = Blockly.Xml.textToDom(xmlText);
+                } else {
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                    if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                        throw new Error('Invalid XML syntax.');
+                    }
+                    xmlDom = xmlDoc.documentElement;
+                }
+
+                workspace.clear();
+                Blockly.Xml.domToWorkspace(xmlDom, workspace);
+                Blockly.svgResize(workspace);
+
+                const topBlocks = workspace.getTopBlocks(true);
+                if (topBlocks.length > 0 && workspace.scrollCenter) {
+                    workspace.scrollCenter();
+                }
+
+                updateActiveCodeView();
+                showToast(`Loaded "${fileName || 'XML file'}" successfully!`, 'success');
+            } catch (err) {
+                console.error('Error importing XML:', err);
+                showToast('Error loading XML: ' + err.message, 'error');
+            }
+        }
+
+        // --- Drag and Drop Feature ---
+        function setupDragAndDrop() {
+            const overlay = document.getElementById('dragOverlay');
+
+            window.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (overlay) overlay.style.display = 'flex';
+            });
+
+            window.addEventListener('dragleave', (e) => {
+                if (e.relatedTarget === null && overlay) {
+                    overlay.style.display = 'none';
+                }
+            });
+
+            window.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (overlay) overlay.style.display = 'none';
+
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    if (file.name.toLowerCase().endsWith('.xml') || file.type === 'text/xml') {
+                        const reader = new FileReader();
+                        reader.onload = (evt) => loadXmlStringToWorkspace(evt.target.result, file.name);
+                        reader.readAsText(file);
+                    } else {
+                        showToast('Please drop a valid .xml file.', 'error');
+                    }
+                }
+            });
+        }
+
+        // --- Modal & Code View Tab Logic ---
+        function openCodeModal(tab = 'python') {
+            const modal = document.getElementById('codeModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            switchTab(tab);
+        }
+
+        function closeCodeModal() {
+            const modal = document.getElementById('codeModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function handleBackdropClick(event) {
+            if (event.target.id === 'codeModal') closeCodeModal();
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            const tabPythonBtn = document.getElementById('tabPythonBtn');
+            const tabXmlBtn = document.getElementById('tabXmlBtn');
+            const downloadBtn = document.getElementById('modalDownloadXmlBtn');
+
+            if (tab === 'python') {
+                tabPythonBtn.classList.add('active');
+                tabXmlBtn.classList.remove('active');
+                if (downloadBtn) downloadBtn.style.display = 'none';
+            } else {
+                tabXmlBtn.classList.add('active');
+                tabPythonBtn.classList.remove('active');
+                if (downloadBtn) downloadBtn.style.display = 'inline-flex';
+            }
+
+            updateActiveCodeView();
+        }
+
+        function updateActiveCodeView() {
+            const textarea = document.getElementById('modalCodeText');
+            if (!textarea) return;
+
+            if (activeTab === 'python') {
+                textarea.value = generatePythonCode() || '# No blocks in workspace.';
+            } else {
+                textarea.value = generateXmlCode() || '<!-- No blocks in workspace. -->';
+            }
+        }
+
+        function copyModalCode() {
+            const textarea = document.getElementById('modalCodeText');
+            if (!textarea || !textarea.value) return;
+
+            navigator.clipboard.writeText(textarea.value).then(() => {
+                showToast((activeTab === 'python' ? 'Python' : 'XML') + ' copied to clipboard!', 'success');
+            }).catch(() => {
+                fallbackCopyText(textarea.value, (activeTab === 'python' ? 'Python' : 'XML') + ' copied!');
+            });
+        }
+
+        function fallbackCopyText(text, successMsg) {
+            const tempArea = document.createElement('textarea');
+            tempArea.value = text;
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg, 'success');
+            } catch (err) {
+                showToast('Failed to copy text', 'error');
+            }
+            document.body.removeChild(tempArea);
+        }
+
+        // --- Toast Notification ---
+        let toastTimer;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+
+            toast.textContent = message;
+            toast.className = 'show ' + (type === 'error' ? 'error' : 'success');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.className = '';
+            }, 2500);
+        }
+
+        // --- Car Hardware Upload & Stop Execution ---
+        function uploadRoverCode() {
+            const code = generatePythonCode().trim();
+            if (!code || code.startsWith('# Error')) {
+                showToast('No blocks connected yet!', 'error');
+                return;
+            }
+            showToast('Uploading to car...', 'success');
+            fetch(ESP_HOST + '/uploadCode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: code
+            })
+                .then(r => r.text())
+                .then(() => {
+                    showToast('Running on car!', 'success');
+                })
+                .catch(() => {
+                    showToast('Failed to connect to car. Check Wi-Fi.', 'error');
+                });
+        }
+
+        function stopRoverCode() {
+            fetch(ESP_HOST + '/stopCode')
+                .then(r => r.text())
+                .then(() => {
+                    showToast('Car stopped.', 'success');
+                })
+                .catch(() => {
+                    showToast('Failed to stop car.', 'error');
+                });
+        }
     </script>
 </body>
 
