@@ -8,15 +8,15 @@
     <link rel="icon" href="data:,">
 
     <!-- External Stylesheet with cache busting -->
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=6">
 
     <!-- Blockly Core & Python Engine (Local Offline Copies) -->
     <script src="blockly.min.js"></script>
     <script src="python_compressed.js"></script>
 
     <!-- Custom Block Definitions & Python Generators -->
-    <script src="blocks.js?v=lib4"></script>
-    <script src="python.js?v=lib4"></script>
+    <script src="blocks.js?v=lib8"></script>
+    <script src="python.js?v=lib8"></script>
 
     <style>
         /* ================= SCROLLING & VIEWPORT FIXES ================= */
@@ -427,6 +427,77 @@
             transition: all 0.15s ease;
         }
 
+        /* Modular Subgroup Panels */
+        .mod-subgroup {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+            text-align: center;
+        }
+
+        .mod-subgroup-title {
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .mod-btn-grid {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .mod-btn {
+            padding: 7px 11px !important;
+            font-size: 12px !important;
+            height: auto !important;
+            min-height: 32px !important;
+            width: auto !important;
+            border-radius: 7px !important;
+            margin: 2px !important;
+            background: #272727 !important;
+            color: #e0e0e0 !important;
+            border: 1px solid #3a3a3a !important;
+            box-shadow: 0 2px 0 #151515 !important;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .mod-btn:hover {
+            background: #333 !important;
+            color: #fff !important;
+            border-color: #007aff !important;
+        }
+
+        .mod-btn:active {
+            transform: translateY(2px) !important;
+            box-shadow: none !important;
+        }
+
+        .color-picker-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #272727;
+            border: 1px solid #3a3a3a;
+            border-radius: 7px;
+            padding: 2px 8px;
+            margin: 2px;
+            vertical-align: middle;
+        }
+
+        .color-picker-input {
+            width: 26px;
+            height: 26px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+        }
+
         /* ================= ROVERBLOCKS STUDIO PANEL ================= */
         .rover-header {
             display: flex;
@@ -513,7 +584,6 @@
             text-align: left;
         }
 
-        /* Drag Overlay */
         #dragOverlay {
             display: none;
             position: absolute;
@@ -533,7 +603,6 @@
             backdrop-filter: blur(2px);
         }
 
-        /* Custom Floating HTML Workspace Controls */
         .workspace-floating-controls {
             position: absolute;
             bottom: 18px;
@@ -596,7 +665,6 @@
             box-shadow: 0 4px 14px rgba(207, 34, 46, 0.5) !important;
         }
 
-        /* Rover Car Controls */
         .rover-car-controls {
             display: flex;
             gap: 8px;
@@ -636,7 +704,6 @@
             background: #b71c1c;
         }
 
-        /* High-Contrast Toolbox category styles */
         .blocklyToolboxDiv {
             background-color: #e5e7eb !important;
             border-right: 1px solid #333 !important;
@@ -676,7 +743,6 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
         }
 
-        /* Modal Styles */
         .modal-backdrop {
             display: none;
             position: fixed;
@@ -786,7 +852,6 @@
             border-top: 1px solid #333;
         }
 
-        /* Toast Notifications */
         #toast {
             position: fixed;
             bottom: 25px;
@@ -815,6 +880,10 @@
 
         #toast.error {
             background: #da3633;
+        }
+
+        #toast.info {
+            background: #0284c7;
         }
     </style>
 </head>
@@ -945,13 +1014,73 @@
                 <option value="accel">7. Accelerometer (Modular ADXL/MPU)</option>
                 <option value="servo">8. Servo Motor</option>
             </select>
+
+            <!-- SERVO PRESET BUTTONS (0, 45, 90, 135, 180) -->
+            <div id="servoControlGroup" class="mod-subgroup" style="display:none;">
+                <div class="mod-subgroup-title">Servo Test Presets:</div>
+                <div class="mod-btn-grid">
+                    <button type="button" class="mod-btn" onclick="sendServoAngle(0)">0°</button>
+                    <button type="button" class="mod-btn" onclick="sendServoAngle(45)">45°</button>
+                    <button type="button" class="mod-btn" onclick="sendServoAngle(90)">90°</button>
+                    <button type="button" class="mod-btn" onclick="sendServoAngle(135)">135°</button>
+                    <button type="button" class="mod-btn" onclick="sendServoAngle(180)">180°</button>
+                </div>
+            </div>
+
+            <!-- RGB LED RING OPTIONS -->
+            <div id="rgbControlGroup" class="mod-subgroup" style="display:none;">
+                <div class="mod-subgroup-title">RGB Ring Animations:</div>
+                <div class="mod-btn-grid" style="margin-bottom:8px;">
+                    <button type="button" class="mod-btn" onclick="setRgbMode('auto')">Auto Drive</button>
+                    <button type="button" class="mod-btn" onclick="setRgbMode('tacho')">Tachometer</button>
+                    <button type="button" class="mod-btn" onclick="setRgbMode('police')">Police</button>
+                    <button type="button" class="mod-btn" onclick="setRgbMode('rainbow')">Rainbow</button>
+                    <button type="button" class="mod-btn" onclick="setRgbMode('chase')">Chase</button>
+                    <button type="button" class="mod-btn" onclick="setRgbMode('breathing')">Breathing</button>
+                    <button type="button" class="mod-btn" onclick="setRgbMode('off')">Off</button>
+                </div>
+                <div class="mod-subgroup-title">Solid Colors & Custom:</div>
+                <div class="mod-btn-grid" style="align-items:center;margin-bottom:8px;">
+                    <button type="button" class="mod-btn" style="color:#ff5252!important;"
+                        onclick="setRgbMode('red')">Red</button>
+                    <button type="button" class="mod-btn" style="color:#4caf50!important;"
+                        onclick="setRgbMode('green')">Green</button>
+                    <button type="button" class="mod-btn" style="color:#2196f3!important;"
+                        onclick="setRgbMode('blue')">Blue</button>
+                    <div class="color-picker-wrapper">
+                        <span style="font-size:11px;color:#aaa;">Custom:</span>
+                        <input type="color" class="color-picker-input" value="#007aff"
+                            onchange="sendCustomColor(this.value)">
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;">
+                    <span style="font-size:11px;color:#888;font-weight:bold;">Brightness:</span>
+                    <input type="range" min="0" max="255" value="80" style="width:120px;"
+                        oninput="sendRgbBrightness(this.value)">
+                    <span id="rgbBrightnessVal"
+                        style="font-size:11px;color:#007aff;font-weight:bold;min-width:24px;">80</span>
+                </div>
+            </div>
+
+            <!-- OLED SCREEN MODES -->
+            <div id="oledControlGroup" class="mod-subgroup" style="display:none;">
+                <div class="mod-subgroup-title">OLED Screen Modes:</div>
+                <div class="mod-btn-grid">
+                    <button type="button" class="mod-btn" onclick="setOledMode(0)">🤖 Robot Face</button>
+                    <button type="button" class="mod-btn" onclick="setOledMode(3)">🦖 Chrome Dino</button>
+                    <button type="button" class="mod-btn" onclick="setOledMode(5)">👾 Space Invaders</button>
+                </div>
+                <div id="oledHint" style="font-size:10px;color:#888;margin-top:8px;font-style:italic;">
+                    👀 Face: Eyes react to car drive direction
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- ================= ROVERBLOCKS STUDIO PANEL ================= -->
     <div class="panel panel-wide" id="terminalPanel" style="display:none;">
         <div class="rover-header">
-            <h1>Blocky</h1>
+            <h1>Blocky Studio</h1>
             <div class="rover-actions header-actions">
                 <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁
                     Code</button>
@@ -1018,8 +1147,23 @@
         const ESP_HOST = "http://192.168.4.1";
         let isCamActive = false;
 
-        function fetchApi(endpoint) {
-            return fetch(ESP_HOST + endpoint, { cache: 'no-store' }).catch(() => { });
+        // NON-BLOCKING FETCH API WITH STRICT TIMEOUT TO PREVENT CONNECTION POOL EXHAUSTION
+        function fetchApi(endpoint, timeoutMs = 800) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeoutMs);
+            return fetch(ESP_HOST + endpoint, {
+                method: 'GET',
+                cache: 'no-store',
+                signal: controller.signal
+            })
+                .then(res => {
+                    clearTimeout(id);
+                    return res;
+                })
+                .catch(() => {
+                    clearTimeout(id);
+                    return null;
+                });
         }
 
         document.addEventListener('contextmenu', e => {
@@ -1077,12 +1221,12 @@
             if (activePointerId !== null && e && activePointerId !== e.pointerId) return;
             activePointerId = e ? e.pointerId : 1;
             currentDriveDir = dir;
-            fetchApi('/' + dir);
+            fetchApi('/' + dir, 500);
 
             if (driveHeartbeat) clearInterval(driveHeartbeat);
             driveHeartbeat = setInterval(() => {
-                if (currentDriveDir !== 'stop') fetchApi('/' + currentDriveDir);
-            }, 200);
+                if (currentDriveDir !== 'stop') fetchApi('/' + currentDriveDir, 500);
+            }, 250);
         }
 
         function driveStop(e) {
@@ -1093,8 +1237,8 @@
             currentDriveDir = 'stop';
             activePointerId = null;
             if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
-            fetchApi('/stop');
-            setTimeout(() => { if (currentDriveDir === 'stop') fetchApi('/stop'); }, 40);
+            fetchApi('/stop', 500);
+            setTimeout(() => { if (currentDriveDir === 'stop') fetchApi('/stop', 500); }, 50);
         }
 
         function stopPress(e) {
@@ -1107,13 +1251,13 @@
             activePointerId = e ? e.pointerId : 1;
             currentDriveDir = 'stop';
             if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
-            fetchApi('/stopStart');
+            fetchApi('/stopStart', 500);
         }
 
         function stopRelease(e) {
             if (e) e.preventDefault();
             activePointerId = null;
-            fetchApi('/stopEnd');
+            fetchApi('/stopEnd', 500);
         }
 
         window.addEventListener('pointerup', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
@@ -1144,8 +1288,18 @@
             }
         }
 
+        function updateSubgroupVisibility(val) {
+            const sc = document.getElementById('servoControlGroup');
+            const rc = document.getElementById('rgbControlGroup');
+            const oc = document.getElementById('oledControlGroup');
+            if (sc) sc.style.display = (val === 'servo') ? 'block' : 'none';
+            if (rc) rc.style.display = (val === 'rgb') ? 'block' : 'none';
+            if (oc) oc.style.display = (val === 'oled') ? 'block' : 'none';
+        }
+
         function switchMode(val) {
-            fetchApi('/setMode?mode=' + val);
+            updateSubgroupVisibility(val);
+            fetchApi('/setMode?mode=' + val, 1000);
         }
 
         function resetModularRules(e) {
@@ -1154,16 +1308,87 @@
             switchMode('idle');
         }
 
+        // ================= SERVO PRESETS (0, 45, 90, 135, 180) =================
+        function sendServoAngle(deg) {
+            const ms = document.getElementById('modSelect');
+            if (ms && ms.value !== 'servo') {
+                ms.value = 'servo';
+                switchMode('servo');
+            }
+            const rd = document.getElementById('readout');
+            if (rd) rd.innerText = "Servo: " + deg + " deg";
+            fetchApi('/setServo?angle=' + deg, 800);
+            showToast("Servo set to " + deg + "°", "info");
+        }
+
+        // ================= RGB RING CONTROLS =================
+        function setRgbMode(mode) {
+            const ms = document.getElementById('modSelect');
+            if (ms && ms.value !== 'rgb') {
+                ms.value = 'rgb';
+                switchMode('rgb');
+            }
+            fetchApi('/setRgb?mode=' + mode, 600);
+            showToast('RGB Mode: ' + mode.toUpperCase(), 'info');
+        }
+
+        function sendCustomColor(hex) {
+            const ms = document.getElementById('modSelect');
+            if (ms && ms.value !== 'rgb') {
+                ms.value = 'rgb';
+                switchMode('rgb');
+            }
+            const r = parseInt(hex.substr(1, 2), 16) || 0;
+            const g = parseInt(hex.substr(3, 2), 16) || 0;
+            const b = parseInt(hex.substr(5, 2), 16) || 0;
+            fetchApi(`/setRgbCustom?r=${r}&g=${g}&b=${b}`, 600);
+            showToast(`RGB Custom: (${r}, ${g}, ${b})`, 'info');
+        }
+
+        let rgbBrightnessTimer = null;
+        function sendRgbBrightness(b) {
+            document.getElementById('rgbBrightnessVal').innerText = b;
+            if (rgbBrightnessTimer) clearTimeout(rgbBrightnessTimer);
+            rgbBrightnessTimer = setTimeout(() => {
+                fetchApi('/setRgbBrightness?b=' + b, 500);
+            }, 60);
+        }
+
+        // ================= OLED SCREEN MODES =================
+        function setOledMode(mode) {
+            const ms = document.getElementById('modSelect');
+            if (ms && ms.value !== 'oled') {
+                ms.value = 'oled';
+                switchMode('oled');
+            }
+            fetchApi('/setOledConfig?mode=' + mode, 800);
+            const hint = document.getElementById('oledHint');
+            if (hint) {
+                if (mode === 3) hint.innerText = '🎮 Dino: F = Jump, B = Crouch';
+                else if (mode === 5) hint.innerText = '🎮 Invaders: L / R = Move, F = Fire';
+                else hint.innerText = '👀 Face: Eyes react to car drive direction';
+            }
+            const names = { 0: 'Robot Face', 3: 'Chrome Dino', 5: 'Space Invaders' };
+            showToast('OLED Mode: ' + (names[mode] || mode), 'info');
+        }
+
         // ================= SPEED SLIDER =================
         let isSliderActive = false, lastSliderInteractTime = 0, lastSliderSend = 0;
         function onSliderInput(val) {
             isSliderActive = true; lastSliderInteractTime = Date.now();
             updateSpeedUI(val);
-            if (Date.now() - lastSliderSend > 70 || val == 0 || val == 255) { lastSliderSend = Date.now(); sendSpeed(val); }
+            if (Date.now() - lastSliderSend > 100 || val == 0 || val == 255) {
+                lastSliderSend = Date.now();
+                sendSpeed(val);
+            }
         }
-        function onSliderChange(val) { isSliderActive = false; lastSliderInteractTime = Date.now(); sendSpeed(val); }
+        function onSliderChange(val) {
+            isSliderActive = false;
+            lastSliderInteractTime = Date.now();
+            sendSpeed(val);
+        }
         function updateSpeedUI(val) { document.getElementById('speedReadout').innerText = val; }
-        function sendSpeed(val) { fetchApi('/setSpeed?pwm=' + val); }
+        function sendSpeed(val) { fetchApi('/setSpeed?pwm=' + val, 500); }
 
         // ================= COCKPIT & GYRO =================
         let cockpitActive = false;
@@ -1268,22 +1493,22 @@
             else if (gasHeld) cmd = 'forward'; else if (brakeHeld) cmd = 'backward';
 
             if (cmd !== 'stop') {
-                cockpitDriveCmd = cmd; fetchApi('/' + cmd);
+                cockpitDriveCmd = cmd; fetchApi('/' + cmd, 500);
                 if (cockpitHeartbeat) clearInterval(cockpitHeartbeat);
                 cockpitHeartbeat = setInterval(() => {
-                    if (cockpitDriveCmd !== 'stop') fetchApi('/' + cockpitDriveCmd);
-                }, 200);
+                    if (cockpitDriveCmd !== 'stop') fetchApi('/' + cockpitDriveCmd, 500);
+                }, 250);
             } else {
                 cockpitDriveCmd = 'stop';
                 if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
-                fetchApi('/stop');
+                fetchApi('/stop', 500);
             }
         }
 
         function resetDriving() {
             resetWheel(); gasHeld = false; brakeHeld = false;
             if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
-            fetchApi('/stop');
+            fetchApi('/stop', 500);
         }
 
         function pressGas(down, e) { if (e) e.preventDefault(); gasHeld = down; computeCockpitDrive(); }
@@ -1393,44 +1618,53 @@
             return false;
         }
 
-        // ================= BALANCED TELEMETRY POLLING =================
+        // ================= STABLE TELEMETRY POLLING =================
         let isPolling = false;
         function updateTelemetry() {
-            if (isPolling) {
-                setTimeout(updateTelemetry, isCamActive ? 550 : 350);
+            if (isPolling || isSliderActive || currentDriveDir !== 'stop') {
+                setTimeout(updateTelemetry, 800);
                 return;
             }
             isPolling = true;
-            const ctl = new AbortController();
-            const tm = setTimeout(() => ctl.abort(), 300);
 
-            fetch(ESP_HOST + '/data', { cache: 'no-store', signal: ctl.signal })
-                .then(r => r.json())
+            fetchApi('/data', 600)
+                .then(r => r ? r.json() : null)
                 .then(d => {
+                    if (!d) return;
                     let b = document.getElementById('plugStatus');
-                    if (b) { b.className = "status-badge " + (d.connected ? "connected" : "removed"); b.innerText = d.connected ? "● SENSOR DETECTED" : "⚠️ SENSOR UNPLUGGED"; }
+                    if (b) {
+                        b.className = "status-badge " + (d.connected ? "connected" : "removed");
+                        b.innerText = d.connected ? "● SENSOR DETECTED" : "⚠️ SENSOR UNPLUGGED";
+                    }
                     let rd = document.getElementById('readout');
                     if (rd && d.reading !== undefined) rd.innerText = d.reading;
 
+                    let ms = document.getElementById('modSelect');
+                    if (ms && d.mode && document.activeElement !== ms) {
+                        if (d.mode !== 'idle' && ms.value !== d.mode) {
+                            ms.value = d.mode;
+                        }
+                        updateSubgroupVisibility(ms.value);
+                    }
+
                     let slider = document.getElementById('speedSlider');
-                    if (slider && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 2500) && currentDriveDir === 'stop') {
-                        slider.value = d.pwm; updateSpeedUI(d.pwm);
+                    if (slider && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
+                        slider.value = d.pwm;
+                        updateSpeedUI(d.pwm);
                     }
                 })
                 .catch(() => { })
                 .finally(() => {
-                    clearTimeout(tm);
                     isPolling = false;
-                    setTimeout(updateTelemetry, isCamActive ? 550 : 350);
+                    setTimeout(updateTelemetry, isCamActive ? 1200 : 800);
                 });
         }
         updateTelemetry();
 
-        // ================= OFFLINE BLOCKLY & CUSTOM WORKSPACE =================
+        // ================= OFFLINE BLOCKLY & WORKSPACE INITIALIZATION =================
         let workspace;
         let activeTab = 'python';
 
-        // Polyfill alias for Blockly versions where textToDom is under Blockly.utils.xml
         if (typeof Blockly !== 'undefined') {
             if (Blockly.Xml && !Blockly.Xml.textToDom && Blockly.utils && Blockly.utils.xml && Blockly.utils.xml.textToDom) {
                 Blockly.Xml.textToDom = Blockly.utils.xml.textToDom;
@@ -1445,10 +1679,9 @@
                     blocklyArea.innerHTML = `
                         <div style="padding: 24px 16px; color: #ef4444; font-family: sans-serif; text-align: center;">
                             <div style="font-size: 32px; margin-bottom: 8px;">⚠️</div>
-                            <div style="font-weight: bold; font-size: 15px; color: #fff;">Blockly Not Loaded (Offline Mode)</div>
+                            <div style="font-weight: bold; font-size: 15px; color: #fff;">Blockly Core Files Not Found</div>
                             <div style="font-size: 12px; color: #aaa; margin-top: 8px; line-height: 1.5;">
-                                Ensure <b>blockly.min.js</b> and <b>python_compressed.js</b><br>
-                                are placed in the root of your flash memory / directory.
+                                Ensure <b>blockly.min.js</b> and <b>python_compressed.js</b> are present in directory.
                             </div>
                         </div>`;
                 }
@@ -1456,16 +1689,14 @@
             }
 
             try {
-                // 1. Fetch local toolbox.xml
                 const response = await fetch('toolbox.xml?v=' + new Date().getTime());
                 const toolboxText = await response.text();
                 const parser = new DOMParser();
                 const toolboxXml = parser.parseFromString(toolboxText, 'text/xml').documentElement;
 
-                // 2. Inject Blockly into #blocklyDiv (Offline Media mode)
                 workspace = Blockly.inject('blocklyDiv', {
                     toolbox: toolboxXml,
-                    media: '', // Empty path uses offline fallback SVGs without querying remote CDNs
+                    media: '',
                     grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
                     zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
                     move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
@@ -1473,7 +1704,6 @@
                     trashcan: false
                 });
 
-                // 3. Real-time updates when workspace changes
                 workspace.addChangeListener((event) => {
                     if (event.isUiEvent) return;
                     updateActiveCodeView();
@@ -1485,7 +1715,7 @@
                     }
                 }, false);
 
-                // 4. Setup Drag-to-Delete on the Clear button
+                // Setup Clear / Delete Drag Area
                 const clearBtn = document.getElementById('btnClear');
                 if (clearBtn) {
                     if (workspace.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
@@ -1496,18 +1726,14 @@
                                     const r = clearBtn.getBoundingClientRect();
                                     return new Blockly.utils.Rect(r.top, r.bottom, r.left, r.right);
                                 },
-                                wouldDelete: function () {
-                                    return true;
-                                }
+                                wouldDelete: function () { return true; }
                             };
                             workspace.getComponentManager().addComponent({
                                 component: deleteArea,
                                 weight: 0,
                                 capabilities: [Blockly.ComponentManager.Capability.DELETE_AREA]
                             });
-                        } catch (err) {
-                            console.warn('ComponentManager deleteArea registration:', err);
-                        }
+                        } catch (err) { }
                     }
 
                     let activeDraggedBlock = null;
@@ -1545,25 +1771,21 @@
                             const targetBlock = activeDraggedBlock || (Blockly.common && Blockly.common.getSelected ? Blockly.common.getSelected() : Blockly.selected);
                             if (targetBlock && targetBlock.isDeletable && targetBlock.isDeletable()) {
                                 setTimeout(() => {
-                                    try {
-                                        targetBlock.dispose(false, true);
-                                    } catch (err) {
-                                        console.error('Failed to dispose block:', err);
-                                    }
+                                    try { targetBlock.dispose(false, true); }
+                                    catch (err) { }
                                 }, 10);
                             }
                         }
                     }, true);
                 }
 
-                // 5. Setup Drag-and-Drop for XML files
                 setupDragAndDrop();
             } catch (err) {
                 console.error('Failed to load toolbox or inject workspace:', err);
             }
         });
 
-        // --- Custom Floating Navigation Controls ---
+        // --- Custom Workspace Floating Controls ---
         function workspaceResetZoom() {
             if (workspace) {
                 workspace.setScale(1.0);
@@ -1572,15 +1794,11 @@
         }
 
         function workspaceZoomIn() {
-            if (workspace) {
-                workspace.zoom(0, 0, 1);
-            }
+            if (workspace) workspace.zoom(0, 0, 1);
         }
 
         function workspaceZoomOut() {
-            if (workspace) {
-                workspace.zoom(0, 0, -1);
-            }
+            if (workspace) workspace.zoom(0, 0, -1);
         }
 
         function workspaceClearAll() {
@@ -1611,7 +1829,6 @@
             }
         }
 
-        // --- Copy & Download Features ---
         function copyPythonCode() {
             const codeText = generatePythonCode();
             if (!codeText.trim()) {
@@ -1659,7 +1876,6 @@
             showToast('XML file downloaded!', 'success');
         }
 
-        // --- Upload XML Feature ---
         function triggerXmlUpload() {
             const input = document.getElementById('xmlFileInput');
             if (input) {
@@ -1716,7 +1932,6 @@
             }
         }
 
-        // --- Drag and Drop Feature ---
         function setupDragAndDrop() {
             const overlay = document.getElementById('dragOverlay');
 
@@ -1748,7 +1963,6 @@
             });
         }
 
-        // --- Modal & Code View Tab Logic ---
         function openCodeModal(tab = 'python') {
             const modal = document.getElementById('codeModal');
             if (!modal) return;
@@ -1820,14 +2034,13 @@
             document.body.removeChild(tempArea);
         }
 
-        // --- Toast Notification ---
         let toastTimer;
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             if (!toast) return;
 
             toast.textContent = message;
-            toast.className = 'show ' + (type === 'error' ? 'error' : 'success');
+            toast.className = 'show ' + (type === 'error' ? 'error' : (type === 'info' ? 'info' : 'success'));
 
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => {
@@ -1835,36 +2048,45 @@
             }, 2500);
         }
 
-        // --- Car Hardware Upload & Stop Execution ---
+        // ================= INSTANT UPLOAD & CLEAN STOP ACTIONS =================
         function uploadRoverCode() {
             const code = generatePythonCode().trim();
             if (!code || code.startsWith('# Error')) {
                 showToast('No blocks connected yet!', 'error');
                 return;
             }
-            showToast('Uploading to car...', 'success');
+            showToast('Uploading to car...', 'info');
+
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), 4000);
+
             fetch(ESP_HOST + '/uploadCode', {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
-                body: code
+                body: code,
+                signal: controller.signal
             })
-                .then(r => r.text())
+                .then(r => {
+                    clearTimeout(id);
+                    return r.text();
+                })
                 .then(() => {
                     showToast('Running on car!', 'success');
                 })
                 .catch(() => {
-                    showToast('Failed to connect to car. Check Wi-Fi.', 'error');
+                    clearTimeout(id);
+                    showToast('Upload failed. Check Wi-Fi connection.', 'error');
                 });
         }
 
         function stopRoverCode() {
-            fetch(ESP_HOST + '/stopCode')
-                .then(r => r.text())
+            showToast('Stopping car & wiping code...', 'info');
+            fetchApi('/stopCode', 1200)
                 .then(() => {
-                    showToast('Car stopped.', 'success');
+                    showToast('Car stopped and code wiped!', 'success');
                 })
                 .catch(() => {
-                    showToast('Failed to stop car.', 'error');
+                    showToast('Stop command sent.', 'info');
                 });
         }
     </script>
