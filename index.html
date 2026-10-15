@@ -2,2094 +2,2461 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snap Racer Controller</title>
-    <link rel="icon" href="data:,">
-
-    <!-- External Stylesheet with cache busting -->
-    <link rel="stylesheet" href="style.css?v=6">
-
-    <!-- Blockly Core & Python Engine (Local Offline Copies) -->
-    <script src="blockly.min.js"></script>
-    <script src="python_compressed.js"></script>
-
-    <!-- Custom Block Definitions & Python Generators -->
-    <script src="blocks.js?v=lib8"></script>
-    <script src="python.js?v=lib8"></script>
-
-    <style>
-        /* ================= SCROLLING & VIEWPORT FIXES ================= */
-        html {
-            height: auto !important;
-            min-height: 100% !important;
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
-        }
-
-        body {
-            height: auto !important;
-            min-height: 100vh !important;
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
-            touch-action: pan-y !important;
-            margin: 0;
-            padding: 12px 8px 100px 8px !important;
-            background: #0d0d0d !important;
-            color: #e0e0e0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            text-align: center;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        h2 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            color: #fff;
-        }
-
-        .header-bar {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin: 4px 0 12px;
-        }
-
-        .panel {
-            background: #1a1a1a;
-            border: 1px solid #2a2a2a;
-            border-radius: 14px;
-            max-width: 360px;
-            margin: 10px auto;
-            padding: 14px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-        }
-
-        .panel-wide {
-            max-width: 820px;
-        }
-
-        .panel-title {
-            font-size: 11px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 12px;
-            font-weight: 700;
-        }
-
-        /* D-Pad Buttons */
-        .ctrl-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: none;
-            cursor: pointer;
-            border: none;
-            border-radius: 10px;
-            font-family: inherit;
-            transition: all .06s ease;
-            width: 68px;
-            height: 50px;
-            margin: 3px;
-            font-size: 19px;
-            font-weight: bold;
-            background: #2d2d2d;
-            color: #fff;
-            box-shadow: 0 3px 0 #151515;
-        }
-
-        .stop-btn {
-            background: #c62828;
-            box-shadow: 0 3px 0 #8e0000;
-        }
-
-        .ctrl-btn:active {
-            transform: translateY(3px);
-            box-shadow: none;
-        }
-
-        #dpadContainer {
-            width: 236px;
-            min-width: 236px;
-            flex-shrink: 0;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .slider-col {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-left: 10px;
-            padding-left: 10px;
-            border-left: 1px solid #333;
-            height: 160px;
-            width: 56px;
-            min-width: 56px;
-            flex-shrink: 0;
-        }
-
-        .slider-val {
-            font-size: 17px;
-            font-weight: bold;
-            color: #007aff;
-            margin-bottom: 10px;
-            width: 48px;
-            text-align: center;
-            font-variant-numeric: tabular-nums;
-            display: inline-block;
-        }
-
-        .v-slider {
-            -webkit-appearance: slider-vertical;
-            appearance: slider-vertical;
-            width: 24px;
-            height: 105px;
-            margin: 0;
-            padding: 0;
-            background: #2d2d2d;
-            border-radius: 12px;
-            outline: none;
-            touch-action: none;
-        }
-
-        .v-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #007aff;
-            cursor: pointer;
-            touch-action: none;
-        }
-
-        #wheelContainer {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            width: 180px;
-            height: 160px;
-            position: relative;
-        }
-
-        .wheel-graphic {
-            width: 112px;
-            height: 112px;
-            border-radius: 50%;
-            border: 6px solid #007aff;
-            position: relative;
-            background: #111;
-            transition: transform .08s ease-out;
-            touch-action: none;
-        }
-
-        .wheel-graphic:before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 6px;
-            background: #007aff;
-            transform: translateY(-50%);
-        }
-
-        .wheel-graphic:after {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            bottom: 0;
-            width: 6px;
-            background: #007aff;
-            transform: translateX(-50%);
-        }
-
-        .wheel-center {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 24px;
-            height: 24px;
-            background: #fff;
-            border-radius: 50%;
-            z-index: 2;
-        }
-
-        .pedal-col {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            margin-left: 10px;
-            padding-left: 10px;
-            border-left: 1px solid #333;
-        }
-
-        .pedal-btn {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            touch-action: none;
-            cursor: pointer;
-            border: none;
-            border-radius: 10px;
-            width: 54px;
-            height: 52px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #fff;
-            background: #2e7d32;
-            box-shadow: 0 4px 0 #1b5e20;
-        }
-
-        .brake-btn {
-            background: #c62828;
-            box-shadow: 0 4px 0 #8e0000;
-        }
-
-        .pedal-btn:active {
-            transform: translateY(4px);
-            box-shadow: none;
-        }
-
-        .switches-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            align-items: center;
-            margin-top: 14px;
-            padding: 0 4px;
-        }
-
-        .switch-container {
-            display: flex;
-            align-items: center;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 38px;
-            height: 22px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #333;
-            transition: .25s;
-            border-radius: 22px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 3px;
-            bottom: 3px;
-            background: #fff;
-            transition: .25s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background: #007aff;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(16px);
-        }
-
-        .switch-label {
-            font-size: 11px;
-            margin-left: 7px;
-            color: #aaa;
-            font-weight: 600;
-        }
-
-        .cam-wrapper {
-            position: relative;
-            width: 320px;
-            height: 240px;
-            margin: 0 auto;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #000;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        #camFrame {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: #000;
-            display: none;
-            object-fit: cover;
-        }
-
-        #camError {
-            width: 100%;
-            height: 100%;
-            border-radius: 12px;
-            background: #181818;
-            border: 1px dashed #3a3a3a;
-            color: #ef5350;
-            display: none;
-            box-sizing: border-box;
-            padding: 20px;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 18px;
-            font-size: 10px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            letter-spacing: .5px;
-        }
-
-        .connected {
-            background: rgba(46, 125, 50, 0.15);
-            color: #4caf50;
-            border: 1px solid rgba(46, 125, 50, 0.4);
-        }
-
-        .removed {
-            background: rgba(198, 40, 40, 0.15);
-            color: #ef5350;
-            border: 1px solid rgba(198, 40, 40, 0.4);
-        }
-
-        .telemetry-val {
-            font-size: 17px;
-            font-weight: bold;
-            color: #007aff;
-            min-height: 26px;
-            margin: 6px 0;
-        }
-
-        .mod-select {
-            width: 100%;
-            padding: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #fff;
-            background: #252525;
-            border: 1px solid #333;
-            border-radius: 8px;
-            outline: none;
-            margin-bottom: 8px;
-        }
-
-        .rst-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 1px solid #444;
-            background: #252525;
-            color: #ff5252;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            outline: none;
-            padding: 0;
-            line-height: 1;
-            transition: all 0.15s ease;
-        }
-
-        /* Modular Subgroup Panels */
-        .mod-subgroup {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #333;
-            text-align: center;
-        }
-
-        .mod-subgroup-title {
-            font-size: 11px;
-            color: #aaa;
-            margin-bottom: 8px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .mod-btn-grid {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .mod-btn {
-            padding: 7px 11px !important;
-            font-size: 12px !important;
-            height: auto !important;
-            min-height: 32px !important;
-            width: auto !important;
-            border-radius: 7px !important;
-            margin: 2px !important;
-            background: #272727 !important;
-            color: #e0e0e0 !important;
-            border: 1px solid #3a3a3a !important;
-            box-shadow: 0 2px 0 #151515 !important;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .mod-btn:hover {
-            background: #333 !important;
-            color: #fff !important;
-            border-color: #007aff !important;
-        }
-
-        .mod-btn:active {
-            transform: translateY(2px) !important;
-            box-shadow: none !important;
-        }
-
-        .color-picker-wrapper {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: #272727;
-            border: 1px solid #3a3a3a;
-            border-radius: 7px;
-            padding: 2px 8px;
-            margin: 2px;
-            vertical-align: middle;
-        }
-
-        .color-picker-input {
-            width: 26px;
-            height: 26px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            padding: 0;
-        }
-
-        /* ================= ROVERBLOCKS STUDIO PANEL ================= */
-        .rover-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .rover-header h1 {
-            margin: 0;
-            font-size: 15px;
-            color: #fff;
-            letter-spacing: 0.5px;
-        }
-
-        .rover-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .btn-primary,
-        .btn-secondary,
-        .btn-blue,
-        .btn-amber {
-            border: none;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: #fff;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: opacity 0.15s ease;
-        }
-
-        .btn-primary {
-            background: #238636;
-        }
-
-        .btn-secondary {
-            background: #30363d;
-            color: #c9d1d9;
-        }
-
-        .btn-blue {
-            background: #0969da;
-        }
-
-        .btn-amber {
-            background: #d97706;
-        }
-
-        #main-container {
-            width: 100% !important;
-            height: auto !important;
-            position: relative !important;
-            overflow: visible !important;
-        }
-
-        #blocklyArea {
-            width: 100% !important;
-            height: 480px !important;
-            position: relative !important;
-            border-radius: 8px !important;
-            overflow: hidden !important;
-            border: 1px solid #333 !important;
-            background: #1e1e1e !important;
-        }
-
-        #blocklyDiv {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            text-align: left;
-        }
-
-        #dragOverlay {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(9, 105, 218, 0.4);
-            border: 2px dashed #0969da;
-            z-index: 90;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: bold;
-            pointer-events: none;
-            backdrop-filter: blur(2px);
-        }
-
-        .workspace-floating-controls {
-            position: absolute;
-            bottom: 18px;
-            right: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            z-index: 80;
-            user-select: none;
-        }
-
-        .workspace-floating-controls .ctrl-btn {
-            background: #ffffff !important;
-            color: #24292e !important;
-            border: 1px solid #d0d7de !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-            border-radius: 8px !important;
-            padding: 0 10px !important;
-            min-width: 44px !important;
-            width: auto !important;
-            height: 36px !important;
-            font-size: 0.88rem !important;
-            font-weight: 600 !important;
-            cursor: pointer !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            transition: all 0.15s ease !important;
-            margin: 0 !important;
-        }
-
-        .workspace-floating-controls .ctrl-btn:hover {
-            background: #f6f8fa !important;
-            border-color: #0969da !important;
-            color: #0969da !important;
-            transform: translateY(-1px) !important;
-        }
-
-        .workspace-floating-controls .ctrl-btn:active {
-            transform: translateY(0) !important;
-            background: #eaeef2 !important;
-        }
-
-        .workspace-floating-controls .ctrl-btn-danger {
-            font-size: 0.82rem !important;
-            color: #cf222e !important;
-        }
-
-        .workspace-floating-controls .ctrl-btn-danger:hover {
-            background: #ffebe9 !important;
-            border-color: #cf222e !important;
-            color: #a40e26 !important;
-        }
-
-        .workspace-floating-controls .ctrl-btn-danger.drag-over-delete {
-            background: #cf222e !important;
-            color: #ffffff !important;
-            border-color: #a40e26 !important;
-            transform: scale(1.12) !important;
-            box-shadow: 0 4px 14px rgba(207, 34, 46, 0.5) !important;
-        }
-
-        .rover-car-controls {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            margin-bottom: 4px;
-        }
-
-        .rover-car-btn {
-            flex: 1;
-            padding: 12px 10px;
-            font-size: 13px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            color: #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .rover-btn-run {
-            background: #0284c7;
-        }
-
-        .rover-btn-run:hover {
-            background: #0369a1;
-        }
-
-        .rover-btn-stop {
-            background: #c62828;
-        }
-
-        .rover-btn-stop:hover {
-            background: #b71c1c;
-        }
-
-        .blocklyToolboxDiv {
-            background-color: #e5e7eb !important;
-            border-right: 1px solid #333 !important;
-            overflow-y: auto !important;
-        }
-
-        .blocklyTreeRow {
-            background-color: transparent !important;
-            padding: 4px 6px !important;
-            height: auto !important;
-        }
-
-        .blocklyToolboxDiv,
-        .blocklyToolboxDiv *,
-        .blocklyToolboxCategory,
-        .blocklyToolboxCategoryLabel,
-        .blocklyTreeRow,
-        .blocklyTreeLabel {
-            color: #111111 !important;
-            font-size: 13px !important;
-            font-weight: 600 !important;
-            opacity: 1 !important;
-            text-shadow: none !important;
-        }
-
-        .blocklyTreeRow:not(.blocklyTreeSelected):hover,
-        .blocklyToolboxCategory:not(.blocklyTreeSelected):hover {
-            background-color: #d1d5db !important;
-        }
-
-        .blocklyTreeSelected,
-        .blocklyTreeSelected *,
-        .blocklyTreeSelected .blocklyTreeLabel,
-        .blocklyTreeSelected .blocklyToolboxCategoryLabel {
-            color: #ffffff !important;
-            font-weight: bold !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
-        }
-
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(3px);
-        }
-
-        .modal-content {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            width: 90%;
-            max-width: 820px;
-            height: 80vh;
-            max-height: 620px;
-            border-radius: 8px;
-            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            border: 1px solid #3c3c3c;
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 16px;
-            background: #252526;
-            border-bottom: 1px solid #333;
-        }
-
-        .modal-tabs {
-            display: flex;
-            gap: 8px;
-        }
-
-        .tab-btn {
-            background: #2d2d30;
-            color: #aaa;
-            border: 1px solid #3e3e42;
-            padding: 6px 14px;
-            font-size: 0.88rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .tab-btn.active {
-            background: #0e639c;
-            color: #fff;
-            font-weight: 600;
-            border-color: #1177bb;
-        }
-
-        .modal-close-btn {
-            background: transparent;
-            color: #aaa;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            line-height: 1;
-            padding: 0 6px;
-        }
-
-        .modal-close-btn:hover {
-            color: #fff;
-        }
-
-        .modal-body {
-            flex: 1;
-            display: flex;
-            padding: 12px 16px;
-            overflow: hidden;
-            background: #181818;
-        }
-
-        .code-view {
-            flex: 1;
-            width: 100%;
-            background: #141414;
-            color: #9cdcfe;
-            font-family: Consolas, Monaco, "Courier New", monospace;
-            font-size: 0.85rem;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #2d2d2d;
-            overflow: auto;
-            white-space: pre;
-            resize: none;
-            outline: none;
-            user-select: text !important;
-            -webkit-user-select: text !important;
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            padding: 10px 16px;
-            background: #252526;
-            border-top: 1px solid #333;
-        }
-
-        #toast {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #333;
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 6px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-            font-size: 0.9rem;
-            z-index: 10000;
-            transition: transform 0.25s ease, opacity 0.25s ease;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        #toast.success {
-            background: #238636;
-        }
-
-        #toast.error {
-            background: #da3633;
-        }
-
-        #toast.info {
-            background: #0284c7;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Snap Racer Controller & Studio</title>
+  <link rel="icon" href="data:,">
+
+  <!-- External Stylesheet with cache busting -->
+  <link rel="stylesheet" href="style.css?v=7">
+
+  <!-- Blockly Core & Python Engine (Local Offline Copies) -->
+  <script src="blockly.min.js"></script>
+  <script src="python_compressed.js"></script>
+
+  <!-- Custom Block Definitions & Python Generators -->
+  <script src="blocks.js?v=lib9"></script>
+  <script src="python.js?v=lib9"></script>
+
+  <style>
+    /* ================= SCROLLING & VIEWPORT FIXES ================= */
+    html {
+      height: auto !important;
+      min-height: 100% !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+    }
+
+    body {
+      height: auto !important;
+      min-height: 100vh !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      touch-action: pan-y !important;
+      margin: 0;
+      padding: 12px 8px 100px 8px !important;
+      background: #0d0d0d !important;
+      color: #e0e0e0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0 12px;
+    }
+
+    .panel {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 14px;
+      max-width: 360px;
+      margin: 10px auto;
+      padding: 14px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .panel-wide {
+      max-width: 820px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    /* D-Pad Buttons */
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      transition: all .06s ease;
+      width: 68px;
+      height: 50px;
+      margin: 3px;
+      font-size: 19px;
+      font-weight: bold;
+      background: #2d2d2d;
+      color: #fff;
+      box-shadow: 0 3px 0 #151515;
+    }
+
+    .stop-btn {
+      background: #c62828;
+      box-shadow: 0 3px 0 #8e0000;
+    }
+
+    .ctrl-btn:active {
+      transform: translateY(3px);
+      box-shadow: none;
+    }
+
+    #dpadContainer {
+      width: 236px;
+      min-width: 236px;
+      flex-shrink: 0;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .slider-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-left: 10px;
+      padding-left: 10px;
+      border-left: 1px solid #333;
+      height: 160px;
+      width: 56px;
+      min-width: 56px;
+      flex-shrink: 0;
+    }
+
+    .slider-val {
+      font-size: 17px;
+      font-weight: bold;
+      color: #007aff;
+      margin-bottom: 10px;
+      width: 48px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      display: inline-block;
+    }
+
+    .v-slider {
+      -webkit-appearance: slider-vertical;
+      appearance: slider-vertical;
+      width: 24px;
+      height: 105px;
+      margin: 0;
+      padding: 0;
+      background: #2d2d2d;
+      border-radius: 12px;
+      outline: none;
+      touch-action: none;
+    }
+
+    .v-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #007aff;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    #wheelContainer {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 180px;
+      height: 160px;
+      position: relative;
+    }
+
+    .wheel-graphic {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      border: 6px solid #007aff;
+      position: relative;
+      background: #111;
+      transition: transform .08s ease-out;
+      touch-action: none;
+    }
+
+    .wheel-graphic:before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: #007aff;
+      transform: translateY(-50%);
+    }
+
+    .wheel-graphic:after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      bottom: 0;
+      width: 6px;
+      background: #007aff;
+      transform: translateX(-50%);
+    }
+
+    .wheel-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      background: #fff;
+      border-radius: 50%;
+      z-index: 2;
+    }
+
+    .pedal-col {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-left: 10px;
+      padding-left: 10px;
+      border-left: 1px solid #333;
+    }
+
+    .pedal-btn {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      width: 54px;
+      height: 52px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #fff;
+      background: #2e7d32;
+      box-shadow: 0 4px 0 #1b5e20;
+    }
+
+    .brake-btn {
+      background: #c62828;
+      box-shadow: 0 4px 0 #8e0000;
+    }
+
+    .pedal-btn:active {
+      transform: translateY(4px);
+      box-shadow: none;
+    }
+
+    .switches-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+      padding: 0 4px;
+    }
+
+    .switch-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 22px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #333;
+      transition: .25s;
+      border-radius: 22px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      transition: .25s;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background: #007aff;
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(16px);
+    }
+
+    .switch-label {
+      font-size: 11px;
+      margin-left: 7px;
+      color: #aaa;
+      font-weight: 600;
+    }
+
+    .cam-wrapper {
+      position: relative;
+      width: 320px;
+      height: 240px;
+      margin: 0 auto;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #camFrame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #000;
+      display: none;
+      object-fit: cover;
+    }
+
+    #camError {
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      background: #181818;
+      border: 1px dashed #3a3a3a;
+      color: #ef5350;
+      display: none;
+      box-sizing: border-box;
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 18px;
+      font-size: 10px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: .5px;
+    }
+
+    .connected {
+      background: rgba(46, 125, 50, 0.15);
+      color: #4caf50;
+      border: 1px solid rgba(46, 125, 50, 0.4);
+    }
+
+    .removed {
+      background: rgba(198, 40, 40, 0.15);
+      color: #ef5350;
+      border: 1px solid rgba(198, 40, 40, 0.4);
+    }
+
+    .telemetry-val {
+      font-size: 17px;
+      font-weight: bold;
+      color: #007aff;
+      min-height: 26px;
+      margin: 6px 0;
+    }
+
+    .mod-select {
+      width: 100%;
+      padding: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+
+    .rst-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid #444;
+      background: #252525;
+      color: #ff5252;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      outline: none;
+      padding: 0;
+      line-height: 1;
+      transition: all 0.15s ease;
+    }
+
+    /* Modular Subgroup Panels */
+    .mod-subgroup {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #333;
+      text-align: center;
+    }
+
+    .mod-subgroup-title {
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 8px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .mod-btn-grid {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .mod-btn {
+      padding: 7px 11px !important;
+      font-size: 12px !important;
+      height: auto !important;
+      min-height: 32px !important;
+      width: auto !important;
+      border-radius: 7px !important;
+      margin: 2px !important;
+      background: #272727 !important;
+      color: #e0e0e0 !important;
+      border: 1px solid #3a3a3a !important;
+      box-shadow: 0 2px 0 #151515 !important;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .mod-btn:hover {
+      background: #333 !important;
+      color: #fff !important;
+      border-color: #007aff !important;
+    }
+
+    .mod-btn:active {
+      transform: translateY(2px) !important;
+      box-shadow: none !important;
+    }
+
+    .color-picker-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #272727;
+      border: 1px solid #3a3a3a;
+      border-radius: 7px;
+      padding: 2px 8px;
+      margin: 2px;
+      vertical-align: middle;
+    }
+
+    .color-picker-input {
+      width: 26px;
+      height: 26px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* ================= ROVERBLOCKS STUDIO PANEL ================= */
+    .rover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .rover-header h1 {
+      margin: 0;
+      font-size: 15px;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    .rover-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-blue,
+    .btn-amber {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: opacity 0.15s ease;
+    }
+
+    .btn-primary {
+      background: #238636;
+    }
+
+    .btn-secondary {
+      background: #30363d;
+      color: #c9d1d9;
+    }
+
+    .btn-blue {
+      background: #0969da;
+    }
+
+    .btn-amber {
+      background: #d97706;
+    }
+
+    #main-container {
+      width: 100% !important;
+      height: auto !important;
+      position: relative !important;
+      overflow: visible !important;
+    }
+
+    #blocklyArea {
+      width: 100% !important;
+      height: 480px !important;
+      position: relative !important;
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      border: 1px solid #333 !important;
+      background: #1e1e1e !important;
+    }
+
+    #blocklyDiv {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      text-align: left;
+    }
+
+    #dragOverlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(9, 105, 218, 0.4);
+      border: 2px dashed #0969da;
+      z-index: 90;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: bold;
+      pointer-events: none;
+      backdrop-filter: blur(2px);
+    }
+
+    .workspace-floating-controls {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 80;
+      user-select: none;
+    }
+
+    .workspace-floating-controls .ctrl-btn {
+      background: #ffffff !important;
+      color: #24292e !important;
+      border: 1px solid #d0d7de !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+      border-radius: 8px !important;
+      padding: 0 10px !important;
+      min-width: 44px !important;
+      width: auto !important;
+      height: 36px !important;
+      font-size: 0.88rem !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      transition: all 0.15s ease !important;
+      margin: 0 !important;
+    }
+
+    .workspace-floating-controls .ctrl-btn:hover {
+      background: #f6f8fa !important;
+      border-color: #0969da !important;
+      color: #0969da !important;
+      transform: translateY(-1px) !important;
+    }
+
+    .workspace-floating-controls .ctrl-btn:active {
+      transform: translateY(0) !important;
+      background: #eaeef2 !important;
+    }
+
+    .workspace-floating-controls .ctrl-btn-danger {
+      font-size: 0.82rem !important;
+      color: #cf222e !important;
+    }
+
+    .workspace-floating-controls .ctrl-btn-danger:hover {
+      background: #ffebe9 !important;
+      border-color: #cf222e !important;
+      color: #a40e26 !important;
+    }
+
+    .workspace-floating-controls .ctrl-btn-danger.drag-over-delete {
+      background: #cf222e !important;
+      color: #ffffff !important;
+      border-color: #a40e26 !important;
+      transform: scale(1.12) !important;
+      box-shadow: 0 4px 14px rgba(207, 34, 46, 0.5) !important;
+    }
+
+    .rover-car-controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+
+    .rover-car-btn {
+      flex: 1;
+      padding: 12px 10px;
+      font-size: 13px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .rover-btn-run {
+      background: #0284c7;
+    }
+
+    .rover-btn-run:hover {
+      background: #0369a1;
+    }
+
+    .rover-btn-stop {
+      background: #c62828;
+    }
+
+    .rover-btn-stop:hover {
+      background: #b71c1c;
+    }
+
+    .blocklyToolboxDiv {
+      background-color: #e5e7eb !important;
+      border-right: 1px solid #333 !important;
+      overflow-y: auto !important;
+    }
+
+    .blocklyTreeRow {
+      background-color: transparent !important;
+      padding: 4px 6px !important;
+      height: auto !important;
+    }
+
+    .blocklyToolboxDiv,
+    .blocklyToolboxDiv *,
+    .blocklyToolboxCategory,
+    .blocklyToolboxCategoryLabel,
+    .blocklyTreeRow,
+    .blocklyTreeLabel {
+      color: #111111 !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      opacity: 1 !important;
+      text-shadow: none !important;
+    }
+
+    .blocklyTreeRow:not(.blocklyTreeSelected):hover,
+    .blocklyToolboxCategory:not(.blocklyTreeSelected):hover {
+      background-color: #d1d5db !important;
+    }
+
+    .blocklyTreeSelected,
+    .blocklyTreeSelected *,
+    .blocklyTreeSelected .blocklyTreeLabel,
+    .blocklyTreeSelected .blocklyToolboxCategoryLabel {
+      color: #ffffff !important;
+      font-weight: bold !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    /* Modal & Dialog Styling */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(3px);
+    }
+
+    .modal-content {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      width: 90%;
+      max-width: 820px;
+      height: 80vh;
+      max-height: 620px;
+      border-radius: 8px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #3c3c3c;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #252526;
+      border-bottom: 1px solid #333;
+    }
+
+    .modal-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      background: #2d2d30;
+      color: #aaa;
+      border: 1px solid #3e3e42;
+      padding: 6px 14px;
+      font-size: 0.88rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: #0e639c;
+      color: #fff;
+      font-weight: 600;
+      border-color: #1177bb;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      color: #aaa;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 6px;
+    }
+
+    .modal-close-btn:hover {
+      color: #fff;
+    }
+
+    .modal-body {
+      flex: 1;
+      display: flex;
+      padding: 12px 16px;
+      overflow: hidden;
+      background: #181818;
+    }
+
+    .code-view {
+      flex: 1;
+      width: 100%;
+      background: #141414;
+      color: #9cdcfe;
+      font-family: Consolas, Monaco, "Courier New", monospace;
+      font-size: 0.85rem;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #2d2d2d;
+      overflow: auto;
+      white-space: pre;
+      resize: none;
+      outline: none;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 10px 16px;
+      background: #252526;
+      border-top: 1px solid #333;
+    }
+
+    /* Custom Variable Dialog */
+    #varDialogBackdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 20, 35, 0.40);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+
+    #varDialogBackdrop.open {
+      display: flex;
+    }
+
+    #varDialog {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      width: min(92vw, 360px);
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #varDialogInner {
+      padding: 22px 20px 18px;
+      text-align: left;
+    }
+
+    #varDialogTitle {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a1f2e;
+      margin-bottom: 16px;
+    }
+
+    #varDialogInput {
+      width: 100%;
+      background: #f7f8fc;
+      border: 1.5px solid #dde1f0;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      padding: 10px 12px;
+      outline: none;
+      color: #1a1f2e;
+    }
+
+    #varDialogError {
+      font-size: 0.72rem;
+      color: #d93025;
+      margin-top: 5px;
+      display: none;
+    }
+
+    #varDialogError.visible {
+      display: block;
+    }
+
+    #varDialogFooter {
+      display: flex;
+      gap: 8px;
+      padding: 0 20px 18px;
+      justify-content: flex-end;
+    }
+
+    .vd-btn {
+      font-size: 0.85rem;
+      padding: 8px 18px;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .vd-btn-cancel {
+      background: #f0f2f8;
+      color: #5a627a;
+    }
+
+    .vd-btn-ok {
+      background: #4f63d2;
+      color: #fff;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #333;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      font-size: 0.9rem;
+      z-index: 10000;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    #toast.success {
+      background: #238636;
+    }
+
+    #toast.error {
+      background: #da3633;
+    }
+
+    #toast.info {
+      background: #0284c7;
+    }
+  </style>
 </head>
 
 <body>
 
-    <div class="header-bar">
-        <h2>SNAP RACER</h2>
-        <button type="button" class="rst-btn" id="lockOrientBtn" onclick="toggleScreenLock()"
-            title="Lock Screen Rotation">🔓</button>
+  <div class="header-bar">
+    <h2>SNAP RACER</h2>
+    <button type="button" class="rst-btn" id="lockOrientBtn" onclick="toggleScreenLock()"
+      title="Lock Screen Rotation">🔓</button>
+  </div>
+
+  <!-- LIVE FPV STREAM -->
+  <div class="panel" id="cameraSection" style="display:none;padding:10px;margin-top:0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span class="panel-title" style="margin-bottom:0;">Live FPV Stream</span>
+      <button type="button" class="rst-btn" onclick="camReload(event); return false;"
+        title="Reload Stream">&#8635;</button>
+    </div>
+    <div class="cam-wrapper">
+      <img id="camFrame" src="" alt="Stream" onload="onCamLoad()" onerror="onCamError()">
+      <div id="camError">
+        <div style="font-size:30px;margin-bottom:8px;">📷</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;">Camera Offline</div>
+        <div style="font-size:11px;color:#888;margin-top:4px;">Check ESP32-CAM (192.168.4.10)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRIVING CONTROLS & THROTTLE -->
+  <div class="panel">
+    <div class="panel-title">Driving Controls & Throttle</div>
+    <div style="display:flex;justify-content:center;align-items:center;width:100%;">
+      <div id="dpadContainer">
+        <div style="text-align:center;">
+          <div class="ctrl-btn" onpointerdown="driveStart('forward',event)" onpointerup="driveStop(event)"
+            onpointercancel="driveStop(event)">F</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="ctrl-btn" onpointerdown="driveStart('left',event)" onpointerup="driveStop(event)"
+            onpointercancel="driveStop(event)">L</div>
+          <div class="ctrl-btn stop-btn" onpointerdown="stopPress(event)" onpointerup="stopRelease(event)"
+            onpointercancel="stopRelease(event)">STOP</div>
+          <div class="ctrl-btn" onpointerdown="driveStart('right',event)" onpointerup="driveStop(event)"
+            onpointercancel="driveStop(event)">R</div>
+        </div>
+        <div style="text-align:center;">
+          <div class="ctrl-btn" onpointerdown="driveStart('backward',event)" onpointerup="driveStop(event)"
+            onpointercancel="driveStop(event)">B</div>
+        </div>
+      </div>
+
+      <!-- COCKPIT STEERING WHEEL -->
+      <div id="wheelContainer">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+            <label class="switch" style="transform:scale(0.8);transform-origin:center;">
+              <input type="checkbox" id="gyroToggle" onchange="toggleGyroMode(this.checked)">
+              <span class="slider"></span>
+            </label>
+            <span id="gyroLabel"
+              style="font-size:10px;font-weight:bold;color:#aaa;min-width:78px;text-align:left;">Gyro:
+              OFF</span>
+          </div>
+          <div id="steerWheel" class="wheel-graphic">
+            <div class="wheel-center"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sliderContainer" class="slider-col">
+        <div class="slider-val" id="speedReadout">0</div>
+        <input type="range" id="speedSlider" class="v-slider" min="0" max="255" value="0" orient="vertical"
+          onpointerdown="isSliderActive=true;lastSliderInteractTime=Date.now()"
+          onpointerup="isSliderActive=false;lastSliderInteractTime=Date.now();onSliderChange(this.value)"
+          oninput="onSliderInput(this.value)" onchange="onSliderChange(this.value)">
+        <div style="font-size:9px;color:#888;margin-top:4px;font-weight:bold;">PWM</div>
+      </div>
+      <div id="pedalContainer" class="pedal-col">
+        <div class="pedal-btn" onpointerdown="pressGas(true,event)" onpointerup="pressGas(false,event)"
+          onpointercancel="pressGas(false,event)">▲<br>GAS</div>
+        <div class="pedal-btn brake-btn" onpointerdown="pressBrake(true,event)" onpointerup="pressBrake(false,event)"
+          onpointercancel="pressBrake(false,event)">▼<br>REV</div>
+      </div>
     </div>
 
-    <!-- LIVE FPV STREAM -->
-    <div class="panel" id="cameraSection" style="display:none;padding:10px;margin-top:0;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span class="panel-title" style="margin-bottom:0;">Live FPV Stream</span>
-            <button type="button" class="rst-btn" onclick="camReload(event); return false;"
-                title="Reload Stream">&#8635;</button>
-        </div>
-        <div class="cam-wrapper">
-            <img id="camFrame" src="" alt="Stream" onload="onCamLoad()" onerror="onCamError()">
-            <div id="camError">
-                <div style="font-size:30px;margin-bottom:8px;">📷</div>
-                <div style="font-size:14px;font-weight:700;color:#fff;">Camera Offline</div>
-                <div style="font-size:11px;color:#888;margin-top:4px;">Check ESP32-CAM (192.168.4.10)</div>
-            </div>
-        </div>
+    <div class="switches-row">
+      <div class="switch-container"><label class="switch"><input type="checkbox"
+            onchange="toggleHeadlights(this.checked)"><span class="slider"></span></label><span id="headlightLabel"
+          class="switch-label">Lights: OFF</span></div>
+      <div class="switch-container"><label class="switch"><input type="checkbox" id="cockpitToggle"
+            onchange="toggleCockpitMode(this.checked)"><span class="slider"></span></label><span id="cockpitLabel"
+          class="switch-label">Cockpit Mode: OFF</span></div>
     </div>
+    <div class="switches-row">
+      <div class="switch-container"><label class="switch"><input type="checkbox"
+            onchange="toggleAddOns(this.checked)"><span class="slider"></span></label><span id="addOnLabel"
+          class="switch-label">Add-Ons: OFF</span></div>
+      <div class="switch-container"><label class="switch"><input type="checkbox" id="camToggle"
+            onchange="toggleCamera(this.checked)"><span class="slider"></span></label><span id="camLabel"
+          class="switch-label">Camera: OFF</span></div>
+    </div>
+    <div class="switches-row">
+      <div class="switch-container"><label class="switch"><input type="checkbox" id="terminalToggle"
+            onchange="toggleTerminal(this.checked)"><span class="slider"></span></label><span id="terminalLabel"
+          class="switch-label">Blockly Studio: OFF</span></div>
+    </div>
+  </div>
 
-    <!-- DRIVING CONTROLS & THROTTLE -->
+  <!-- MODULAR SENSOR PORT -->
+  <div id="addOnsContainer" style="display:none;">
     <div class="panel">
-        <div class="panel-title">Driving Controls & Throttle</div>
-        <div style="display:flex;justify-content:center;align-items:center;width:100%;">
-            <div id="dpadContainer">
-                <div style="text-align:center;">
-                    <div class="ctrl-btn" onpointerdown="driveStart('forward',event)" onpointerup="driveStop(event)"
-                        onpointercancel="driveStop(event)">F</div>
-                </div>
-                <div style="text-align:center;">
-                    <div class="ctrl-btn" onpointerdown="driveStart('left',event)" onpointerup="driveStop(event)"
-                        onpointercancel="driveStop(event)">L</div>
-                    <div class="ctrl-btn stop-btn" onpointerdown="stopPress(event)" onpointerup="stopRelease(event)"
-                        onpointercancel="stopRelease(event)">STOP</div>
-                    <div class="ctrl-btn" onpointerdown="driveStart('right',event)" onpointerup="driveStop(event)"
-                        onpointercancel="driveStop(event)">R</div>
-                </div>
-                <div style="text-align:center;">
-                    <div class="ctrl-btn" onpointerdown="driveStart('backward',event)" onpointerup="driveStop(event)"
-                        onpointercancel="driveStop(event)">B</div>
-                </div>
-            </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span class="panel-title" style="margin-bottom:0;">Modular Sensor Port</span>
+        <button type="button" class="rst-btn" onclick="resetModularRules(event); return false;"
+          title="Reset Module to Safe Mode">&#8635;</button>
+      </div>
+      <div id="plugStatus" class="status-badge removed">Checking Port...</div>
+      <div id="readout" class="telemetry-val">Safe Mode (Idle)</div>
+      <select id="modSelect" class="mod-select" onchange="switchMode(this.value)">
+        <option value="idle">Safe Mode (Idle)</option>
+        <option value="distance">1. Distance (VL53L0X)</option>
+        <option value="dht11">2. DHT11 (Temp & Hum)</option>
+        <option value="dht22">3. DHT22 (Precision)</option>
+        <option value="ldr">4. LDR Light Sensor</option>
+        <option value="rgb">5. RGB LED Ring</option>
+        <option value="oled">6. OLED Display (SSD1306)</option>
+        <option value="accel">7. Accelerometer (Modular ADXL/MPU)</option>
+        <option value="servo">8. Servo Motor</option>
+      </select>
 
-            <!-- COCKPIT STEERING WHEEL -->
-            <div id="wheelContainer">
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-                        <label class="switch" style="transform:scale(0.8);transform-origin:center;">
-                            <input type="checkbox" id="gyroToggle" onchange="toggleGyroMode(this.checked)">
-                            <span class="slider"></span>
-                        </label>
-                        <span id="gyroLabel"
-                            style="font-size:10px;font-weight:bold;color:#aaa;min-width:78px;text-align:left;">Gyro:
-                            OFF</span>
-                    </div>
-                    <div id="steerWheel" class="wheel-graphic">
-                        <div class="wheel-center"></div>
-                    </div>
-                </div>
-            </div>
+      <!-- SERVO PRESET BUTTONS -->
+      <div id="servoControlGroup" class="mod-subgroup" style="display:none;">
+        <div class="mod-subgroup-title">Servo Test Presets:</div>
+        <div class="mod-btn-grid">
+          <button type="button" class="mod-btn" onclick="sendServoAngle(0)">0°</button>
+          <button type="button" class="mod-btn" onclick="sendServoAngle(45)">45°</button>
+          <button type="button" class="mod-btn" onclick="sendServoAngle(90)">90°</button>
+          <button type="button" class="mod-btn" onclick="sendServoAngle(135)">135°</button>
+          <button type="button" class="mod-btn" onclick="sendServoAngle(180)">180°</button>
+        </div>
+      </div>
 
-            <div id="sliderContainer" class="slider-col">
-                <div class="slider-val" id="speedReadout">0</div>
-                <input type="range" id="speedSlider" class="v-slider" min="0" max="255" value="0" orient="vertical"
-                    onpointerdown="isSliderActive=true;lastSliderInteractTime=Date.now()"
-                    onpointerup="isSliderActive=false;lastSliderInteractTime=Date.now();onSliderChange(this.value)"
-                    oninput="onSliderInput(this.value)" onchange="onSliderChange(this.value)">
-                <div style="font-size:9px;color:#888;margin-top:4px;font-weight:bold;">PWM</div>
-            </div>
-            <div id="pedalContainer" class="pedal-col">
-                <div class="pedal-btn" onpointerdown="pressGas(true,event)" onpointerup="pressGas(false,event)"
-                    onpointercancel="pressGas(false,event)">▲<br>GAS</div>
-                <div class="pedal-btn brake-btn" onpointerdown="pressBrake(true,event)"
-                    onpointerup="pressBrake(false,event)" onpointercancel="pressBrake(false,event)">▼<br>REV</div>
-            </div>
+      <!-- RGB LED RING OPTIONS -->
+      <div id="rgbControlGroup" class="mod-subgroup" style="display:none;">
+        <div class="mod-subgroup-title">RGB Ring Animations:</div>
+        <div class="mod-btn-grid" style="margin-bottom:8px;">
+          <button type="button" class="mod-btn" onclick="setRgbMode('auto')">Auto Drive</button>
+          <button type="button" class="mod-btn" onclick="setRgbMode('tacho')">Tachometer</button>
+          <button type="button" class="mod-btn" onclick="setRgbMode('police')">Police</button>
+          <button type="button" class="mod-btn" onclick="setRgbMode('rainbow')">Rainbow</button>
+          <button type="button" class="mod-btn" onclick="setRgbMode('chase')">Chase</button>
+          <button type="button" class="mod-btn" onclick="setRgbMode('breathing')">Breathing</button>
+          <button type="button" class="mod-btn" onclick="setRgbMode('off')">Off</button>
         </div>
+        <div class="mod-subgroup-title">Solid Colors & Custom:</div>
+        <div class="mod-btn-grid" style="align-items:center;margin-bottom:8px;">
+          <button type="button" class="mod-btn" style="color:#ff5252!important;"
+            onclick="setRgbMode('red')">Red</button>
+          <button type="button" class="mod-btn" style="color:#4caf50!important;"
+            onclick="setRgbMode('green')">Green</button>
+          <button type="button" class="mod-btn" style="color:#2196f3!important;"
+            onclick="setRgbMode('blue')">Blue</button>
+          <div class="color-picker-wrapper">
+            <span style="font-size:11px;color:#aaa;">Custom:</span>
+            <input type="color" class="color-picker-input" value="#007aff" onchange="sendCustomColor(this.value)">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;">
+          <span style="font-size:11px;color:#888;font-weight:bold;">Brightness:</span>
+          <input type="range" min="0" max="255" value="80" style="width:120px;" oninput="sendRgbBrightness(this.value)">
+          <span id="rgbBrightnessVal" style="font-size:11px;color:#007aff;font-weight:bold;min-width:24px;">80</span>
+        </div>
+      </div>
 
-        <div class="switches-row">
-            <div class="switch-container"><label class="switch"><input type="checkbox"
-                        onchange="toggleHeadlights(this.checked)"><span class="slider"></span></label><span
-                    id="headlightLabel" class="switch-label">Lights: OFF</span></div>
-            <div class="switch-container"><label class="switch"><input type="checkbox" id="cockpitToggle"
-                        onchange="toggleCockpitMode(this.checked)"><span class="slider"></span></label><span
-                    id="cockpitLabel" class="switch-label">Cockpit Mode: OFF</span></div>
+      <!-- OLED SCREEN MODES -->
+      <div id="oledControlGroup" class="mod-subgroup" style="display:none;">
+        <div class="mod-subgroup-title">OLED Screen Modes:</div>
+        <div class="mod-btn-grid">
+          <button type="button" class="mod-btn" onclick="setOledMode(0)">🤖 Robot Face</button>
+          <button type="button" class="mod-btn" onclick="setOledMode(3)">🦖 Chrome Dino</button>
+          <button type="button" class="mod-btn" onclick="setOledMode(5)">👾 Space Invaders</button>
         </div>
-        <div class="switches-row">
-            <div class="switch-container"><label class="switch"><input type="checkbox"
-                        onchange="toggleAddOns(this.checked)"><span class="slider"></span></label><span id="addOnLabel"
-                    class="switch-label">Add-Ons: OFF</span></div>
-            <div class="switch-container"><label class="switch"><input type="checkbox" id="camToggle"
-                        onchange="toggleCamera(this.checked)"><span class="slider"></span></label><span id="camLabel"
-                    class="switch-label">Camera: OFF</span></div>
+        <div id="oledHint" style="font-size:10px;color:#888;margin-top:8px;font-style:italic;">
+          👀 Face: Eyes react to car drive direction
         </div>
-        <div class="switches-row">
-            <div class="switch-container"><label class="switch"><input type="checkbox" id="terminalToggle"
-                        onchange="toggleTerminal(this.checked)"><span class="slider"></span></label><span
-                    id="terminalLabel" class="switch-label">Blocky: OFF</span></div>
-        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= BLOCKLY STUDIO PANEL ================= -->
+  <div class="panel panel-wide" id="terminalPanel" style="display:none;">
+    <div class="rover-header">
+      <h1>Blockly Studio</h1>
+      <div class="rover-actions header-actions">
+        <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁
+          Code</button>
+        <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">📋 Copy Python</button>
+        <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download
+          XML</button>
+        <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload
+          XML</button>
+        <input type="file" id="xmlFileInput" accept=".xml,text/xml,application/xml" style="display: none;"
+          onchange="handleXmlUpload(event)">
+      </div>
     </div>
 
-    <!-- MODULAR SENSOR PORT -->
-    <div id="addOnsContainer" style="display:none;">
-        <div class="panel">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <span class="panel-title" style="margin-bottom:0;">Modular Sensor Port</span>
-                <button type="button" class="rst-btn" onclick="resetModularRules(event); return false;"
-                    title="Reset Module to Safe Mode">&#8635;</button>
-            </div>
-            <div id="plugStatus" class="status-badge removed">Checking Port...</div>
-            <div id="readout" class="telemetry-val">Safe Mode (Idle)</div>
-            <select id="modSelect" class="mod-select" onchange="switchMode(this.value)">
-                <option value="idle">Safe Mode (Idle)</option>
-                <option value="distance">1. Distance (VL53L0X)</option>
-                <option value="dht11">2. DHT11 (Temp & Hum)</option>
-                <option value="dht22">3. DHT22 (Precision)</option>
-                <option value="ldr">4. LDR Light Sensor</option>
-                <option value="rgb">5. RGB LED Ring</option>
-                <option value="oled">6. OLED Display (SSD1306)</option>
-                <option value="accel">7. Accelerometer (Modular ADXL/MPU)</option>
-                <option value="servo">8. Servo Motor</option>
-            </select>
+    <div id="main-container">
+      <div id="blocklyArea">
+        <div id="blocklyDiv"></div>
+        <div id="dragOverlay">Drop XML file here</div>
 
-            <!-- SERVO PRESET BUTTONS (0, 45, 90, 135, 180) -->
-            <div id="servoControlGroup" class="mod-subgroup" style="display:none;">
-                <div class="mod-subgroup-title">Servo Test Presets:</div>
-                <div class="mod-btn-grid">
-                    <button type="button" class="mod-btn" onclick="sendServoAngle(0)">0°</button>
-                    <button type="button" class="mod-btn" onclick="sendServoAngle(45)">45°</button>
-                    <button type="button" class="mod-btn" onclick="sendServoAngle(90)">90°</button>
-                    <button type="button" class="mod-btn" onclick="sendServoAngle(135)">135°</button>
-                    <button type="button" class="mod-btn" onclick="sendServoAngle(180)">180°</button>
-                </div>
-            </div>
-
-            <!-- RGB LED RING OPTIONS -->
-            <div id="rgbControlGroup" class="mod-subgroup" style="display:none;">
-                <div class="mod-subgroup-title">RGB Ring Animations:</div>
-                <div class="mod-btn-grid" style="margin-bottom:8px;">
-                    <button type="button" class="mod-btn" onclick="setRgbMode('auto')">Auto Drive</button>
-                    <button type="button" class="mod-btn" onclick="setRgbMode('tacho')">Tachometer</button>
-                    <button type="button" class="mod-btn" onclick="setRgbMode('police')">Police</button>
-                    <button type="button" class="mod-btn" onclick="setRgbMode('rainbow')">Rainbow</button>
-                    <button type="button" class="mod-btn" onclick="setRgbMode('chase')">Chase</button>
-                    <button type="button" class="mod-btn" onclick="setRgbMode('breathing')">Breathing</button>
-                    <button type="button" class="mod-btn" onclick="setRgbMode('off')">Off</button>
-                </div>
-                <div class="mod-subgroup-title">Solid Colors & Custom:</div>
-                <div class="mod-btn-grid" style="align-items:center;margin-bottom:8px;">
-                    <button type="button" class="mod-btn" style="color:#ff5252!important;"
-                        onclick="setRgbMode('red')">Red</button>
-                    <button type="button" class="mod-btn" style="color:#4caf50!important;"
-                        onclick="setRgbMode('green')">Green</button>
-                    <button type="button" class="mod-btn" style="color:#2196f3!important;"
-                        onclick="setRgbMode('blue')">Blue</button>
-                    <div class="color-picker-wrapper">
-                        <span style="font-size:11px;color:#aaa;">Custom:</span>
-                        <input type="color" class="color-picker-input" value="#007aff"
-                            onchange="sendCustomColor(this.value)">
-                    </div>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px;">
-                    <span style="font-size:11px;color:#888;font-weight:bold;">Brightness:</span>
-                    <input type="range" min="0" max="255" value="80" style="width:120px;"
-                        oninput="sendRgbBrightness(this.value)">
-                    <span id="rgbBrightnessVal"
-                        style="font-size:11px;color:#007aff;font-weight:bold;min-width:24px;">80</span>
-                </div>
-            </div>
-
-            <!-- OLED SCREEN MODES -->
-            <div id="oledControlGroup" class="mod-subgroup" style="display:none;">
-                <div class="mod-subgroup-title">OLED Screen Modes:</div>
-                <div class="mod-btn-grid">
-                    <button type="button" class="mod-btn" onclick="setOledMode(0)">🤖 Robot Face</button>
-                    <button type="button" class="mod-btn" onclick="setOledMode(3)">🦖 Chrome Dino</button>
-                    <button type="button" class="mod-btn" onclick="setOledMode(5)">👾 Space Invaders</button>
-                </div>
-                <div id="oledHint" style="font-size:10px;color:#888;margin-top:8px;font-style:italic;">
-                    👀 Face: Eyes react to car drive direction
-                </div>
-            </div>
+        <!-- Custom Floating HTML Workspace Controls -->
+        <div class="workspace-floating-controls" id="workspaceControls">
+          <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
+          <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
+          <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
+          <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDelete" onclick="deleteSelectedBlock()"
+            title="Drag a block here to delete">Delete</button>
         </div>
+      </div>
     </div>
 
-    <!-- ================= ROVERBLOCKS STUDIO PANEL ================= -->
-    <div class="panel panel-wide" id="terminalPanel" style="display:none;">
-        <div class="rover-header">
-            <h1>Blocky Studio</h1>
-            <div class="rover-actions header-actions">
-                <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁
-                    Code</button>
-                <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">📋 Copy Python</button>
-                <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download
-                    XML</button>
-                <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload
-                    XML</button>
-                <input type="file" id="xmlFileInput" accept=".xml,text/xml" style="display: none;"
-                    onchange="handleXmlUpload(event)">
-            </div>
-        </div>
-
-        <div id="main-container">
-            <div id="blocklyArea">
-                <div id="blocklyDiv"></div>
-                <div id="dragOverlay">📂 Drop XML file here to load blocks</div>
-
-                <!-- Custom Floating HTML Workspace Controls -->
-                <div class="workspace-floating-controls" id="workspaceControls">
-                    <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()"
-                        title="Center Workspace">Center</button>
-                    <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
-                    <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
-                    <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnClear" onclick="workspaceClearAll()"
-                        title="Clear Workspace (or drag blocks here to delete)">Clear</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Car Hardware Run & Stop Actions -->
-        <div class="rover-car-controls">
-            <button class="rover-car-btn rover-btn-run" onclick="uploadRoverCode()">⬆ Upload &amp; Run on Car</button>
-            <button class="rover-car-btn rover-btn-stop" onclick="stopRoverCode()">■ Stop Car</button>
-        </div>
+    <!-- Car Hardware Run & Stop Actions -->
+    <div class="rover-car-controls">
+      <button class="rover-car-btn rover-btn-run" onclick="uploadRoverCode()">⬆ Upload &amp; Run on Car</button>
+      <button class="rover-car-btn rover-btn-stop" onclick="stopRoverCode()">■ Stop Car</button>
     </div>
+  </div>
 
-    <!-- Code Viewer Modal -->
-    <div id="codeModal" class="modal-backdrop" style="display: none;" onclick="handleBackdropClick(event)">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-tabs">
-                    <button id="tabPythonBtn" class="tab-btn active" onclick="switchTab('python')">Python</button>
-                    <button id="tabXmlBtn" class="tab-btn" onclick="switchTab('xml')">XML</button>
-                </div>
-                <button class="modal-close-btn" onclick="closeCodeModal()" title="Close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <textarea id="modalCodeText" class="code-view" readonly spellcheck="false"></textarea>
-            </div>
-            <div class="modal-footer">
-                <button id="modalCopyBtn" class="btn-secondary" onclick="copyModalCode()">📋 Copy</button>
-                <button id="modalDownloadXmlBtn" class="btn-primary" style="display: none;" onclick="downloadXml()">💾
-                    Download XML</button>
-                <button class="btn-secondary" onclick="closeCodeModal()">Close</button>
-            </div>
+  <!-- Code Viewer Modal -->
+  <div id="codeModal" class="modal-backdrop" onclick="handleBackdropClick(event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-tabs">
+          <button id="tabPythonBtn" class="tab-btn active" onclick="switchTab('python')">Python</button>
+          <button id="tabXmlBtn" class="tab-btn" onclick="switchTab('xml')">XML</button>
         </div>
+        <button class="modal-close-btn" onclick="closeCodeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="modalCodeText" class="code-view" readonly spellcheck="false"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="modalCopyBtn" class="btn-secondary" onclick="copyModalCode()">📋 Copy</button>
+        <button id="modalDownloadXmlBtn" class="btn-primary" style="display: none;" onclick="downloadXml()">💾 Download
+          XML</button>
+        <button class="btn-secondary" onclick="closeCodeModal()">Close</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Toast Notification -->
-    <div id="toast"></div>
+  <!-- Custom Variable Dialog -->
+  <div id="varDialogBackdrop" role="dialog">
+    <div id="varDialog">
+      <div id="varDialogInner">
+        <div id="varDialogTitle">New Variable</div>
+        <input id="varDialogInput" type="text" placeholder="e.g. speed, count" autocomplete="off" spellcheck="false"
+          maxlength="64">
+        <div id="varDialogError"></div>
+      </div>
+      <div id="varDialogFooter">
+        <button class="vd-btn vd-btn-cancel" id="varDialogCancelBtn" type="button">Cancel</button>
+        <button class="vd-btn vd-btn-ok" id="varDialogOkBtn" type="button">Create</button>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        const ESP_HOST = "http://192.168.4.1";
-        let isCamActive = false;
+  <!-- Toast Notification -->
+  <div id="toast"></div>
 
-        // NON-BLOCKING FETCH API WITH STRICT TIMEOUT TO PREVENT CONNECTION POOL EXHAUSTION
-        function fetchApi(endpoint, timeoutMs = 800) {
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeoutMs);
-            return fetch(ESP_HOST + endpoint, {
-                method: 'GET',
-                cache: 'no-store',
-                signal: controller.signal
-            })
-                .then(res => {
-                    clearTimeout(id);
-                    return res;
-                })
-                .catch(() => {
-                    clearTimeout(id);
-                    return null;
-                });
+  <!-- INLINE TOOLBOX XML -->
+  <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none;">
+    <category name="Logic" colour="#ffb400">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_operation"></block>
+      <block type="logic_negate"></block>
+      <block type="logic_boolean"></block>
+    </category>
+    <category name="Loops" colour="#123456">
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="controls_whileUntil"></block>
+      <block type="controls_for">
+        <value name="FROM">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="TO">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+        <value name="BY">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="controls_flow_statements"></block>
+    </category>
+    <category name="Math" colour="#008000">
+      <block type="lists_create_with">
+        <mutation items="0"></mutation>
+      </block>
+      <block type="lists_create_with">
+        <mutation items="3"></mutation>
+      </block>
+      <block type="math_number">
+        <field name="NUM">123</field>
+      </block>
+      <block type="math_arithmetic">
+        <value name="A">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="B">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_single">
+        <value name="NUM">
+          <shadow type="math_number">
+            <field name="NUM">9</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_trig">
+        <value name="NUM">
+          <shadow type="math_number">
+            <field name="NUM">45</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_constant"></block>
+      <block type="math_number_property">
+        <value name="NUMBER_TO_CHECK">
+          <shadow type="math_number">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_round">
+        <value name="NUM">
+          <shadow type="math_number">
+            <field name="NUM">3.1</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_random_int">
+        <value name="FROM">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="TO">
+          <shadow type="math_number">
+            <field name="NUM">100</field>
+          </shadow>
+        </value>
+      </block>
+    </category>
+    <category name="Text" colour="160">
+      <block type="text"></block>
+      <block type="text_print">
+        <value name="TEXT">
+          <shadow type="text">
+            <field name="TEXT">Hello</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="text_join"></block>
+      <block type="text_length"></block>
+    </category>
+    <category name="Variables" colour="330" custom="VARIABLE"></category>
+    <category name="Motor" colour="110">
+      <block type="lib_left_motor_initialize"></block>
+      <block type="lib_right_motor_initialize"></block>
+      <block type="lib_motor_rotate"></block>
+    </category>
+    <category name="ARGB" colour="224">
+      <block type="lib_argb_initialize"></block>
+      <block type="lib_argb_clear"></block>
+      <block type="lib_argb_clear_all"></block>
+      <block type="lib_argb_show"></block>
+      <block type="lib_argb_red"></block>
+      <block type="lib_argb_green"></block>
+      <block type="lib_argb_blue"></block>
+      <block type="lib_argb_set">
+        <value name="red">
+          <shadow type="math_number">
+            <field name="NUM">255</field>
+          </shadow>
+        </value>
+        <value name="green">
+          <shadow type="math_number">
+            <field name="NUM">255</field>
+          </shadow>
+        </value>
+        <value name="blue">
+          <shadow type="math_number">
+            <field name="NUM">255</field>
+          </shadow>
+        </value>
+      </block>
+    </category>
+    <category name="Servo" colour="230">
+      <block type="lib_servo_initialize">
+        <value name="step">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+        <value name="delay">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="lib_servo_rotate"></block>
+    </category>
+    <category name="MPU6050" colour="224">
+      <block type="lib_mpu6050_initialize"></block>
+      <block type="lib_mpu6050_enable_gyro"></block>
+      <block type="lib_mpu6050_disable_gyro"></block>
+      <block type="lib_mpu6050_get_gyro"></block>
+      <block type="lib_mpu6050_enable_accel"></block>
+      <block type="lib_mpu6050_disable_accel"></block>
+      <block type="lib_mpu6050_get_accel"></block>
+    </category>
+    <category name="TOF" colour="180">
+      <block type="lib_tof_initialize"></block>
+      <block type="lib_tof_read_distance"></block>
+    </category>
+    <category name="LDR" colour="165">
+      <block type="lib_ldr_initialize"></block>
+      <block type="lib_ldr_read"></block>
+    </category>
+    <category name="OLED" colour="180">
+      <block type="lib_display_oled_initialize"></block>
+      <block type="lib_display_oled_clear"></block>
+      <block type="lib_display_oled_show"></block>
+      <block type="lib_display_oled_draw_pixel"></block>
+      <block type="lib_display_oled_draw_text"></block>
+    </category>
+    <category name="Buzzer" colour="32">
+      <block type="lib_buzzer_initialize"></block>
+      <block type="lib_buzzer_on"></block>
+      <block type="lib_buzzer_off"></block>
+      <block type="lib_buzzer_buzz">
+        <value name="secs">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+    </category>
+    <category name="DHT22" colour="120">
+      <block type="lib_dht22_initialize"></block>
+      <block type="lib_temperature_read"></block>
+      <block type="lib_humidity_read"></block>
+    </category>
+    <category name="System" colour="60">
+      <block type="lib_neo_sleep">
+        <value name="duration">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="lib_neo_sleep_ms">
+        <value name="duration">
+          <shadow type="math_number">
+            <field name="NUM">500</field>
+          </shadow>
+        </value>
+      </block>
+    </category>
+  </xml>
+
+  <script>
+    const ESP_HOST = "http://192.168.4.1";
+    let isCamActive = false;
+
+    function fetchApi(endpoint, timeoutMs = 800) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(ESP_HOST + endpoint, {
+        method: 'GET',
+        cache: 'no-store',
+        signal: controller.signal
+      })
+        .then(res => {
+          clearTimeout(id);
+          return res;
+        })
+        .catch(() => {
+          clearTimeout(id);
+          return null;
+        });
+    }
+
+    document.addEventListener('contextmenu', e => {
+      if (e.target && e.target.closest('#blocklyArea, #blocklyDiv, .blocklySvg, .blocklyWidgetDiv, .blocklyDropDownDiv, .blocklyTooltipDiv, .code-view')) return;
+      e.preventDefault();
+    });
+
+    // ================= SCREEN ORIENTATION LOCK =================
+    let isOrientationLocked = false;
+    async function toggleScreenLock() {
+      const btn = document.getElementById('lockOrientBtn');
+      if (!isOrientationLocked) {
+        try {
+          const mode = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
+          if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock(mode);
+          } else if (screen.lockOrientation) {
+            screen.lockOrientation(mode);
+          }
+          isOrientationLocked = true;
+          if (btn) { btn.innerText = '🔒'; btn.style.color = '#00e5ff'; btn.style.borderColor = '#00e5ff'; }
+        } catch (err) {
+          try {
+            if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+              await document.documentElement.requestFullscreen();
+            }
+            const mode = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
+            await screen.orientation.lock(mode);
+            isOrientationLocked = true;
+            if (btn) { btn.innerText = '🔒'; btn.style.color = '#00e5ff'; btn.style.borderColor = '#00e5ff'; }
+          } catch (err2) {
+            alert("Screen lock error: " + (err2.message || err.message));
+          }
         }
+      } else {
+        try {
+          if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+          if (document.exitFullscreen && document.fullscreenElement) await document.exitFullscreen();
+        } catch (e) { }
+        isOrientationLocked = false;
+        if (btn) { btn.innerText = '🔓'; btn.style.color = '#ff5252'; btn.style.borderColor = '#444'; }
+      }
+    }
 
-        document.addEventListener('contextmenu', e => {
-            if (e.target && e.target.closest('#blocklyArea, #blocklyDiv, .blocklySvg, .blocklyWidgetDiv, .blocklyDropDownDiv, .blocklyTooltipDiv, .code-view')) return;
-            e.preventDefault();
+    // ================= INSTANT-RESPONSE DRIVE ENGINE =================
+    let activePointerId = null, currentDriveDir = 'stop', driveHeartbeat = null;
+
+    function driveStart(dir, e) {
+      if (e) {
+        e.preventDefault();
+        if (e.target && e.target.setPointerCapture && e.pointerId) {
+          try { e.target.setPointerCapture(e.pointerId); } catch (err) { }
+        }
+      }
+      if (activePointerId !== null && e && activePointerId !== e.pointerId) return;
+      activePointerId = e ? e.pointerId : 1;
+      currentDriveDir = dir;
+      fetchApi('/' + dir, 500);
+
+      if (driveHeartbeat) clearInterval(driveHeartbeat);
+      driveHeartbeat = setInterval(() => {
+        if (currentDriveDir !== 'stop') fetchApi('/' + currentDriveDir, 500);
+      }, 250);
+    }
+
+    function driveStop(e) {
+      if (e) {
+        e.preventDefault();
+        if (activePointerId !== null && e.pointerId && activePointerId !== e.pointerId) return;
+      }
+      currentDriveDir = 'stop';
+      activePointerId = null;
+      if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
+      fetchApi('/stop', 500);
+      setTimeout(() => { if (currentDriveDir === 'stop') fetchApi('/stop', 500); }, 50);
+    }
+
+    function stopPress(e) {
+      if (e) {
+        e.preventDefault();
+        if (e.target && e.target.setPointerCapture && e.pointerId) {
+          try { e.target.setPointerCapture(e.pointerId); } catch (err) { }
+        }
+      }
+      activePointerId = e ? e.pointerId : 1;
+      currentDriveDir = 'stop';
+      if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
+      fetchApi('/stopStart', 500);
+    }
+
+    function stopRelease(e) {
+      if (e) e.preventDefault();
+      activePointerId = null;
+      fetchApi('/stopEnd', 500);
+    }
+
+    window.addEventListener('pointerup', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
+    window.addEventListener('pointercancel', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
+    window.addEventListener('blur', () => { if (currentDriveDir !== 'stop') driveStop(); });
+
+    function toggleHeadlights(en) {
+      document.getElementById('headlightLabel').innerText = en ? "Lights: ON" : "Lights: OFF";
+      document.getElementById('headlightLabel').style.color = en ? "#007aff" : "#aaa";
+      fetchApi('/setFrontLed?state=' + (en ? 1 : 0));
+    }
+
+    function toggleAddOns(en) {
+      document.getElementById('addOnLabel').innerText = en ? "Add-Ons: ON" : "Add-Ons: OFF";
+      document.getElementById('addOnLabel').style.color = en ? "#007aff" : "#aaa";
+      document.getElementById('addOnsContainer').style.display = en ? "block" : "none";
+    }
+
+    function toggleTerminal(en) {
+      document.getElementById('terminalLabel').innerText = en ? "Blockly Studio: ON" : "Blockly Studio: OFF";
+      document.getElementById('terminalLabel').style.color = en ? "#007aff" : "#aaa";
+      document.getElementById('terminalPanel').style.display = en ? "block" : "none";
+      if (en && workspace) {
+        setTimeout(() => {
+          Blockly.svgResize(workspace);
+          if (workspace.scrollCenter) workspace.scrollCenter();
+        }, 60);
+      }
+    }
+
+    function updateSubgroupVisibility(val) {
+      const sc = document.getElementById('servoControlGroup');
+      const rc = document.getElementById('rgbControlGroup');
+      const oc = document.getElementById('oledControlGroup');
+      if (sc) sc.style.display = (val === 'servo') ? 'block' : 'none';
+      if (rc) rc.style.display = (val === 'rgb') ? 'block' : 'none';
+      if (oc) oc.style.display = (val === 'oled') ? 'block' : 'none';
+    }
+
+    function switchMode(val) {
+      updateSubgroupVisibility(val);
+      fetchApi('/setMode?mode=' + val, 1000);
+    }
+
+    function resetModularRules(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      document.getElementById('modSelect').value = 'idle';
+      switchMode('idle');
+    }
+
+    // ================= SERVO PRESETS =================
+    function sendServoAngle(deg) {
+      const ms = document.getElementById('modSelect');
+      if (ms && ms.value !== 'servo') {
+        ms.value = 'servo';
+        switchMode('servo');
+      }
+      const rd = document.getElementById('readout');
+      if (rd) rd.innerText = "Servo: " + deg + " deg";
+      fetchApi('/setServo?angle=' + deg, 800);
+      showToast("Servo set to " + deg + "°", "info");
+    }
+
+    // ================= RGB RING CONTROLS =================
+    function setRgbMode(mode) {
+      const ms = document.getElementById('modSelect');
+      if (ms && ms.value !== 'rgb') {
+        ms.value = 'rgb';
+        switchMode('rgb');
+      }
+      fetchApi('/setRgb?mode=' + mode, 600);
+      showToast('RGB Mode: ' + mode.toUpperCase(), 'info');
+    }
+
+    function sendCustomColor(hex) {
+      const ms = document.getElementById('modSelect');
+      if (ms && ms.value !== 'rgb') {
+        ms.value = 'rgb';
+        switchMode('rgb');
+      }
+      const r = parseInt(hex.substr(1, 2), 16) || 0;
+      const g = parseInt(hex.substr(3, 2), 16) || 0;
+      const b = parseInt(hex.substr(5, 2), 16) || 0;
+      fetchApi(`/setRgbCustom?r=${r}&g=${g}&b=${b}`, 600);
+      showToast(`RGB Custom: (${r}, ${g}, ${b})`, 'info');
+    }
+
+    let rgbBrightnessTimer = null;
+    function sendRgbBrightness(b) {
+      document.getElementById('rgbBrightnessVal').innerText = b;
+      if (rgbBrightnessTimer) clearTimeout(rgbBrightnessTimer);
+      rgbBrightnessTimer = setTimeout(() => {
+        fetchApi('/setRgbBrightness?b=' + b, 500);
+      }, 60);
+    }
+
+    // ================= OLED SCREEN MODES =================
+    function setOledMode(mode) {
+      const ms = document.getElementById('modSelect');
+      if (ms && ms.value !== 'oled') {
+        ms.value = 'oled';
+        switchMode('oled');
+      }
+      fetchApi('/setOledConfig?mode=' + mode, 800);
+      const hint = document.getElementById('oledHint');
+      if (hint) {
+        if (mode === 3) hint.innerText = '🎮 Dino: F = Jump, B = Crouch';
+        else if (mode === 5) hint.innerText = '🎮 Invaders: L / R = Move, F = Fire';
+        else hint.innerText = '👀 Face: Eyes react to car drive direction';
+      }
+      const names = { 0: 'Robot Face', 3: 'Chrome Dino', 5: 'Space Invaders' };
+      showToast('OLED Mode: ' + (names[mode] || mode), 'info');
+    }
+
+    // ================= SPEED SLIDER =================
+    let isSliderActive = false, lastSliderInteractTime = 0, lastSliderSend = 0;
+    function onSliderInput(val) {
+      isSliderActive = true; lastSliderInteractTime = Date.now();
+      updateSpeedUI(val);
+      if (Date.now() - lastSliderSend > 100 || val == 0 || val == 255) {
+        lastSliderSend = Date.now();
+        sendSpeed(val);
+      }
+    }
+    function onSliderChange(val) {
+      isSliderActive = false;
+      lastSliderInteractTime = Date.now();
+      sendSpeed(val);
+    }
+    function updateSpeedUI(val) { document.getElementById('speedReadout').innerText = val; }
+    function sendSpeed(val) { fetchApi('/setSpeed?pwm=' + val, 500); }
+
+    // ================= COCKPIT & GYRO =================
+    let cockpitActive = false;
+    window.gyroModeActive = false;
+    let cockpitDriveCmd = 'stop', steerDirection = 0, gasHeld = false, brakeHeld = false, wheelAngle = 0, isDraggingWheel = false, wheelTouchId = null, wheelStartX = 0, cockpitHeartbeat = null;
+    let gyroSensorActive = false, gyroCheckTimer = null;
+
+    function setCockpitUI(en) {
+      document.getElementById('dpadContainer').style.display = en ? 'none' : 'block';
+      document.getElementById('wheelContainer').style.display = en ? 'flex' : 'none';
+      document.getElementById('sliderContainer').style.display = en ? 'none' : 'flex';
+      document.getElementById('pedalContainer').style.display = en ? 'flex' : 'none';
+      let slider = document.getElementById('speedSlider');
+      if (en && slider.value == 0) { slider.value = 160; updateSpeedUI(160); sendSpeed(160); }
+    }
+
+    function toggleCockpitMode(en) {
+      cockpitActive = en;
+      document.getElementById('cockpitLabel').innerText = en ? "Cockpit Mode: ON" : "Cockpit Mode: OFF";
+      document.getElementById('cockpitLabel').style.color = en ? "#007aff" : "#aaa";
+      setCockpitUI(en);
+      if (!en) { stopGyro(); resetDriving(); }
+    }
+
+    function toggleGyroMode(en) {
+      if (en) {
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          DeviceOrientationEvent.requestPermission().then(resp => {
+            if (resp === 'granted') startGyro(); else { alert("Motion Sensor permission denied!"); stopGyro(); }
+          }).catch(() => { startGyro(); });
+        } else startGyro();
+      } else stopGyro();
+    }
+
+    function startGyro() {
+      window.gyroModeActive = true; gyroSensorActive = false;
+      document.getElementById('gyroToggle').checked = true;
+      document.getElementById('gyroLabel').innerText = "Gyro: Syncing...";
+      document.getElementById('gyroLabel').style.color = "#00e5ff";
+      window.addEventListener('deviceorientation', handleOrientation, true);
+      window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+      window.addEventListener('devicemotion', handleMotion, true);
+
+      if (gyroCheckTimer) clearTimeout(gyroCheckTimer);
+      gyroCheckTimer = setTimeout(() => {
+        if (!gyroSensorActive && window.gyroModeActive) {
+          document.getElementById('gyroLabel').innerText = "Gyro: ⚠️ Blocked";
+          document.getElementById('gyroLabel').style.color = "#ff5252";
+        }
+      }, 1800);
+    }
+
+    function stopGyro() {
+      window.gyroModeActive = false; gyroSensorActive = false;
+      if (gyroCheckTimer) { clearTimeout(gyroCheckTimer); gyroCheckTimer = null; }
+      const gt = document.getElementById('gyroToggle'); if (gt) gt.checked = false;
+      const gl = document.getElementById('gyroLabel'); if (gl) { gl.innerText = "Gyro: OFF"; gl.style.color = "#aaa"; }
+      window.removeEventListener('deviceorientation', handleOrientation, true);
+      window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
+      window.removeEventListener('devicemotion', handleMotion, true);
+      resetWheel();
+    }
+
+    function processTilt(tiltVal) {
+      if (isDraggingWheel) return;
+      gyroSensorActive = true;
+      let steer = 0;
+      if (tiltVal < -11) steer = -1; else if (tiltVal > 11) steer = 1;
+      const wheelDeg = Math.max(-60, Math.min(60, tiltVal * 1.8));
+      const sw = document.getElementById('steerWheel'); if (sw) sw.style.transform = `rotate(${wheelDeg}deg)`;
+      const gl = document.getElementById('gyroLabel');
+      if (gl && window.gyroModeActive) {
+        gl.innerText = "Gyro: " + (tiltVal > 0 ? "+" : "") + tiltVal.toFixed(0) + "° (" + (steer === -1 ? "L" : (steer === 1 ? "R" : "C")) + ")";
+        gl.style.color = "#00e5ff";
+      }
+      if (steer !== steerDirection) {
+        steerDirection = steer;
+        computeCockpitDrive();
+      }
+    }
+
+    function handleOrientation(e) {
+      if (!window.gyroModeActive) return;
+      const isLandscape = (window.innerWidth > window.innerHeight) || (Math.abs(window.orientation || 0) === 90);
+      let raw = isLandscape ? e.beta : e.gamma;
+      if (window.orientation === -90) raw = -raw;
+      if (raw !== null && raw !== undefined && !isNaN(raw)) processTilt(raw);
+    }
+
+    function handleMotion(e) {
+      if (!window.gyroModeActive || gyroSensorActive) return;
+      const acc = e.accelerationIncludingGravity; if (!acc) return;
+      const isLandscape = (window.innerWidth > window.innerHeight) || (Math.abs(window.orientation || 0) === 90);
+      let raw = isLandscape ? ((window.orientation === -90) ? ((acc.y || 0) / 9.8) * 45 : -((acc.y || 0) / 9.8) * 45) : ((acc.x || 0) / 9.8) * 45;
+      if (!isNaN(raw) && Math.abs(raw) > 0.05) processTilt(raw);
+    }
+
+    function computeCockpitDrive() {
+      if (!cockpitActive) return;
+      let cmd = 'stop';
+      if (steerDirection === -1) cmd = 'left'; else if (steerDirection === 1) cmd = 'right';
+      else if (gasHeld) cmd = 'forward'; else if (brakeHeld) cmd = 'backward';
+
+      if (cmd !== 'stop') {
+        cockpitDriveCmd = cmd; fetchApi('/' + cmd, 500);
+        if (cockpitHeartbeat) clearInterval(cockpitHeartbeat);
+        cockpitHeartbeat = setInterval(() => {
+          if (cockpitDriveCmd !== 'stop') fetchApi('/' + cockpitDriveCmd, 500);
+        }, 250);
+      } else {
+        cockpitDriveCmd = 'stop';
+        if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
+        fetchApi('/stop', 500);
+      }
+    }
+
+    function resetDriving() {
+      resetWheel(); gasHeld = false; brakeHeld = false;
+      if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
+      fetchApi('/stop', 500);
+    }
+
+    function pressGas(down, e) { if (e) e.preventDefault(); gasHeld = down; computeCockpitDrive(); }
+    function pressBrake(down, e) { if (e) e.preventDefault(); brakeHeld = down; computeCockpitDrive(); }
+
+    const wheel = document.getElementById('steerWheel');
+    function startWheel(e) {
+      e.preventDefault(); if (isDraggingWheel) return;
+      const t = e.changedTouches ? e.changedTouches[0] : e;
+      wheelTouchId = e.changedTouches ? t.identifier : null;
+      isDraggingWheel = true; wheelStartX = t.clientX;
+    }
+    function moveWheel(e) {
+      if (!isDraggingWheel) return;
+      let clientX = null;
+      if (e.changedTouches) {
+        for (let i = 0; i < e.touches.length; i++) {
+          if (e.touches[i].identifier === wheelTouchId) { clientX = e.touches[i].clientX; break; }
+        }
+      } else clientX = e.clientX;
+      if (clientX === null) return;
+      let dx = Math.max(-50, Math.min(50, clientX - wheelStartX));
+      wheelAngle = (dx / 50) * 60;
+      wheel.style.transform = `rotate(${wheelAngle}deg)`;
+
+      let newSteer = (wheelAngle < -18) ? -1 : ((wheelAngle > 18) ? 1 : 0);
+      if (newSteer !== steerDirection) {
+        steerDirection = newSteer;
+        computeCockpitDrive();
+      }
+    }
+    function endWheel(e) {
+      if (!isDraggingWheel) return;
+      if (e && e.changedTouches) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === wheelTouchId) { resetWheel(); return; }
+        }
+      } else resetWheel();
+    }
+    function resetWheel() {
+      isDraggingWheel = false; wheelTouchId = null;
+      if (!window.gyroModeActive) {
+        wheelAngle = 0; wheel.style.transform = 'rotate(0deg)';
+        if (steerDirection !== 0) {
+          steerDirection = 0;
+          computeCockpitDrive();
+        }
+      }
+    }
+
+    wheel.addEventListener('touchstart', startWheel, { passive: false });
+    window.addEventListener('touchmove', moveWheel, { passive: true });
+    window.addEventListener('touchend', endWheel);
+    window.addEventListener('touchcancel', endWheel);
+    wheel.addEventListener('mousedown', startWheel);
+    window.addEventListener('mousemove', moveWheel);
+    window.addEventListener('mouseup', resetWheel);
+
+    // ================= STREAMLINED CAMERA STREAM =================
+    let camTimeout = null;
+    function onCamLoad() {
+      if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+      const f = document.getElementById('camFrame'), e = document.getElementById('camError');
+      if (e) e.style.display = 'none';
+      if (f) f.style.display = 'block';
+    }
+
+    function onCamError() {
+      if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+      const f = document.getElementById('camFrame'), e = document.getElementById('camError');
+      if (f) { f.style.display = 'none'; f.src = ''; }
+      if (e) e.style.display = 'flex';
+    }
+
+    function toggleCamera(en) {
+      isCamActive = en;
+      document.getElementById('camLabel').innerText = en ? "Camera: ON" : "Camera: OFF";
+      document.getElementById('camLabel').style.color = en ? "#007aff" : "#aaa";
+      const s = document.getElementById('cameraSection'), f = document.getElementById('camFrame'), e = document.getElementById('camError');
+      if (s) s.style.display = en ? 'block' : 'none';
+      if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+      if (en) {
+        if (e) e.style.display = 'none';
+        if (f) {
+          f.style.display = 'none';
+          camTimeout = setTimeout(onCamError, 3500);
+          f.src = 'http://192.168.4.10:81/stream';
+        }
+      } else {
+        if (f) { f.src = ''; f.style.display = 'none'; }
+        if (e) e.style.display = 'none';
+      }
+    }
+
+    function camReload(event) {
+      if (event) { if (event.preventDefault) event.preventDefault(); if (event.stopPropagation) event.stopPropagation(); }
+      const f = document.getElementById('camFrame'), errBox = document.getElementById('camError');
+      if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+      if (!f) return false;
+      f.onerror = null; f.src = '';
+      setTimeout(() => {
+        if (errBox) errBox.style.display = 'none';
+        f.onerror = onCamError; f.onload = onCamLoad;
+        camTimeout = setTimeout(onCamError, 4000);
+        f.src = 'http://192.168.4.10:81/stream?t=' + Date.now();
+      }, 60);
+      return false;
+    }
+
+    // ================= STABLE TELEMETRY POLLING =================
+    let isPolling = false;
+    function updateTelemetry() {
+      if (isPolling || isSliderActive || currentDriveDir !== 'stop') {
+        setTimeout(updateTelemetry, 800);
+        return;
+      }
+      isPolling = true;
+
+      fetchApi('/data', 600)
+        .then(r => r ? r.json() : null)
+        .then(d => {
+          if (!d) return;
+          let b = document.getElementById('plugStatus');
+          if (b) {
+            b.className = "status-badge " + (d.connected ? "connected" : "removed");
+            b.innerText = d.connected ? "● SENSOR DETECTED" : "⚠️ SENSOR UNPLUGGED";
+          }
+          let rd = document.getElementById('readout');
+          if (rd && d.reading !== undefined) rd.innerText = d.reading;
+
+          let ms = document.getElementById('modSelect');
+          if (ms && d.mode && document.activeElement !== ms) {
+            if (d.mode !== 'idle' && ms.value !== d.mode) {
+              ms.value = d.mode;
+            }
+            updateSubgroupVisibility(ms.value);
+          }
+
+          let slider = document.getElementById('speedSlider');
+          if (slider && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
+            slider.value = d.pwm;
+            updateSpeedUI(d.pwm);
+          }
+        })
+        .catch(() => { })
+        .finally(() => {
+          isPolling = false;
+          setTimeout(updateTelemetry, isCamActive ? 1200 : 800);
+        });
+    }
+    updateTelemetry();
+
+    // ================= VARIABLE DIALOG HELPER =================
+    (function () {
+      const backdrop = document.getElementById('varDialogBackdrop');
+      const input = document.getElementById('varDialogInput');
+      const okBtn = document.getElementById('varDialogOkBtn');
+      const cancelBtn = document.getElementById('varDialogCancelBtn');
+      const errorEl = document.getElementById('varDialogError');
+      let _resolve = null;
+
+      window._showVarDialog = function (defaultVal) {
+        return new Promise((resolve) => {
+          _resolve = resolve;
+          input.value = defaultVal || '';
+          errorEl.textContent = '';
+          errorEl.classList.remove('visible');
+          backdrop.classList.add('open');
+          setTimeout(() => { try { input.focus(); } catch (_) { } }, 80);
+        });
+      };
+
+      function confirmDialog() {
+        const name = input.value.trim();
+        if (!name) {
+          errorEl.textContent = 'Name cannot be empty.';
+          errorEl.classList.add('visible');
+          return;
+        }
+        backdrop.classList.remove('open');
+        if (_resolve) { _resolve(name); _resolve = null; }
+      }
+
+      okBtn.addEventListener('click', confirmDialog);
+      cancelBtn.addEventListener('click', () => {
+        backdrop.classList.remove('open');
+        if (_resolve) { _resolve(null); _resolve = null; }
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') confirmDialog();
+        if (e.key === 'Escape') backdrop.classList.remove('open');
+      });
+
+      function patchBlocklyDialog() {
+        if (typeof Blockly === 'undefined') return;
+        if (Blockly.dialog && typeof Blockly.dialog.setPrompt === 'function') {
+          Blockly.dialog.setPrompt((msg, def, cb) => window._showVarDialog(def).then(cb));
+        } else if (typeof Blockly.prompt === 'function') {
+          Blockly.prompt = (msg, def, cb) => window._showVarDialog(def).then(cb);
+        }
+      }
+      setTimeout(patchBlocklyDialog, 300);
+    })();
+
+    // ================= BLOCKLY STUDIO INITIALIZATION =================
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (typeof Blockly === 'undefined') {
+        console.error("Blockly not loaded.");
+        return;
+      }
+
+      try {
+        const toolboxElement = document.getElementById('toolbox');
+
+        workspace = Blockly.inject('blocklyDiv', {
+          toolbox: toolboxElement,
+          grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
+          zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
+          move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
+          theme: Blockly.Themes.Classic,
+          trashcan: false
         });
 
-        // ================= SCREEN ORIENTATION LOCK =================
-        let isOrientationLocked = false;
-        async function toggleScreenLock() {
-            const btn = document.getElementById('lockOrientBtn');
-            if (!isOrientationLocked) {
-                try {
-                    const mode = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
-                    if (screen.orientation && screen.orientation.lock) {
-                        await screen.orientation.lock(mode);
-                    } else if (screen.lockOrientation) {
-                        screen.lockOrientation(mode);
-                    }
-                    isOrientationLocked = true;
-                    if (btn) { btn.innerText = '🔒'; btn.style.color = '#00e5ff'; btn.style.borderColor = '#00e5ff'; }
-                } catch (err) {
-                    try {
-                        if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
-                            await document.documentElement.requestFullscreen();
-                        }
-                        const mode = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
-                        await screen.orientation.lock(mode);
-                        isOrientationLocked = true;
-                        if (btn) { btn.innerText = '🔒'; btn.style.color = '#00e5ff'; btn.style.borderColor = '#00e5ff'; }
-                    } catch (err2) {
-                        alert("Screen lock error: " + (err2.message || err.message));
-                    }
-                }
-            } else {
-                try {
-                    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-                    if (document.exitFullscreen && document.fullscreenElement) await document.exitFullscreen();
-                } catch (e) { }
-                isOrientationLocked = false;
-                if (btn) { btn.innerText = '🔓'; btn.style.color = '#ff5252'; btn.style.borderColor = '#444'; }
-            }
+        setTimeout(() => {
+          Blockly.svgResize(workspace);
+        }, 100);
+
+        window.addEventListener('resize', () => {
+          if (workspace && document.getElementById('terminalPanel').style.display !== 'none') {
+            Blockly.svgResize(workspace);
+          }
+        }, false);
+
+        setupDragToDelete();
+        setupXmlDragAndDrop();
+      } catch (err) {
+        console.error('Failed to inject Blockly workspace:', err);
+      }
+    });
+
+    function workspaceResetZoom() {
+      if (workspace) {
+        workspace.setScale(1.0);
+        workspace.scrollCenter();
+      }
+    }
+
+    function workspaceZoomIn() {
+      if (workspace) workspace.zoom(0, 0, 1);
+    }
+
+    function workspaceZoomOut() {
+      if (workspace) workspace.zoom(0, 0, -1);
+    }
+
+    function deleteSelectedBlock() {
+      if (workspace) {
+        const selected = Blockly.selected;
+        if (selected && typeof selected.dispose === 'function') {
+          selected.dispose(true, true);
+          showToast('Block deleted', 'success');
+        } else {
+          showToast('Drag a block here to delete it', 'info');
         }
+      }
+    }
 
-        // ================= INSTANT-RESPONSE DRIVE ENGINE =================
-        let activePointerId = null, currentDriveDir = 'stop', driveHeartbeat = null;
+    function setupDragToDelete() {
+      const deleteBtn = document.getElementById('btnDelete');
+      if (!deleteBtn || !workspace) return;
 
-        function driveStart(dir, e) {
-            if (e) {
-                e.preventDefault();
-                if (e.target && e.target.setPointerCapture && e.pointerId) {
-                    try { e.target.setPointerCapture(e.pointerId); } catch (err) { }
-                }
-            }
-            if (activePointerId !== null && e && activePointerId !== e.pointerId) return;
-            activePointerId = e ? e.pointerId : 1;
-            currentDriveDir = dir;
-            fetchApi('/' + dir, 500);
+      if (workspace.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
+        try {
+          const deleteArea = {
+            id: 'deleteButtonArea',
+            getClientRect: function () {
+              const r = deleteBtn.getBoundingClientRect();
+              return new Blockly.utils.Rect(r.top, r.bottom, r.left, r.right);
+            },
+            wouldDelete: function () { return true; }
+          };
+          workspace.getComponentManager().addComponent({
+            component: deleteArea,
+            weight: 0,
+            capabilities: [Blockly.ComponentManager.Capability.DELETE_AREA]
+          });
+        } catch (err) { }
+      }
 
-            if (driveHeartbeat) clearInterval(driveHeartbeat);
-            driveHeartbeat = setInterval(() => {
-                if (currentDriveDir !== 'stop') fetchApi('/' + currentDriveDir, 500);
-            }, 250);
+      let isDraggingBlock = false;
+      let activeDragBlockId = null;
+      let lastPointerX = 0, lastPointerY = 0;
+
+      function isOverDeleteBtn(x, y) {
+        const r = deleteBtn.getBoundingClientRect();
+        return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+      }
+
+      function updatePointerPos(x, y) {
+        lastPointerX = x;
+        lastPointerY = y;
+        if (isDraggingBlock) {
+          if (isOverDeleteBtn(x, y)) {
+            deleteBtn.classList.add('drag-over-delete');
+          } else {
+            deleteBtn.classList.remove('drag-over-delete');
+          }
         }
+      }
 
-        function driveStop(e) {
-            if (e) {
-                e.preventDefault();
-                if (activePointerId !== null && e.pointerId && activePointerId !== e.pointerId) return;
-            }
-            currentDriveDir = 'stop';
-            activePointerId = null;
-            if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
-            fetchApi('/stop', 500);
-            setTimeout(() => { if (currentDriveDir === 'stop') fetchApi('/stop', 500); }, 50);
+      document.addEventListener('pointermove', (e) => updatePointerPos(e.clientX, e.clientY), { passive: true });
+      document.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches[0]) updatePointerPos(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+
+      function handleDropDelete(blockId) {
+        const wasOver = isOverDeleteBtn(lastPointerX, lastPointerY);
+        deleteBtn.classList.remove('drag-over-delete');
+
+        if (wasOver) {
+          const targetId = blockId || activeDragBlockId;
+          const block = targetId ? workspace.getBlockById(targetId) : Blockly.selected;
+          if (block && typeof block.dispose === 'function' && !block.isDeadOrDying?.()) {
+            block.dispose(true, true);
+            showToast('Block deleted', 'success');
+          }
         }
+      }
 
-        function stopPress(e) {
-            if (e) {
-                e.preventDefault();
-                if (e.target && e.target.setPointerCapture && e.pointerId) {
-                    try { e.target.setPointerCapture(e.pointerId); } catch (err) { }
-                }
-            }
-            activePointerId = e ? e.pointerId : 1;
-            currentDriveDir = 'stop';
-            if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
-            fetchApi('/stopStart', 500);
+      workspace.addChangeListener((e) => {
+        if (e.type === Blockly.Events.BLOCK_DRAG) {
+          if (e.isStart) {
+            isDraggingBlock = true;
+            activeDragBlockId = e.blockId;
+          } else {
+            handleDropDelete(e.blockId);
+            isDraggingBlock = false;
+            activeDragBlockId = null;
+          }
         }
+      });
 
-        function stopRelease(e) {
-            if (e) e.preventDefault();
-            activePointerId = null;
-            fetchApi('/stopEnd', 500);
+      document.addEventListener('pointerup', () => {
+        if (isDraggingBlock) {
+          handleDropDelete();
+          isDraggingBlock = false;
+          activeDragBlockId = null;
         }
+      }, { passive: true });
 
-        window.addEventListener('pointerup', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
-        window.addEventListener('pointercancel', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
-        window.addEventListener('blur', () => { if (currentDriveDir !== 'stop') driveStop(); });
-
-        function toggleHeadlights(en) {
-            document.getElementById('headlightLabel').innerText = en ? "Lights: ON" : "Lights: OFF";
-            document.getElementById('headlightLabel').style.color = en ? "#007aff" : "#aaa";
-            fetchApi('/setFrontLed?state=' + (en ? 1 : 0));
+      document.addEventListener('touchend', () => {
+        if (isDraggingBlock) {
+          handleDropDelete();
+          isDraggingBlock = false;
+          activeDragBlockId = null;
         }
+      }, { passive: true });
+    }
 
-        function toggleAddOns(en) {
-            document.getElementById('addOnLabel').innerText = en ? "Add-Ons: ON" : "Add-Ons: OFF";
-            document.getElementById('addOnLabel').style.color = en ? "#007aff" : "#aaa";
-            document.getElementById('addOnsContainer').style.display = en ? "block" : "none";
+    function setupXmlDragAndDrop() {
+      const overlay = document.getElementById('dragOverlay');
+      if (!overlay) return;
+
+      let counter = 0;
+      window.addEventListener('dragenter', (e) => {
+        if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
+          counter++;
+          overlay.style.display = 'flex';
         }
-
-        function toggleTerminal(en) {
-            document.getElementById('terminalLabel').innerText = en ? "Blocky: ON" : "Blocky: OFF";
-            document.getElementById('terminalLabel').style.color = en ? "#007aff" : "#aaa";
-            document.getElementById('terminalPanel').style.display = en ? "block" : "none";
-            if (en && workspace) {
-                setTimeout(() => {
-                    Blockly.svgResize(workspace);
-                    if (workspace.scrollCenter) workspace.scrollCenter();
-                }, 60);
-            }
+      });
+      window.addEventListener('dragleave', () => {
+        counter = Math.max(0, counter - 1);
+        if (counter === 0) overlay.style.display = 'none';
+      });
+      window.addEventListener('dragover', (e) => {
+        if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
+          e.preventDefault();
         }
-
-        function updateSubgroupVisibility(val) {
-            const sc = document.getElementById('servoControlGroup');
-            const rc = document.getElementById('rgbControlGroup');
-            const oc = document.getElementById('oledControlGroup');
-            if (sc) sc.style.display = (val === 'servo') ? 'block' : 'none';
-            if (rc) rc.style.display = (val === 'rgb') ? 'block' : 'none';
-            if (oc) oc.style.display = (val === 'oled') ? 'block' : 'none';
-        }
-
-        function switchMode(val) {
-            updateSubgroupVisibility(val);
-            fetchApi('/setMode?mode=' + val, 1000);
-        }
-
-        function resetModularRules(e) {
-            if (e && e.preventDefault) e.preventDefault();
-            document.getElementById('modSelect').value = 'idle';
-            switchMode('idle');
-        }
-
-        // ================= SERVO PRESETS (0, 45, 90, 135, 180) =================
-        function sendServoAngle(deg) {
-            const ms = document.getElementById('modSelect');
-            if (ms && ms.value !== 'servo') {
-                ms.value = 'servo';
-                switchMode('servo');
-            }
-            const rd = document.getElementById('readout');
-            if (rd) rd.innerText = "Servo: " + deg + " deg";
-            fetchApi('/setServo?angle=' + deg, 800);
-            showToast("Servo set to " + deg + "°", "info");
-        }
-
-        // ================= RGB RING CONTROLS =================
-        function setRgbMode(mode) {
-            const ms = document.getElementById('modSelect');
-            if (ms && ms.value !== 'rgb') {
-                ms.value = 'rgb';
-                switchMode('rgb');
-            }
-            fetchApi('/setRgb?mode=' + mode, 600);
-            showToast('RGB Mode: ' + mode.toUpperCase(), 'info');
-        }
-
-        function sendCustomColor(hex) {
-            const ms = document.getElementById('modSelect');
-            if (ms && ms.value !== 'rgb') {
-                ms.value = 'rgb';
-                switchMode('rgb');
-            }
-            const r = parseInt(hex.substr(1, 2), 16) || 0;
-            const g = parseInt(hex.substr(3, 2), 16) || 0;
-            const b = parseInt(hex.substr(5, 2), 16) || 0;
-            fetchApi(`/setRgbCustom?r=${r}&g=${g}&b=${b}`, 600);
-            showToast(`RGB Custom: (${r}, ${g}, ${b})`, 'info');
-        }
-
-        let rgbBrightnessTimer = null;
-        function sendRgbBrightness(b) {
-            document.getElementById('rgbBrightnessVal').innerText = b;
-            if (rgbBrightnessTimer) clearTimeout(rgbBrightnessTimer);
-            rgbBrightnessTimer = setTimeout(() => {
-                fetchApi('/setRgbBrightness?b=' + b, 500);
-            }, 60);
-        }
-
-        // ================= OLED SCREEN MODES =================
-        function setOledMode(mode) {
-            const ms = document.getElementById('modSelect');
-            if (ms && ms.value !== 'oled') {
-                ms.value = 'oled';
-                switchMode('oled');
-            }
-            fetchApi('/setOledConfig?mode=' + mode, 800);
-            const hint = document.getElementById('oledHint');
-            if (hint) {
-                if (mode === 3) hint.innerText = '🎮 Dino: F = Jump, B = Crouch';
-                else if (mode === 5) hint.innerText = '🎮 Invaders: L / R = Move, F = Fire';
-                else hint.innerText = '👀 Face: Eyes react to car drive direction';
-            }
-            const names = { 0: 'Robot Face', 3: 'Chrome Dino', 5: 'Space Invaders' };
-            showToast('OLED Mode: ' + (names[mode] || mode), 'info');
-        }
-
-        // ================= SPEED SLIDER =================
-        let isSliderActive = false, lastSliderInteractTime = 0, lastSliderSend = 0;
-        function onSliderInput(val) {
-            isSliderActive = true; lastSliderInteractTime = Date.now();
-            updateSpeedUI(val);
-            if (Date.now() - lastSliderSend > 100 || val == 0 || val == 255) {
-                lastSliderSend = Date.now();
-                sendSpeed(val);
-            }
-        }
-        function onSliderChange(val) {
-            isSliderActive = false;
-            lastSliderInteractTime = Date.now();
-            sendSpeed(val);
-        }
-        function updateSpeedUI(val) { document.getElementById('speedReadout').innerText = val; }
-        function sendSpeed(val) { fetchApi('/setSpeed?pwm=' + val, 500); }
-
-        // ================= COCKPIT & GYRO =================
-        let cockpitActive = false;
-        window.gyroModeActive = false;
-        let cockpitDriveCmd = 'stop', steerDirection = 0, gasHeld = false, brakeHeld = false, wheelAngle = 0, isDraggingWheel = false, wheelTouchId = null, wheelStartX = 0, cockpitHeartbeat = null;
-        let gyroSensorActive = false, gyroCheckTimer = null;
-
-        function setCockpitUI(en) {
-            document.getElementById('dpadContainer').style.display = en ? 'none' : 'block';
-            document.getElementById('wheelContainer').style.display = en ? 'flex' : 'none';
-            document.getElementById('sliderContainer').style.display = en ? 'none' : 'flex';
-            document.getElementById('pedalContainer').style.display = en ? 'flex' : 'none';
-            let slider = document.getElementById('speedSlider');
-            if (en && slider.value == 0) { slider.value = 160; updateSpeedUI(160); sendSpeed(160); }
-        }
-
-        function toggleCockpitMode(en) {
-            cockpitActive = en;
-            document.getElementById('cockpitLabel').innerText = en ? "Cockpit Mode: ON" : "Cockpit Mode: OFF";
-            document.getElementById('cockpitLabel').style.color = en ? "#007aff" : "#aaa";
-            setCockpitUI(en);
-            if (!en) { stopGyro(); resetDriving(); }
-        }
-
-        function toggleGyroMode(en) {
-            if (en) {
-                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission().then(resp => {
-                        if (resp === 'granted') startGyro(); else { alert("Motion Sensor permission denied!"); stopGyro(); }
-                    }).catch(() => { startGyro(); });
-                } else startGyro();
-            } else stopGyro();
-        }
-
-        function startGyro() {
-            window.gyroModeActive = true; gyroSensorActive = false;
-            document.getElementById('gyroToggle').checked = true;
-            document.getElementById('gyroLabel').innerText = "Gyro: Syncing...";
-            document.getElementById('gyroLabel').style.color = "#00e5ff";
-            window.addEventListener('deviceorientation', handleOrientation, true);
-            window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-            window.addEventListener('devicemotion', handleMotion, true);
-
-            if (gyroCheckTimer) clearTimeout(gyroCheckTimer);
-            gyroCheckTimer = setTimeout(() => {
-                if (!gyroSensorActive && window.gyroModeActive) {
-                    document.getElementById('gyroLabel').innerText = "Gyro: ⚠️ Blocked";
-                    document.getElementById('gyroLabel').style.color = "#ff5252";
-                }
-            }, 1800);
-        }
-
-        function stopGyro() {
-            window.gyroModeActive = false; gyroSensorActive = false;
-            if (gyroCheckTimer) { clearTimeout(gyroCheckTimer); gyroCheckTimer = null; }
-            const gt = document.getElementById('gyroToggle'); if (gt) gt.checked = false;
-            const gl = document.getElementById('gyroLabel'); if (gl) { gl.innerText = "Gyro: OFF"; gl.style.color = "#aaa"; }
-            window.removeEventListener('deviceorientation', handleOrientation, true);
-            window.removeEventListener('deviceorientationabsolute', handleOrientation, true);
-            window.removeEventListener('devicemotion', handleMotion, true);
-            resetWheel();
-        }
-
-        function processTilt(tiltVal) {
-            if (isDraggingWheel) return;
-            gyroSensorActive = true;
-            let steer = 0;
-            if (tiltVal < -11) steer = -1; else if (tiltVal > 11) steer = 1;
-            const wheelDeg = Math.max(-60, Math.min(60, tiltVal * 1.8));
-            const sw = document.getElementById('steerWheel'); if (sw) sw.style.transform = `rotate(${wheelDeg}deg)`;
-            const gl = document.getElementById('gyroLabel');
-            if (gl && window.gyroModeActive) {
-                gl.innerText = "Gyro: " + (tiltVal > 0 ? "+" : "") + tiltVal.toFixed(0) + "° (" + (steer === -1 ? "L" : (steer === 1 ? "R" : "C")) + ")";
-                gl.style.color = "#00e5ff";
-            }
-            if (steer !== steerDirection) {
-                steerDirection = steer;
-                computeCockpitDrive();
-            }
-        }
-
-        function handleOrientation(e) {
-            if (!window.gyroModeActive) return;
-            const isLandscape = (window.innerWidth > window.innerHeight) || (Math.abs(window.orientation || 0) === 90);
-            let raw = isLandscape ? e.beta : e.gamma;
-            if (window.orientation === -90) raw = -raw;
-            if (raw !== null && raw !== undefined && !isNaN(raw)) processTilt(raw);
-        }
-
-        function handleMotion(e) {
-            if (!window.gyroModeActive || gyroSensorActive) return;
-            const acc = e.accelerationIncludingGravity; if (!acc) return;
-            const isLandscape = (window.innerWidth > window.innerHeight) || (Math.abs(window.orientation || 0) === 90);
-            let raw = isLandscape ? ((window.orientation === -90) ? ((acc.y || 0) / 9.8) * 45 : -((acc.y || 0) / 9.8) * 45) : ((acc.x || 0) / 9.8) * 45;
-            if (!isNaN(raw) && Math.abs(raw) > 0.05) processTilt(raw);
-        }
-
-        function computeCockpitDrive() {
-            if (!cockpitActive) return;
-            let cmd = 'stop';
-            if (steerDirection === -1) cmd = 'left'; else if (steerDirection === 1) cmd = 'right';
-            else if (gasHeld) cmd = 'forward'; else if (brakeHeld) cmd = 'backward';
-
-            if (cmd !== 'stop') {
-                cockpitDriveCmd = cmd; fetchApi('/' + cmd, 500);
-                if (cockpitHeartbeat) clearInterval(cockpitHeartbeat);
-                cockpitHeartbeat = setInterval(() => {
-                    if (cockpitDriveCmd !== 'stop') fetchApi('/' + cockpitDriveCmd, 500);
-                }, 250);
-            } else {
-                cockpitDriveCmd = 'stop';
-                if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
-                fetchApi('/stop', 500);
-            }
-        }
-
-        function resetDriving() {
-            resetWheel(); gasHeld = false; brakeHeld = false;
-            if (cockpitHeartbeat) { clearInterval(cockpitHeartbeat); cockpitHeartbeat = null; }
-            fetchApi('/stop', 500);
-        }
-
-        function pressGas(down, e) { if (e) e.preventDefault(); gasHeld = down; computeCockpitDrive(); }
-        function pressBrake(down, e) { if (e) e.preventDefault(); brakeHeld = down; computeCockpitDrive(); }
-
-        const wheel = document.getElementById('steerWheel');
-        function startWheel(e) {
-            e.preventDefault(); if (isDraggingWheel) return;
-            const t = e.changedTouches ? e.changedTouches[0] : e;
-            wheelTouchId = e.changedTouches ? t.identifier : null;
-            isDraggingWheel = true; wheelStartX = t.clientX;
-        }
-        function moveWheel(e) {
-            if (!isDraggingWheel) return;
-            let clientX = null;
-            if (e.changedTouches) {
-                for (let i = 0; i < e.touches.length; i++) {
-                    if (e.touches[i].identifier === wheelTouchId) { clientX = e.touches[i].clientX; break; }
-                }
-            } else clientX = e.clientX;
-            if (clientX === null) return;
-            let dx = Math.max(-50, Math.min(50, clientX - wheelStartX));
-            wheelAngle = (dx / 50) * 60;
-            wheel.style.transform = `rotate(${wheelAngle}deg)`;
-
-            let newSteer = (wheelAngle < -18) ? -1 : ((wheelAngle > 18) ? 1 : 0);
-            if (newSteer !== steerDirection) {
-                steerDirection = newSteer;
-                computeCockpitDrive();
-            }
-        }
-        function endWheel(e) {
-            if (!isDraggingWheel) return;
-            if (e && e.changedTouches) {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    if (e.changedTouches[i].identifier === wheelTouchId) { resetWheel(); return; }
-                }
-            } else resetWheel();
-        }
-        function resetWheel() {
-            isDraggingWheel = false; wheelTouchId = null;
-            if (!window.gyroModeActive) {
-                wheelAngle = 0; wheel.style.transform = 'rotate(0deg)';
-                if (steerDirection !== 0) {
-                    steerDirection = 0;
-                    computeCockpitDrive();
-                }
-            }
-        }
-
-        wheel.addEventListener('touchstart', startWheel, { passive: false });
-        window.addEventListener('touchmove', moveWheel, { passive: true });
-        window.addEventListener('touchend', endWheel);
-        window.addEventListener('touchcancel', endWheel);
-        wheel.addEventListener('mousedown', startWheel);
-        window.addEventListener('mousemove', moveWheel);
-        window.addEventListener('mouseup', resetWheel);
-
-        // ================= STREAMLINED CAMERA STREAM =================
-        let camTimeout = null;
-        function onCamLoad() {
-            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-            const f = document.getElementById('camFrame'), e = document.getElementById('camError');
-            if (e) e.style.display = 'none';
-            if (f) f.style.display = 'block';
-        }
-
-        function onCamError() {
-            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-            const f = document.getElementById('camFrame'), e = document.getElementById('camError');
-            if (f) { f.style.display = 'none'; f.src = ''; }
-            if (e) e.style.display = 'flex';
-        }
-
-        function toggleCamera(en) {
-            isCamActive = en;
-            document.getElementById('camLabel').innerText = en ? "Camera: ON" : "Camera: OFF";
-            document.getElementById('camLabel').style.color = en ? "#007aff" : "#aaa";
-            const s = document.getElementById('cameraSection'), f = document.getElementById('camFrame'), e = document.getElementById('camError');
-            if (s) s.style.display = en ? 'block' : 'none';
-            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-            if (en) {
-                if (e) e.style.display = 'none';
-                if (f) {
-                    f.style.display = 'none';
-                    camTimeout = setTimeout(onCamError, 3500);
-                    f.src = 'http://192.168.4.10:81/stream';
-                }
-            } else {
-                if (f) { f.src = ''; f.style.display = 'none'; }
-                if (e) e.style.display = 'none';
-            }
-        }
-
-        function camReload(event) {
-            if (event) { if (event.preventDefault) event.preventDefault(); if (event.stopPropagation) event.stopPropagation(); }
-            const f = document.getElementById('camFrame'), errBox = document.getElementById('camError');
-            if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-            if (!f) return false;
-            f.onerror = null; f.src = '';
-            setTimeout(() => {
-                if (errBox) errBox.style.display = 'none';
-                f.onerror = onCamError; f.onload = onCamLoad;
-                camTimeout = setTimeout(onCamError, 4000);
-                f.src = 'http://192.168.4.10:81/stream?t=' + Date.now();
-            }, 60);
-            return false;
-        }
-
-        // ================= STABLE TELEMETRY POLLING =================
-        let isPolling = false;
-        function updateTelemetry() {
-            if (isPolling || isSliderActive || currentDriveDir !== 'stop') {
-                setTimeout(updateTelemetry, 800);
-                return;
-            }
-            isPolling = true;
-
-            fetchApi('/data', 600)
-                .then(r => r ? r.json() : null)
-                .then(d => {
-                    if (!d) return;
-                    let b = document.getElementById('plugStatus');
-                    if (b) {
-                        b.className = "status-badge " + (d.connected ? "connected" : "removed");
-                        b.innerText = d.connected ? "● SENSOR DETECTED" : "⚠️ SENSOR UNPLUGGED";
-                    }
-                    let rd = document.getElementById('readout');
-                    if (rd && d.reading !== undefined) rd.innerText = d.reading;
-
-                    let ms = document.getElementById('modSelect');
-                    if (ms && d.mode && document.activeElement !== ms) {
-                        if (d.mode !== 'idle' && ms.value !== d.mode) {
-                            ms.value = d.mode;
-                        }
-                        updateSubgroupVisibility(ms.value);
-                    }
-
-                    let slider = document.getElementById('speedSlider');
-                    if (slider && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
-                        slider.value = d.pwm;
-                        updateSpeedUI(d.pwm);
-                    }
-                })
-                .catch(() => { })
-                .finally(() => {
-                    isPolling = false;
-                    setTimeout(updateTelemetry, isCamActive ? 1200 : 800);
-                });
-        }
-        updateTelemetry();
-
-        // ================= OFFLINE BLOCKLY & WORKSPACE INITIALIZATION =================
-        let workspace;
-        let activeTab = 'python';
-
-        if (typeof Blockly !== 'undefined') {
-            if (Blockly.Xml && !Blockly.Xml.textToDom && Blockly.utils && Blockly.utils.xml && Blockly.utils.xml.textToDom) {
-                Blockly.Xml.textToDom = Blockly.utils.xml.textToDom;
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            const blocklyArea = document.getElementById('blocklyArea');
-
-            if (typeof Blockly === 'undefined') {
-                if (blocklyArea) {
-                    blocklyArea.innerHTML = `
-                        <div style="padding: 24px 16px; color: #ef4444; font-family: sans-serif; text-align: center;">
-                            <div style="font-size: 32px; margin-bottom: 8px;">⚠️</div>
-                            <div style="font-weight: bold; font-size: 15px; color: #fff;">Blockly Core Files Not Found</div>
-                            <div style="font-size: 12px; color: #aaa; margin-top: 8px; line-height: 1.5;">
-                                Ensure <b>blockly.min.js</b> and <b>python_compressed.js</b> are present in directory.
-                            </div>
-                        </div>`;
-                }
-                return;
-            }
-
-            try {
-                const response = await fetch('toolbox.xml?v=' + new Date().getTime());
-                const toolboxText = await response.text();
-                const parser = new DOMParser();
-                const toolboxXml = parser.parseFromString(toolboxText, 'text/xml').documentElement;
-
-                workspace = Blockly.inject('blocklyDiv', {
-                    toolbox: toolboxXml,
-                    media: '',
-                    grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
-                    zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
-                    move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
-                    theme: Blockly.Themes.Classic,
-                    trashcan: false
-                });
-
-                workspace.addChangeListener((event) => {
-                    if (event.isUiEvent) return;
-                    updateActiveCodeView();
-                });
-
-                window.addEventListener('resize', () => {
-                    if (workspace && document.getElementById('terminalPanel').style.display !== 'none') {
-                        Blockly.svgResize(workspace);
-                    }
-                }, false);
-
-                // Setup Clear / Delete Drag Area
-                const clearBtn = document.getElementById('btnClear');
-                if (clearBtn) {
-                    if (workspace.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
-                        try {
-                            const deleteArea = {
-                                id: 'clearDeleteArea',
-                                getClientRect: function () {
-                                    const r = clearBtn.getBoundingClientRect();
-                                    return new Blockly.utils.Rect(r.top, r.bottom, r.left, r.right);
-                                },
-                                wouldDelete: function () { return true; }
-                            };
-                            workspace.getComponentManager().addComponent({
-                                component: deleteArea,
-                                weight: 0,
-                                capabilities: [Blockly.ComponentManager.Capability.DELETE_AREA]
-                            });
-                        } catch (err) { }
-                    }
-
-                    let activeDraggedBlock = null;
-
-                    workspace.addChangeListener((event) => {
-                        if (event.type === Blockly.Events.BLOCK_DRAG) {
-                            if (event.isStart) {
-                                activeDraggedBlock = workspace.getBlockById(event.blockId);
-                            } else {
-                                activeDraggedBlock = null;
-                                clearBtn.classList.remove('drag-over-delete');
-                            }
-                        }
-                    });
-
-                    window.addEventListener('pointermove', (e) => {
-                        if (activeDraggedBlock || (Blockly.Gesture && Blockly.Gesture.inProgress && Blockly.Gesture.inProgress())) {
-                            const r = clearBtn.getBoundingClientRect();
-                            if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
-                                clearBtn.classList.add('drag-over-delete');
-                            } else {
-                                clearBtn.classList.remove('drag-over-delete');
-                            }
-                        } else {
-                            clearBtn.classList.remove('drag-over-delete');
-                        }
-                    });
-
-                    window.addEventListener('pointerup', (e) => {
-                        const r = clearBtn.getBoundingClientRect();
-                        const isOverClear = (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom);
-                        clearBtn.classList.remove('drag-over-delete');
-
-                        if (isOverClear) {
-                            const targetBlock = activeDraggedBlock || (Blockly.common && Blockly.common.getSelected ? Blockly.common.getSelected() : Blockly.selected);
-                            if (targetBlock && targetBlock.isDeletable && targetBlock.isDeletable()) {
-                                setTimeout(() => {
-                                    try { targetBlock.dispose(false, true); }
-                                    catch (err) { }
-                                }, 10);
-                            }
-                        }
-                    }, true);
-                }
-
-                setupDragAndDrop();
-            } catch (err) {
-                console.error('Failed to load toolbox or inject workspace:', err);
-            }
-        });
-
-        // --- Custom Workspace Floating Controls ---
-        function workspaceResetZoom() {
-            if (workspace) {
-                workspace.setScale(1.0);
-                workspace.scrollCenter();
-            }
-        }
-
-        function workspaceZoomIn() {
-            if (workspace) workspace.zoom(0, 0, 1);
-        }
-
-        function workspaceZoomOut() {
-            if (workspace) workspace.zoom(0, 0, -1);
-        }
-
-        function workspaceClearAll() {
-            if (workspace && confirm('Are you sure you want to clear all blocks from the workspace?')) {
-                workspace.clear();
-            }
-        }
-
-        // --- Code Generation ---
-        function generatePythonCode() {
-            if (!workspace) return '';
-            try {
-                return Blockly.Python.workspaceToCode(workspace) || '';
-            } catch (e) {
-                console.error('Error generating Python:', e);
-                return '# Error generating code: ' + e.message;
-            }
-        }
-
-        function generateXmlCode() {
-            if (!workspace) return '';
-            try {
-                const dom = Blockly.Xml.workspaceToDom(workspace);
-                return Blockly.Xml.domToPrettyText(dom);
-            } catch (e) {
-                console.error('Error generating XML:', e);
-                return '<!-- Error generating XML: ' + e.message + ' -->';
-            }
-        }
-
-        function copyPythonCode() {
-            const codeText = generatePythonCode();
-            if (!codeText.trim()) {
-                showToast('No blocks connected yet!', 'error');
-                return;
-            }
-            navigator.clipboard.writeText(codeText).then(() => {
-                showToast('Python code copied to clipboard!', 'success');
-            }).catch(() => {
-                fallbackCopyText(codeText, 'Python code copied!');
-            });
-        }
-
-        function copyXmlCode() {
-            const xmlText = generateXmlCode();
-            if (!xmlText.trim()) {
-                showToast('No blocks in workspace!', 'error');
-                return;
-            }
-            navigator.clipboard.writeText(xmlText).then(() => {
-                showToast('XML code copied to clipboard!', 'success');
-            }).catch(() => {
-                fallbackCopyText(xmlText, 'XML code copied!');
-            });
-        }
-
-        function downloadXml() {
-            if (!workspace) return;
-            const xmlText = generateXmlCode();
-            if (!xmlText || xmlText.trim() === '') {
-                showToast('Workspace is empty!', 'error');
-                return;
-            }
-
-            const blob = new Blob([xmlText], { type: 'text/xml;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-            a.href = url;
-            a.download = `roverblocks_${timestamp}.xml`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('XML file downloaded!', 'success');
-        }
-
-        function triggerXmlUpload() {
-            const input = document.getElementById('xmlFileInput');
-            if (input) {
-                input.value = '';
-                input.click();
-            }
-        }
-
-        function handleXmlUpload(event) {
-            const file = event.target.files && event.target.files[0];
-            if (!file) return;
-
+      });
+      window.addEventListener('drop', (e) => {
+        counter = 0;
+        overlay.style.display = 'none';
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+          e.preventDefault();
+          const file = e.dataTransfer.files[0];
+          if (file.name.toLowerCase().endsWith('.xml') || file.type.includes('xml')) {
             const reader = new FileReader();
-            reader.onload = function (e) {
-                loadXmlStringToWorkspace(e.target.result, file.name);
-            };
-            reader.onerror = function () {
-                showToast('Failed to read XML file.', 'error');
-            };
+            reader.onload = (evt) => loadXmlText(evt.target.result);
             reader.readAsText(file);
+          } else {
+            showToast('Please drop a valid .xml file.', 'error');
+          }
+        }
+      });
+    }
+
+    // --- Code Generation & Modal ---
+    function generatePythonCode() {
+      if (!workspace) return '';
+      try {
+        return Blockly.Python.workspaceToCode(workspace) || '';
+      } catch (e) {
+        console.error('Error generating Python:', e);
+        return '# Error generating code: ' + e.message;
+      }
+    }
+
+    function textToDom(text) {
+      if (Blockly.utils && Blockly.utils.xml && typeof Blockly.utils.xml.textToDom === 'function') {
+        return Blockly.utils.xml.textToDom(text);
+      }
+      return Blockly.Xml.textToDom(text);
+    }
+
+    function generateXmlCode() {
+      if (!workspace) return '';
+      try {
+        const dom = Blockly.Xml.workspaceToDom(workspace, true);
+        if (typeof Blockly.Xml.domToPrettyText === 'function') {
+          return Blockly.Xml.domToPrettyText(dom);
+        }
+        return Blockly.Xml.domToText(dom);
+      } catch (e) {
+        console.error('Error generating XML:', e);
+        return '<!-- Error generating XML: ' + e.message + ' -->';
+      }
+    }
+
+    function copyPythonCode() {
+      const codeText = generatePythonCode();
+      if (!codeText.trim()) {
+        showToast('No blocks connected yet!', 'error');
+        return;
+      }
+      navigator.clipboard.writeText(codeText).then(() => {
+        showToast('Python code copied to clipboard!', 'success');
+      }).catch(() => {
+        fallbackCopyText(codeText, 'Python code copied!');
+      });
+    }
+
+    function downloadXml() {
+      if (!workspace) return;
+      const xmlText = generateXmlCode();
+      if (!xmlText || xmlText.startsWith('<!-- Error')) {
+        showToast('Workspace is empty or invalid!', 'error');
+        return;
+      }
+
+      try {
+        const blob = new Blob([xmlText], { type: 'text/xml;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rover_blocks.xml';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 250);
+        showToast('XML file downloaded!', 'success');
+      } catch (e) {
+        const dataUrl = 'data:text/xml;charset=utf-8,' + encodeURIComponent(xmlText);
+        window.open(dataUrl, '_blank');
+        showToast('XML opened (save it manually)', 'success');
+      }
+    }
+
+    function triggerXmlUpload() {
+      const input = document.getElementById('xmlFileInput');
+      if (input) {
+        input.value = '';
+        input.click();
+      }
+    }
+
+    function handleXmlUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        loadXmlText(e.target.result);
+      };
+      reader.onerror = function () {
+        showToast('Failed to read XML file.', 'error');
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    function loadXmlText(rawText) {
+      if (!rawText || !rawText.trim()) {
+        showToast('XML file is empty', 'error');
+        return;
+      }
+      try {
+        const cleaned = rawText.replace(/^\uFEFF/, '').trim();
+        let xmlText = cleaned;
+        if (!cleaned.toLowerCase().startsWith('<xml')) {
+          xmlText = '<xml xmlns="https://developers.google.com/blockly/xml">' + cleaned + '</xml>';
         }
 
-        function loadXmlStringToWorkspace(xmlText, fileName) {
-            if (!workspace) return;
-            try {
-                let xmlDom;
-                if (typeof Blockly.utils !== 'undefined' && Blockly.utils.xml && typeof Blockly.utils.xml.textToDom === 'function') {
-                    xmlDom = Blockly.utils.xml.textToDom(xmlText);
-                } else if (typeof Blockly.Xml !== 'undefined' && typeof Blockly.Xml.textToDom === 'function') {
-                    xmlDom = Blockly.Xml.textToDom(xmlText);
-                } else {
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                    if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
-                        throw new Error('Invalid XML syntax.');
-                    }
-                    xmlDom = xmlDoc.documentElement;
-                }
+        const xml = textToDom(xmlText);
+        workspace.clear();
+        Blockly.Xml.domToWorkspace(xml, workspace);
+        Blockly.svgResize(workspace);
+        if (workspace.scrollCenter) workspace.scrollCenter();
+        showToast('Blocks loaded successfully!', 'success');
+      } catch (err) {
+        console.error('XML Upload Error:', err);
+        showToast('Invalid XML file – ' + (err.message || 'parse error'), 'error');
+      }
+    }
 
-                workspace.clear();
-                Blockly.Xml.domToWorkspace(xmlDom, workspace);
-                Blockly.svgResize(workspace);
+    function openCodeModal(tab = 'python') {
+      const modal = document.getElementById('codeModal');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      switchTab(tab);
+    }
 
-                const topBlocks = workspace.getTopBlocks(true);
-                if (topBlocks.length > 0 && workspace.scrollCenter) {
-                    workspace.scrollCenter();
-                }
+    function closeCodeModal() {
+      const modal = document.getElementById('codeModal');
+      if (modal) modal.style.display = 'none';
+    }
 
-                updateActiveCodeView();
-                showToast(`Loaded "${fileName || 'XML file'}" successfully!`, 'success');
-            } catch (err) {
-                console.error('Error importing XML:', err);
-                showToast('Error loading XML: ' + err.message, 'error');
-            }
-        }
+    function handleBackdropClick(event) {
+      if (event.target.id === 'codeModal') closeCodeModal();
+    }
 
-        function setupDragAndDrop() {
-            const overlay = document.getElementById('dragOverlay');
+    function switchTab(tab) {
+      activeTab = tab;
+      const tabPythonBtn = document.getElementById('tabPythonBtn');
+      const tabXmlBtn = document.getElementById('tabXmlBtn');
+      const downloadBtn = document.getElementById('modalDownloadXmlBtn');
+      const textarea = document.getElementById('modalCodeText');
 
-            window.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if (overlay) overlay.style.display = 'flex';
-            });
+      if (tab === 'python') {
+        tabPythonBtn.classList.add('active');
+        tabXmlBtn.classList.remove('active');
+        if (downloadBtn) downloadBtn.style.display = 'none';
+        textarea.value = generatePythonCode() || '# No blocks in workspace.';
+      } else {
+        tabXmlBtn.classList.add('active');
+        tabPythonBtn.classList.remove('active');
+        if (downloadBtn) downloadBtn.style.display = 'inline-flex';
+        textarea.value = generateXmlCode() || '<!-- No blocks in workspace. -->';
+      }
+    }
 
-            window.addEventListener('dragleave', (e) => {
-                if (e.relatedTarget === null && overlay) {
-                    overlay.style.display = 'none';
-                }
-            });
+    function copyModalCode() {
+      const textarea = document.getElementById('modalCodeText');
+      if (!textarea || !textarea.value) return;
 
-            window.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (overlay) overlay.style.display = 'none';
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        showToast((activeTab === 'python' ? 'Python' : 'XML') + ' copied to clipboard!', 'success');
+      }).catch(() => {
+        fallbackCopyText(textarea.value, (activeTab === 'python' ? 'Python' : 'XML') + ' copied!');
+      });
+    }
 
-                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                    const file = e.dataTransfer.files[0];
-                    if (file.name.toLowerCase().endsWith('.xml') || file.type === 'text/xml') {
-                        const reader = new FileReader();
-                        reader.onload = (evt) => loadXmlStringToWorkspace(evt.target.result, file.name);
-                        reader.readAsText(file);
-                    } else {
-                        showToast('Please drop a valid .xml file.', 'error');
-                    }
-                }
-            });
-        }
+    function fallbackCopyText(text, successMsg) {
+      const tempArea = document.createElement('textarea');
+      tempArea.value = text;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast(successMsg, 'success');
+      } catch (err) {
+        showToast('Failed to copy text', 'error');
+      }
+      document.body.removeChild(tempArea);
+    }
 
-        function openCodeModal(tab = 'python') {
-            const modal = document.getElementById('codeModal');
-            if (!modal) return;
-            modal.style.display = 'flex';
-            switchTab(tab);
-        }
+    let toastTimer;
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
 
-        function closeCodeModal() {
-            const modal = document.getElementById('codeModal');
-            if (modal) modal.style.display = 'none';
-        }
+      toast.textContent = message;
+      toast.className = 'show ' + (type === 'error' ? 'error' : (type === 'info' ? 'info' : 'success'));
 
-        function handleBackdropClick(event) {
-            if (event.target.id === 'codeModal') closeCodeModal();
-        }
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.className = '';
+      }, 2500);
+    }
 
-        function switchTab(tab) {
-            activeTab = tab;
-            const tabPythonBtn = document.getElementById('tabPythonBtn');
-            const tabXmlBtn = document.getElementById('tabXmlBtn');
-            const downloadBtn = document.getElementById('modalDownloadXmlBtn');
+    // ================= INSTANT UPLOAD & CLEAN STOP ACTIONS =================
+    function uploadRoverCode() {
+      const code = generatePythonCode().trim();
+      if (!code || code.startsWith('# Error')) {
+        showToast('No blocks connected yet!', 'error');
+        return;
+      }
+      showToast('Uploading to car...', 'info');
 
-            if (tab === 'python') {
-                tabPythonBtn.classList.add('active');
-                tabXmlBtn.classList.remove('active');
-                if (downloadBtn) downloadBtn.style.display = 'none';
-            } else {
-                tabXmlBtn.classList.add('active');
-                tabPythonBtn.classList.remove('active');
-                if (downloadBtn) downloadBtn.style.display = 'inline-flex';
-            }
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 4000);
 
-            updateActiveCodeView();
-        }
+      fetch(ESP_HOST + '/uploadCode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: code,
+        signal: controller.signal
+      })
+        .then(r => {
+          clearTimeout(id);
+          return r.text();
+        })
+        .then(() => {
+          showToast('Running on car!', 'success');
+        })
+        .catch(() => {
+          clearTimeout(id);
+          showToast('Upload failed. Check Wi-Fi connection.', 'error');
+        });
+    }
 
-        function updateActiveCodeView() {
-            const textarea = document.getElementById('modalCodeText');
-            if (!textarea) return;
-
-            if (activeTab === 'python') {
-                textarea.value = generatePythonCode() || '# No blocks in workspace.';
-            } else {
-                textarea.value = generateXmlCode() || '<!-- No blocks in workspace. -->';
-            }
-        }
-
-        function copyModalCode() {
-            const textarea = document.getElementById('modalCodeText');
-            if (!textarea || !textarea.value) return;
-
-            navigator.clipboard.writeText(textarea.value).then(() => {
-                showToast((activeTab === 'python' ? 'Python' : 'XML') + ' copied to clipboard!', 'success');
-            }).catch(() => {
-                fallbackCopyText(textarea.value, (activeTab === 'python' ? 'Python' : 'XML') + ' copied!');
-            });
-        }
-
-        function fallbackCopyText(text, successMsg) {
-            const tempArea = document.createElement('textarea');
-            tempArea.value = text;
-            document.body.appendChild(tempArea);
-            tempArea.select();
-            try {
-                document.execCommand('copy');
-                showToast(successMsg, 'success');
-            } catch (err) {
-                showToast('Failed to copy text', 'error');
-            }
-            document.body.removeChild(tempArea);
-        }
-
-        let toastTimer;
-        function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            if (!toast) return;
-
-            toast.textContent = message;
-            toast.className = 'show ' + (type === 'error' ? 'error' : (type === 'info' ? 'info' : 'success'));
-
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.className = '';
-            }, 2500);
-        }
-
-        // ================= INSTANT UPLOAD & CLEAN STOP ACTIONS =================
-        function uploadRoverCode() {
-            const code = generatePythonCode().trim();
-            if (!code || code.startsWith('# Error')) {
-                showToast('No blocks connected yet!', 'error');
-                return;
-            }
-            showToast('Uploading to car...', 'info');
-
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), 4000);
-
-            fetch(ESP_HOST + '/uploadCode', {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain' },
-                body: code,
-                signal: controller.signal
-            })
-                .then(r => {
-                    clearTimeout(id);
-                    return r.text();
-                })
-                .then(() => {
-                    showToast('Running on car!', 'success');
-                })
-                .catch(() => {
-                    clearTimeout(id);
-                    showToast('Upload failed. Check Wi-Fi connection.', 'error');
-                });
-        }
-
-        function stopRoverCode() {
-            showToast('Stopping car & wiping code...', 'info');
-            fetchApi('/stopCode', 1200)
-                .then(() => {
-                    showToast('Car stopped and code wiped!', 'success');
-                })
-                .catch(() => {
-                    showToast('Stop command sent.', 'info');
-                });
-        }
-    </script>
+    function stopRoverCode() {
+      showToast('Stopping car & wiping code...', 'info');
+      fetchApi('/stopCode', 1200)
+        .then(() => {
+          showToast('Car stopped and code wiped!', 'success');
+        })
+        .catch(() => {
+          showToast('Stop command sent.', 'info');
+        });
+    }
+  </script>
 </body>
 
 </html>

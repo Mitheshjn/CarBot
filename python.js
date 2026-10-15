@@ -54,7 +54,7 @@ registerPythonBlock('lib_neo_sleep_ms', function (a) {
         return "sleep_ms(" + Blockly.Python.valueToCode(a, "duration", Blockly.Python.ORDER_ATOMIC) + ")\n"
 });
 
-// Added by script
+// ARGB Generators
 registerPythonBlock('lib_argb_initialize', function (a) {
         Blockly.Python.definitions_.import_argb = "from blocks.actuators.argb import ARGB";
         var b = ("1"),
@@ -115,35 +115,14 @@ registerPythonBlock('lib_argb_set', function (a) {
                 ".set_color(index=" + b + ",red=" + c + ", green=" + d + ", blue=" + e + ", show=" + a + ")\n"
 });
 
-registerPythonBlock('lib_buzzer_initialize', function (a) {
-        Blockly.Python.definitions_.import_buzzer = "from blocks.actuators.buzzer import Buzzer";
-        var b = ("1");
-        a = a.getFieldValue("ob");
-        return ["Buzzer(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
-});
-
-registerPythonBlock('lib_buzzer_on', function (a) {
-        Blockly.Python.definitions_.import_buzzer = "from blocks.actuators.buzzer import Buzzer";
-        return Blockly.Python.valueToCode(a, "buzzer_object", Blockly.Python.ORDER_MEMBER) + ".on()\n"
-});
-
-registerPythonBlock('lib_buzzer_off', function (a) {
-        Blockly.Python.definitions_.import_buzzer = "from blocks.actuators.buzzer import Buzzer";
-        return Blockly.Python.valueToCode(a, "buzzer_object", Blockly.Python.ORDER_MEMBER) + ".off()\n"
-});
-
-registerPythonBlock('lib_buzzer_buzz', function (a) {
-        Blockly.Python.definitions_.import_buzzer = "from blocks.actuators.buzzer import Buzzer";
-        var b = Blockly.Python.valueToCode(a, "secs", Blockly.Python.ORDER_NONE) || "1";
-        return Blockly.Python.valueToCode(a, "buzzer_object", Blockly.Python.ORDER_MEMBER) + ".buzz(secs=" + b + ")\n"
-});
-
+// OLED Display Generators
 registerPythonBlock('lib_display_oled_initialize', function (a) {
         Blockly.Python.definitions_.import_display_oled = "from blocks.actuators.display import OLED";
         var b = Blockly.Python.valueToCode(a, "height", Blockly.Python.ORDER_NONE) || "0",
-                c = Blockly.Python.valueToCode(a, "width", Blockly.Python.ORDER_NONE) || "0";
+                c = Blockly.Python.valueToCode(a, "width", Blockly.Python.ORDER_NONE) || "0",
+                d = a.getFieldValue("ob");
         a = ("1");
-        return ["0" === a ? "OLED(height=" + b + ", width=" + c + ")" : "OLED(port=" + a + ", height=" + b + ", width=" + c + ")", Blockly.Python.ORDER_MEMBER]
+        return ["0" === a ? "OLED(height=" + b + ", width=" + c + ",ob=" + d + ")" : "OLED(port=" + a + ", height=" + b + ", width=" + c + ",ob=" + d + ")", Blockly.Python.ORDER_MEMBER]
 });
 
 registerPythonBlock('lib_display_oled_clear', function (a) {
@@ -192,8 +171,7 @@ registerPythonBlock('lib_display_oled_draw_rect', function (a) {
                 ".draw_rectangle(" + b + "," + c + "," + d + "," + e + ",1," + a + ")\n"
 });
 
-
-
+// LDR Generators
 registerPythonBlock('lib_ldr_initialize', function (a) {
         Blockly.Python.definitions_.import_ldr = "from blocks.sensors.ldr import LDR";
         var b = ("1");
@@ -206,7 +184,7 @@ registerPythonBlock('lib_ldr_read', function (a) {
         return [Blockly.Python.valueToCode(a, "ldr_object", Blockly.Python.ORDER_MEMBER) + ".read_ldr()", Blockly.Python.ORDER_MEMBER]
 });
 
-
+// Motor Generators
 registerPythonBlock('lib_left_motor_initialize', function (a) {
         Blockly.Python.definitions_.import_left_motor = "from blocks.actuators.motor import LeftMotor";
         var b = ("1");
@@ -229,6 +207,7 @@ registerPythonBlock('lib_motor_rotate', function (a) {
         return b + ".rotate(speed=" + c + ", direction=" + a + ")\n"
 });
 
+// MPU6050 Generators
 registerPythonBlock('lib_mpu6050_initialize', function (a) {
         Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
         var b = ("1");
@@ -256,16 +235,6 @@ registerPythonBlock('lib_mpu6050_disable_accel', function (a) {
         return Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".disable_accel()\n"
 });
 
-registerPythonBlock('lib_mpu6050_enable_temp', function (a) {
-        Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
-        return Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".enable_temp()\n"
-});
-
-registerPythonBlock('lib_mpu6050_disa_temp', function (a) {
-        Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
-        return Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".disable_temp()\n"
-});
-
 registerPythonBlock('lib_mpu6050_get_accel', function (a) {
         Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
         return [Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".get_accel()", Blockly.Python.ORDER_MEMBER]
@@ -276,21 +245,7 @@ registerPythonBlock('lib_mpu6050_get_gyro', function (a) {
         return [Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".get_gyro()", Blockly.Python.ORDER_MEMBER]
 });
 
-
-registerPythonBlock('lib_pumpmotor_initialize', function (a) {
-        Blockly.Python.definitions_.import_pumpmotor = "from blocks.actuators.pumpmotor import PumpMotor";
-        var b = ("1");
-        a = a.getFieldValue("ob");
-        return ["PumpMotor(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER]
-});
-
-registerPythonBlock('lib_pumpmotor_run', function (a) {
-        Blockly.Python.definitions_.import_pumpmotor = "from blocks.actuators.pumpmotor import PumpMotor";
-        var b = Blockly.Python.valueToCode(a, "pumpmotor_object", Blockly.Python.ORDER_MEMBER);
-        a = Blockly.Python.valueToCode(a, "pumpmotor_speed", Blockly.Python.ORDER_NONE);
-        return b + ".run(speed=" + a + ")\n"
-});
-
+// Servo Generators
 registerPythonBlock('lib_servo_initialize', function (a) {
         Blockly.Python.definitions_.import_servo = "from blocks.actuators.servo import Servo";
         var b = ("1"),
@@ -307,7 +262,7 @@ registerPythonBlock('lib_servo_rotate', function (a) {
         return Blockly.Python.valueToCode(a, "servo_object", Blockly.Python.ORDER_MEMBER) + ".rotate(stop_angle=" + b + ")\n"
 });
 
-
+// TOF Generators
 registerPythonBlock('lib_tof_initialize', function (a) {
         Blockly.Python.definitions_.import_tof = "from blocks.sensors.tof import TOF";
         var b = ("1");
@@ -320,13 +275,7 @@ registerPythonBlock('lib_tof_read_distance', function (a) {
         return [Blockly.Python.valueToCode(a, "tof_object", Blockly.Python.ORDER_MEMBER) + ".read_distance()", Blockly.Python.ORDER_MEMBER]
 });
 
-registerPythonBlock('lib_tof_reset', function (a) {
-        Blockly.Python.definitions_.import_tof = "from blocks.sensors.tof import TOF";
-        return [Blockly.Python.valueToCode(a, "tof_object", Blockly.Python.ORDER_MEMBER) + ".reset()", Blockly.Python.ORDER_MEMBER]
-});
-
-
-// Added DHT22
+// DHT22 Generators
 registerPythonBlock('lib_dht22_initialize', function (a) {
         Blockly.Python.definitions_.import_dht22 = "from blocks.sensors.dht22 import DHT22";
         var b = ("1");
@@ -336,13 +285,11 @@ registerPythonBlock('lib_dht22_initialize', function (a) {
 
 registerPythonBlock('lib_temperature_read', function (a) {
         Blockly.Python.definitions_.import_dht22 = "from blocks.sensors.dht22 import DHT22";
-
         return [Blockly.Python.valueToCode(a, "dht22_object", Blockly.Python.ORDER_MEMBER) + ".read_temperature()", Blockly.Python.ORDER_MEMBER]
 });
 
 registerPythonBlock('lib_humidity_read', function (a) {
         Blockly.Python.definitions_.import_dht22 = "from blocks.sensors.dht22 import DHT22";
-
         return [Blockly.Python.valueToCode(a, "dht22_object", Blockly.Python.ORDER_MEMBER) + ".read_humidity()", Blockly.Python.ORDER_MEMBER]
 });
 

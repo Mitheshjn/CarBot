@@ -423,91 +423,8 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/argb.html#using-argbs"
   },
   {
-    "type": "lib_buzzer_initialize",
-    "message0": "Buzzer Onboard %1 %2",
-    "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "ob",
-        "options": [
-          [
-            "True",
-            "True"
-          ],
-          [
-            "False",
-            "False"
-          ]
-        ]
-      },
-      {
-        "type": "input_dummy"
-      }
-    ],
-    "output": "buzzer_object",
-    "colour": 260,
-    "tooltip": "Make an object to control any attached Buzzer. Specify the Buzzer and the port to which they are attached.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/buzzer.html#Buzzer"
-  },
-  {
-    "type": "lib_buzzer_on",
-    "message0": "Buzzer On %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "buzzer_object",
-        "check": "buzzer_object"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "On buzzer.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/buzzer.html#buzzer.on"
-  },
-  {
-    "type": "lib_buzzer_off",
-    "message0": "Buzzer Off %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "buzzer_object",
-        "check": "buzzer_object"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "off buzzer.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/buzzer.html#buzzer.on"
-  },
-  {
-    "type": "lib_buzzer_buzz",
-    "message0": "Buzzer On %1 secs %2",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "buzzer_object",
-        "check": "buzzer_object"
-      },
-      {
-        "type": "input_value",
-        "name": "secs",
-        "check": "Number",
-        "value": 1,
-        "min": 1,
-        "align": "RIGHT"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": " buzz the buzzer object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/buzzer.html#buzzer.off"
-  },
-  {
     "type": "lib_display_oled_initialize",
-    "message0": "OLED %1 width %2 height %3",
+    "message0": "OLED %1 width %2 height %3 Onboard %4",
     "args0": [
       {
         "type": "input_dummy"
@@ -523,6 +440,20 @@ Blockly.defineBlocksWithJsonArray([
         "name": "height",
         "check": "Number",
         "align": "RIGHT"
+      },
+      {
+        "type": "field_dropdown",
+        "name": "ob",
+        "options": [
+          [
+            "True",
+            "True"
+          ],
+          [
+            "False",
+            "False"
+          ]
+        ]
       }
     ],
     "inputsInline": false,
@@ -961,87 +892,6 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
   },
   {
-    "type": "lib_mpu6050_enable_temp",
-    "message0": "Enable Read Temp Value  %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "mpu6050_object",
-        "check": "mpu6050_object"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "enable sadfasdfdfdfdsfd mpu6050 object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
-  },
-  {
-    "type": "lib_mpu6050_disa_temp",
-    "message0": "Disable asdfdfadf  %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "mpu6050_object",
-        "check": "mpu6050_object"
-      }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "enable mpu6050 by the referenced mpu6050 object.",
-    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
-  },
-  {
-    "type": "lib_pumpmotor_initialize",
-    "message0": "Pump Motor Onboard %1",
-    "args0": [
-      {
-        "type": "field_dropdown",
-        "name": "ob",
-        "options": [
-          [
-            "True",
-            "True"
-          ],
-          [
-            "False",
-            "False"
-          ]
-        ]
-      }
-    ],
-    "inputsInline": false,
-    "output": "pumpmotor_object",
-    "colour": 260,
-    "tooltip": "",
-    "helpUrl": ""
-  },
-  {
-    "type": "lib_pumpmotor_run",
-    "message0": "Pump Motor Run %1 speed %2",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "pumpmotor_object",
-        "check": "pumpmotor_object",
-        "align": "RIGHT"
-      },
-      {
-        "type": "input_value",
-        "name": "pumpmotor_speed",
-        "check": "Number",
-        "align": "RIGHT"
-      }
-    ],
-    "inputsInline": false,
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": 260,
-    "tooltip": "",
-    "helpUrl": ""
-  },
-  {
     "type": "lib_servo_initialize",
     "message0": "Servo %1 step %2 delay %3 start position %4 Onboard %5",
     "args0": [
@@ -1151,30 +1001,6 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 260,
     "tooltip": "Read values by the referenced tof object in mm unit.",
     "helpUrl": "https://schoolrobotics.com/docs/micropython/tof.html#tof"
-  },
-  {
-    "type": "lib_read_temperature_value",
-    "message0": "read temperature value from %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "read_value",
-        "check": "gyro_object",
-        "align": "RIGHT"
-      }
-    ],
-    "output": null,
-    "colour": 230,
-    "tooltip": "read temperature value from gyro module",
-    "helpUrl": ""
-  },
-  {
-    "type": "microbit_microbit_temperature",
-    "message0": "Board temperature",
-    "output": "Number",
-    "colour": 210,
-    "tooltip": "Get the temperature of the micro:bit in degrees Celcius.",
-    "helpUrl": "https://microbit-micropython.readthedocs.io/en/latest/microbit.html#microbit.temperature"
   },
   {
     "type": "lib_dht22_initialize",
