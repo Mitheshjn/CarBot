@@ -1113,7 +1113,7 @@
           onpointerdown="isSliderActive=true;lastSliderInteractTime=Date.now()"
           onpointerup="isSliderActive=false;lastSliderInteractTime=Date.now();onSliderChange(this.value)"
           oninput="onSliderInput(this.value)" onchange="onSliderChange(this.value)">
-        <div style="font-size:9px;color:#888;margin-top:4px;font-weight:bold;">PWM</div>
+        <div id="speedLabel" style="font-size:9px;color:#888;margin-top:4px;font-weight:bold;">PWM</div>
       </div>
       <div id="pedalContainer" class="pedal-col">
         <div class="pedal-btn" onpointerdown="pressGas(true,event)" onpointerup="pressGas(false,event)"
@@ -1799,23 +1799,105 @@
       showToast('OLED Mode: ' + (names[mode] || mode), 'info');
     }
 
-    // ================= SPEED SLIDER =================
+    // ================= SPEED SLIDER & RESTRICTION =================
+    const NORMAL_SPEED_MIN = 0;
+    const NORMAL_SPEED_MAX = 255;
+    const CAM_SPEED_MIN = 35;
+    const CAM_SPEED_MAX = 45;
+
+    let isCameraOn = false;
+    window.isCameraOn = false;
     let isSliderActive = false, lastSliderInteractTime = 0, lastSliderSend = 0;
-    function onSliderInput(val) {
-      isSliderActive = true; lastSliderInteractTime = Date.now();
-      updateSpeedUI(val);
-      if (Date.now() - lastSliderSend > 100 || val == 0 || val == 255) {
-        lastSliderSend = Date.now();
-        sendSpeed(val);
+
+    function clampSpeedVal(val) {
+      let num = parseInt(val, 10);
+      if (isNaN(num)) num = isCameraOn ? CAM_SPEED_MIN : 0;
+      if (isCameraOn) {
+        if (num < CAM_SPEED_MIN) return CAM_SPEED_MIN;
+        if (num > CAM_SPEED_MAX) return CAM_SPEED_MAX;
+        return num;
+      }
+      if (num < NORMAL_SPEED_MIN) return NORMAL_SPEED_MIN;
+      if (num > NORMAL_SPEED_MAX) return NORMAL_SPEED_MAX;
+      return num;
+    }
+
+    function applyCameraSpeedRestriction(en) {
+      const slider = document.getElementById('speedSlider');
+      const speedLabel = document.getElementById('speedLabel');
+
+      if (en) {
+        const currentVal = slider ? (parseInt(slider.value, 10) || 0) : 0;
+        let clampedVal = currentVal;
+        if (clampedVal > CAM_SPEED_MAX) {
+          clampedVal = CAM_SPEED_MAX;
+        } else if (clampedVal < CAM_SPEED_MIN) {
+          clampedVal = CAM_SPEED_MIN;
+        }
+
+        if (slider) {
+          slider.min = CAM_SPEED_MIN;
+          slider.max = CAM_SPEED_MAX;
+          slider.value = clampedVal;
+        }
+        updateSpeedUI(clampedVal);
+        if (speedLabel) {
+          speedLabel.innerText = "PWM (35-45)";
+          speedLabel.style.color = "#00e5ff";
+        }
+        // Immediately trigger network call to update ESP32 speed endpoint
+        sendSpeed(clampedVal);
+      } else {
+        if (slider) {
+          slider.min = NORMAL_SPEED_MIN;
+          slider.max = NORMAL_SPEED_MAX;
+          updateSpeedUI(slider.value);
+        }
+        if (speedLabel) {
+          speedLabel.innerText = "PWM";
+          speedLabel.style.color = "#888";
+        }
       }
     }
+
+    function onSliderInput(val) {
+      isSliderActive = true;
+      lastSliderInteractTime = Date.now();
+      const clamped = clampSpeedVal(val);
+      const slider = document.getElementById('speedSlider');
+      if (slider && Number(slider.value) !== clamped) {
+        slider.value = clamped;
+      }
+      updateSpeedUI(clamped);
+      const minEdge = isCameraOn ? CAM_SPEED_MIN : NORMAL_SPEED_MIN;
+      const maxEdge = isCameraOn ? CAM_SPEED_MAX : NORMAL_SPEED_MAX;
+      if (Date.now() - lastSliderSend > 100 || clamped === minEdge || clamped === maxEdge) {
+        lastSliderSend = Date.now();
+        sendSpeed(clamped);
+      }
+    }
+
     function onSliderChange(val) {
       isSliderActive = false;
       lastSliderInteractTime = Date.now();
-      sendSpeed(val);
+      const clamped = clampSpeedVal(val);
+      const slider = document.getElementById('speedSlider');
+      if (slider && Number(slider.value) !== clamped) {
+        slider.value = clamped;
+      }
+      updateSpeedUI(clamped);
+      sendSpeed(clamped);
     }
-    function updateSpeedUI(val) { document.getElementById('speedReadout').innerText = val; }
-    function sendSpeed(val) { fetchApi('/setSpeed?pwm=' + val, 500); }
+
+    function updateSpeedUI(val) {
+      const readout = document.getElementById('speedReadout');
+      if (readout) readout.innerText = val;
+    }
+
+    function sendSpeed(val) {
+      const clamped = clampSpeedVal(val);
+      fetchApi('/setSpeed?pwm=' + clamped, 500);
+    }
 
     // ================= COCKPIT & GYRO =================
     let cockpitActive = false;
@@ -1829,7 +1911,12 @@
       document.getElementById('sliderContainer').style.display = en ? 'none' : 'flex';
       document.getElementById('pedalContainer').style.display = en ? 'flex' : 'none';
       let slider = document.getElementById('speedSlider');
-      if (en && slider.value == 0) { slider.value = 160; updateSpeedUI(160); sendSpeed(160); }
+      if (en && slider && (slider.value == 0 || (isCameraOn && slider.value < CAM_SPEED_MIN))) {
+        let defaultSpeed = isCameraOn ? 40 : 160;
+        slider.value = defaultSpeed;
+        updateSpeedUI(defaultSpeed);
+        sendSpeed(defaultSpeed);
+      }
     }
 
     function toggleCockpitMode(en) {
@@ -2011,7 +2098,9 @@
     }
 
     function toggleCamera(en) {
-      isCamActive = en;
+      isCameraOn = !!en;
+      window.isCameraOn = isCameraOn;
+      isCamActive = isCameraOn;
       document.getElementById('camLabel').innerText = en ? "Camera: ON" : "Camera: OFF";
       document.getElementById('camLabel').style.color = en ? "#007aff" : "#aaa";
       const s = document.getElementById('cameraSection'), f = document.getElementById('camFrame'), e = document.getElementById('camError');
@@ -2028,6 +2117,7 @@
         if (f) { f.src = ''; f.style.display = 'none'; }
         if (e) e.style.display = 'none';
       }
+      applyCameraSpeedRestriction(isCameraOn);
     }
 
     function camReload(event) {
@@ -2076,8 +2166,12 @@
 
           let slider = document.getElementById('speedSlider');
           if (slider && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
-            slider.value = d.pwm;
-            updateSpeedUI(d.pwm);
+            let pwmVal = d.pwm;
+            if (isCameraOn) {
+              pwmVal = clampSpeedVal(pwmVal);
+            }
+            slider.value = pwmVal;
+            updateSpeedUI(pwmVal);
           }
         })
         .catch(() => { })
