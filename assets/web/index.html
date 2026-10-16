@@ -4,19 +4,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Snap Racer Controller & Studio</title>
+  <title>CAR BOT</title>
   <link rel="icon" href="data:,">
 
-  <!-- External Stylesheet with cache busting -->
-  <link rel="stylesheet" href="style.css?v=7">
+  <!-- External Stylesheet without query params for asset stability -->
+  <link rel="stylesheet" href="style.css">
 
-  <!-- Blockly Core & Python Engine (Local Offline Copies) -->
+  <!-- Blockly Core & Python Engine -->
   <script src="blockly.min.js"></script>
   <script src="python_compressed.js"></script>
 
   <!-- Custom Block Definitions & Python Generators -->
-  <script src="blocks.js?v=lib9"></script>
-  <script src="python.js?v=lib9"></script>
+  <script src="blocks.js"></script>
+  <script src="python.js"></script>
 
   <style>
     /* ================= SCROLLING & VIEWPORT FIXES ================= */
@@ -58,10 +58,16 @@
 
     .header-bar {
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      padding: 0 10px;
       margin: 4px 0 12px;
+    }
+
+    .header-actions-left, .header-actions-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
 
     .panel {
@@ -427,7 +433,6 @@
       transition: all 0.15s ease;
     }
 
-    /* Modular Subgroup Panels */
     .mod-subgroup {
       margin-top: 10px;
       padding-top: 10px;
@@ -539,22 +544,10 @@
       transition: opacity 0.15s ease;
     }
 
-    .btn-primary {
-      background: #238636;
-    }
-
-    .btn-secondary {
-      background: #30363d;
-      color: #c9d1d9;
-    }
-
-    .btn-blue {
-      background: #0969da;
-    }
-
-    .btn-amber {
-      background: #d97706;
-    }
+    .btn-primary { background: #238636; }
+    .btn-secondary { background: #30363d; color: #c9d1d9; }
+    .btn-blue { background: #0969da; }
+    .btn-amber { background: #d97706; }
 
     #main-container {
       width: 100% !important;
@@ -688,21 +681,10 @@
       gap: 6px;
     }
 
-    .rover-btn-run {
-      background: #0284c7;
-    }
-
-    .rover-btn-run:hover {
-      background: #0369a1;
-    }
-
-    .rover-btn-stop {
-      background: #c62828;
-    }
-
-    .rover-btn-stop:hover {
-      background: #b71c1c;
-    }
+    .rover-btn-run { background: #0284c7; }
+    .rover-btn-run:hover { background: #0369a1; }
+    .rover-btn-stop { background: #c62828; }
+    .rover-btn-stop:hover { background: #b71c1c; }
 
     .blocklyToolboxDiv {
       background-color: #e5e7eb !important;
@@ -814,9 +796,7 @@
       padding: 0 6px;
     }
 
-    .modal-close-btn:hover {
-      color: #fff;
-    }
+    .modal-close-btn:hover { color: #fff; }
 
     .modal-body {
       flex: 1;
@@ -865,9 +845,7 @@
       backdrop-filter: blur(4px);
     }
 
-    #varDialogBackdrop.open {
-      display: flex;
-    }
+    #varDialogBackdrop.open { display: flex; }
 
     #varDialog {
       background: #ffffff;
@@ -908,9 +886,7 @@
       display: none;
     }
 
-    #varDialogError.visible {
-      display: block;
-    }
+    #varDialogError.visible { display: block; }
 
     #varDialogFooter {
       display: flex;
@@ -927,15 +903,8 @@
       cursor: pointer;
     }
 
-    .vd-btn-cancel {
-      background: #f0f2f8;
-      color: #5a627a;
-    }
-
-    .vd-btn-ok {
-      background: #4f63d2;
-      color: #fff;
-    }
+    .vd-btn-cancel { background: #f0f2f8; color: #5a627a; }
+    .vd-btn-ok { background: #4f63d2; color: #fff; }
 
     #toast {
       position: fixed;
@@ -959,26 +928,125 @@
       opacity: 1;
     }
 
-    #toast.success {
-      background: #238636;
+    #toast.success { background: #238636; }
+    #toast.error { background: #da3633; }
+    #toast.info { background: #0284c7; }
+
+    /* ================= CONNECTION SPLASH / BANNER OVERLAY ================= */
+    #connOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #0d0d0d;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
     }
 
-    #toast.error {
-      background: #da3633;
+    #connOverlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
 
-    #toast.info {
-      background: #0284c7;
+    .radar-box {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
     }
+
+    .radar-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 3px solid rgba(0, 122, 255, 0.6);
+      border-radius: 50%;
+      animation: radarPulse 1.8s infinite ease-out;
+    }
+
+    .radar-ring:nth-child(2) { animation-delay: 0.6s; }
+
+    .radar-core {
+      position: absolute;
+      top: 26px;
+      left: 26px;
+      width: 28px;
+      height: 28px;
+      background: #007aff;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #007aff;
+    }
+
+    @keyframes radarPulse {
+      0% { transform: scale(0.3); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    .conn-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .conn-desc {
+      font-size: 13px;
+      color: #888;
+      max-width: 280px;
+      line-height: 1.4;
+      margin-bottom: 24px;
+    }
+
+    .conn-btn {
+      background: #0969da;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(9, 105, 218, 0.4);
+      transition: transform 0.1s ease;
+    }
+
+    .conn-btn:active { transform: scale(0.96); }
   </style>
 </head>
 
 <body>
 
+  <!-- CONNECTION SPLASH OVERLAY -->
+  <div id="connOverlay">
+    <div class="radar-box">
+      <div class="radar-ring"></div>
+      <div class="radar-ring"></div>
+      <div class="radar-core"></div>
+    </div>
+    <div class="conn-title">Connecting to Snap Racer...</div>
+    <div class="conn-desc" id="connSubText">Make sure your phone is connected to Wi-Fi: <b style="color:#00e5ff">SNAP-RACER</b></div>
+    <button type="button" class="conn-btn" onclick="checkConnectionNow()">Retry Connection</button>
+  </div>
+
   <div class="header-bar">
-    <h2>SNAP RACER</h2>
-    <button type="button" class="rst-btn" id="lockOrientBtn" onclick="toggleScreenLock()"
-      title="Lock Screen Rotation">🔓</button>
+    <div class="header-actions-left">
+      <button type="button" class="rst-btn" onclick="appReload()" title="Reload App">&#x21BB;</button>
+    </div>
+    <h2>CAR BOT</h2>
+    <div class="header-actions-right">
+      <button type="button" class="rst-btn" id="lockOrientBtn" onclick="toggleScreenLock()"
+        title="Lock Screen Rotation">🔓</button>
+    </div>
   </div>
 
   <!-- LIVE FPV STREAM -->
@@ -1159,20 +1227,15 @@
     </div>
   </div>
 
-  <!-- ================= BLOCKLY STUDIO PANEL ================= -->
+  <!-- ================= ROVERBLOCKS STUDIO PANEL ================= -->
   <div class="panel panel-wide" id="terminalPanel" style="display:none;">
     <div class="rover-header">
       <h1>Blockly Studio</h1>
       <div class="rover-actions header-actions">
-        <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁
-          Code</button>
+        <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁 Code</button>
         <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">📋 Copy Python</button>
-        <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download
-          XML</button>
-        <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload
-          XML</button>
-        <input type="file" id="xmlFileInput" accept=".xml,text/xml,application/xml" style="display: none;"
-          onchange="handleXmlUpload(event)">
+        <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download XML</button>
+        <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload XML</button>
       </div>
     </div>
 
@@ -1195,7 +1258,7 @@
     <!-- Car Hardware Run & Stop Actions -->
     <div class="rover-car-controls">
       <button class="rover-car-btn rover-btn-run" onclick="uploadRoverCode()">⬆ Upload &amp; Run on Car</button>
-      <button class="rover-car-btn rover-btn-stop" onclick="stopRoverCode()">■ Stop Car</button>
+      <button class="rover-car-btn rover-btn-stop" onclick="stopRoverGroup()">■ Stop Car</button>
     </div>
   </div>
 
@@ -1214,8 +1277,7 @@
       </div>
       <div class="modal-footer">
         <button id="modalCopyBtn" class="btn-secondary" onclick="copyModalCode()">📋 Copy</button>
-        <button id="modalDownloadXmlBtn" class="btn-primary" style="display: none;" onclick="downloadXml()">💾 Download
-          XML</button>
+        <button id="modalDownloadXmlBtn" class="btn-primary" style="display: none;" onclick="downloadXml()">💾 Download XML</button>
         <button class="btn-secondary" onclick="closeCodeModal()">Close</button>
       </div>
     </div>
@@ -1404,9 +1466,10 @@
       <block type="lib_mpu6050_initialize"></block>
       <block type="lib_mpu6050_enable_gyro"></block>
       <block type="lib_mpu6050_disable_gyro"></block>
-      <block type="lib_mpu6050_get_gyro"></block>
+      <block type="lib_mpu6050_change_gyro_range"></block>
       <block type="lib_mpu6050_enable_accel"></block>
       <block type="lib_mpu6050_disable_accel"></block>
+      <block type="lib_mpu6050_change_accel_range"></block>
       <block type="lib_mpu6050_get_accel"></block>
     </category>
     <category name="TOF" colour="180">
@@ -1486,11 +1549,56 @@
       e.preventDefault();
     });
 
+    // ================= AUTO CONNECTION CHECK & SPLASH SCREEN =================
+    let isCarConnected = false;
+
+    async function checkConnectionNow() {
+      const overlay = document.getElementById('connOverlay');
+      const sub = document.getElementById('connSubText');
+      if (sub) sub.innerText = "Pinging car at 192.168.4.1...";
+
+      const res = await fetchApi('/ping', 1200);
+      if (res && res.ok) {
+        isCarConnected = true;
+        if (overlay) overlay.classList.add('hidden');
+        showToast("Connected to Snap Racer!", "success");
+      } else {
+        isCarConnected = false;
+        if (overlay) overlay.classList.remove('hidden');
+        if (sub) sub.innerHTML = 'Could not reach car. Check Wi-Fi: <b style="color:#00e5ff">SNAP-RACER</b>';
+      }
+    }
+
+    function appReload() {
+      if (window.FlutterBridge && window.FlutterBridge.postMessage) {
+        window.FlutterBridge.postMessage('reload');
+      } else {
+        location.reload();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkConnectionNow();
+      setInterval(() => {
+        if (!isCarConnected) checkConnectionNow();
+      }, 4000);
+    });
+
     // ================= SCREEN ORIENTATION LOCK =================
     let isOrientationLocked = false;
     async function toggleScreenLock() {
       const btn = document.getElementById('lockOrientBtn');
+      const isLandscape = (window.innerWidth > window.innerHeight);
+      const targetMode = isLandscape ? 'lock_landscape' : 'lock_portrait';
+
       if (!isOrientationLocked) {
+        if (window.FlutterOrientation && window.FlutterOrientation.postMessage) {
+          window.FlutterOrientation.postMessage(targetMode); // <-- Sends portrait or landscape based on current screen
+          isOrientationLocked = true;
+          if (btn) { btn.innerText = '🔒'; btn.style.color = '#00e5ff'; btn.style.borderColor = '#00e5ff'; }
+          showToast(`Locked in ${isLandscape ? 'Landscape' : 'Portrait'}`, 'info');
+          return;
+        }
         try {
           const mode = (window.innerWidth > window.innerHeight) ? 'landscape' : 'portrait';
           if (screen.orientation && screen.orientation.lock) {
@@ -1514,10 +1622,14 @@
           }
         }
       } else {
-        try {
-          if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-          if (document.exitFullscreen && document.fullscreenElement) await document.exitFullscreen();
-        } catch (e) { }
+        if (window.FlutterOrientation && window.FlutterOrientation.postMessage) {
+          window.FlutterOrientation.postMessage('unlock');
+        } else {
+          try {
+            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+            if (document.exitFullscreen && document.fullscreenElement) await document.exitFullscreen();
+          } catch (e) { }
+        }
         isOrientationLocked = false;
         if (btn) { btn.innerText = '🔓'; btn.style.color = '#ff5252'; btn.style.borderColor = '#444'; }
       }
@@ -2265,6 +2377,7 @@
       });
     }
 
+    // ================= XML DOWNLOAD (WITH FLUTTER BRIDGE SUPPORT) =================
     function downloadXml() {
       if (!workspace) return;
       const xmlText = generateXmlCode();
@@ -2273,6 +2386,14 @@
         return;
       }
 
+      // If running inside the Flutter mobile app, use the native channel
+      if (window.FlutterFileSaver && window.FlutterFileSaver.postMessage) {
+        window.FlutterFileSaver.postMessage(xmlText);
+        showToast('Saving XML to device...', 'info');
+        return;
+      }
+
+      // Browser fallback
       try {
         const blob = new Blob([xmlText], { type: 'text/xml;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -2288,18 +2409,32 @@
         }, 250);
         showToast('XML file downloaded!', 'success');
       } catch (e) {
-        const dataUrl = 'data:text/xml;charset=utf-8,' + encodeURIComponent(xmlText);
-        window.open(dataUrl, '_blank');
-        showToast('XML opened (save it manually)', 'success');
+        openCodeModal('xml');
+        showToast('Copy XML from the modal to save.', 'info');
       }
     }
 
+    // ================= XML UPLOAD (WITH FLUTTER BRIDGE SUPPORT) =================
     function triggerXmlUpload() {
-      const input = document.getElementById('xmlFileInput');
-      if (input) {
-        input.value = '';
-        input.click();
+      // If running inside Flutter app, invoke the native file picker
+      if (window.FlutterFilePicker && window.FlutterFilePicker.postMessage) {
+        window.FlutterFilePicker.postMessage('pick');
+        return;
       }
+
+      // Browser fallback
+      let input = document.getElementById('xmlFileInput');
+      if (!input) {
+        input = document.createElement('input');
+        input.type = 'file';
+        input.id = 'xmlFileInput';
+        input.accept = '.xml,text/xml';
+        input.style.display = 'none';
+        input.onchange = handleXmlUpload;
+        document.body.appendChild(input);
+      }
+      input.value = '';
+      input.click();
     }
 
     function handleXmlUpload(event) {
@@ -2446,7 +2581,7 @@
         });
     }
 
-    function stopRoverCode() {
+    function stopRoverGroup() {
       showToast('Stopping car & wiping code...', 'info');
       fetchApi('/stopCode', 1200)
         .then(() => {
