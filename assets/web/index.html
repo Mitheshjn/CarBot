@@ -556,7 +556,7 @@
       overflow: visible !important;
     }
 
-    #blocklyArea {
+    #blocklyArea, #blocklyAreaCamera {
       width: 100% !important;
       height: 480px !important;
       position: relative !important;
@@ -566,7 +566,7 @@
       background: #1e1e1e !important;
     }
 
-    #blocklyDiv {
+    #blocklyDiv, #blocklyDivCamera {
       position: absolute;
       top: 0;
       left: 0;
@@ -577,7 +577,7 @@
       text-align: left;
     }
 
-    #dragOverlay {
+    #dragOverlay, #dragOverlayCamera {
       display: none;
       position: absolute;
       top: 0;
@@ -1229,8 +1229,16 @@
 
   <!-- ================= ROVERBLOCKS STUDIO PANEL ================= -->
   <div class="panel panel-wide" id="terminalPanel" style="display:none;">
-    <div class="rover-header">
-      <h1>Blockly Studio</h1>
+    <div class="rover-header" style="flex-wrap: wrap; gap: 8px; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h1 style="margin: 0;">Blockly Studio</h1>
+        <div style="display: inline-flex; background: #222; border-radius: 8px; padding: 2px; border: 1px solid #333;">
+          <button type="button" id="tabMainBlocks" class="tab-btn active" onclick="switchBlockSection('main')"
+            style="padding: 5px 10px; font-size: 11px; border-radius: 6px; cursor: pointer;">Main Blocks</button>
+          <button type="button" id="tabCameraBlocks" class="tab-btn" onclick="switchBlockSection('camera')"
+            style="padding: 5px 10px; font-size: 11px; border-radius: 6px; cursor: pointer;">📷 Camera Blocks</button>
+        </div>
+      </div>
       <div class="rover-actions header-actions">
         <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁 Code</button>
         <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">📋 Copy Python</button>
@@ -1239,18 +1247,45 @@
       </div>
     </div>
 
-    <div id="main-container">
-      <div id="blocklyArea">
-        <div id="blocklyDiv"></div>
-        <div id="dragOverlay">Drop XML file here</div>
+    <!-- MAIN BLOCK SECTION (Everything is available) -->
+    <div id="mainBlocksSection">
+      <div id="main-container">
+        <div id="blocklyArea">
+          <div id="blocklyDiv"></div>
+          <div id="dragOverlay">Drop XML file here</div>
 
-        <!-- Custom Floating HTML Workspace Controls -->
-        <div class="workspace-floating-controls" id="workspaceControls">
-          <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
-          <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
-          <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
-          <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDelete" onclick="deleteSelectedBlock()"
-            title="Drag a block here to delete">Delete</button>
+          <!-- Custom Floating HTML Workspace Controls -->
+          <div class="workspace-floating-controls" id="workspaceControls">
+            <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
+            <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
+            <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
+            <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDelete" onclick="deleteSelectedBlock()"
+              onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()"
+              title="Drag a block here to delete">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMERA BLOCK SECTION (<div> copy with only Camera & Motors, other sensors disabled) -->
+    <div id="cameraBlocksSection" style="display: none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin: 4px 2px 8px; padding: 6px 10px; background: rgba(0, 229, 255, 0.08); border-left: 3px solid #00e5ff; border-radius: 4px;">
+        <span style="font-size: 11px; color: #00e5ff; font-weight: 600;">📷 Camera &amp; Motor Mode: Logic, Math, Text, Loops, Variables &amp; System enabled. Modular sensors disabled.</span>
+      </div>
+      <div id="main-container-camera">
+        <div id="blocklyAreaCamera">
+          <div id="blocklyDivCamera"></div>
+          <div id="dragOverlayCamera" style="display:none;">Drop XML file here</div>
+
+          <!-- Custom Floating HTML Workspace Controls for Camera Blocks -->
+          <div class="workspace-floating-controls" id="workspaceControlsCamera">
+            <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
+            <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
+            <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
+            <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDeleteCamera" onclick="deleteSelectedBlock()"
+              onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()"
+              title="Drag a block here to delete">Delete</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1503,6 +1538,142 @@
       <block type="lib_dht22_initialize"></block>
       <block type="lib_temperature_read"></block>
       <block type="lib_humidity_read"></block>
+    <category name="System" colour="60">
+      <block type="lib_neo_sleep">
+        <value name="duration">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="lib_neo_sleep_ms">
+        <value name="duration">
+          <shadow type="math_number">
+            <field name="NUM">500</field>
+          </shadow>
+        </value>
+      </block>
+    </category>
+  </xml>
+
+  <!-- CAMERA BLOCK TOOLBOX XML (Camera & Motors, other sensors disabled) -->
+  <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox_camera" style="display: none;">
+    <category name="Logic" colour="#ffb400">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_operation"></block>
+      <block type="logic_negate"></block>
+      <block type="logic_boolean"></block>
+    </category>
+    <category name="Loops" colour="#123456">
+      <block type="controls_repeat_ext">
+        <value name="TIMES">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="controls_whileUntil"></block>
+      <block type="controls_for">
+        <value name="FROM">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="TO">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+        <value name="BY">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="controls_flow_statements"></block>
+    </category>
+    <category name="Math" colour="#008000">
+      <block type="lists_create_with">
+        <mutation items="0"></mutation>
+      </block>
+      <block type="lists_create_with">
+        <mutation items="3"></mutation>
+      </block>
+      <block type="math_number">
+        <field name="NUM">123</field>
+      </block>
+      <block type="math_arithmetic">
+        <value name="A">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="B">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_single">
+        <value name="NUM">
+          <shadow type="math_number">
+            <field name="NUM">9</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_trig">
+        <value name="NUM">
+          <shadow type="math_number">
+            <field name="NUM">45</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_constant"></block>
+      <block type="math_number_property">
+        <value name="NUMBER_TO_CHECK">
+          <shadow type="math_number">
+            <field name="NUM">0</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_round">
+        <value name="NUM">
+          <shadow type="math_number">
+            <field name="NUM">3.1</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="math_random_int">
+        <value name="FROM">
+          <shadow type="math_number">
+            <field name="NUM">1</field>
+          </shadow>
+        </value>
+        <value name="TO">
+          <shadow type="math_number">
+            <field name="NUM">100</field>
+          </shadow>
+        </value>
+      </block>
+    </category>
+    <category name="Text" colour="160">
+      <block type="text"></block>
+      <block type="text_print">
+        <value name="TEXT">
+          <shadow type="text">
+            <field name="TEXT">Hello</field>
+          </shadow>
+        </value>
+      </block>
+      <block type="text_join"></block>
+      <block type="text_length"></block>
+    </category>
+    <category name="Variables" colour="330" custom="VARIABLE"></category>
+    <category name="Motor" colour="110">
+      <block type="lib_left_motor_initialize"></block>
+      <block type="lib_right_motor_initialize"></block>
+      <block type="lib_motor_rotate"></block>
     </category>
     <category name="Camera" colour="260">
       <block type="lib_camera_initialize"></block>
@@ -2241,6 +2412,58 @@
     })();
 
     // ================= BLOCKLY STUDIO INITIALIZATION =================
+    let workspaceMain = null;
+    let workspaceCamera = null;
+    let activeBlockMode = 'main';
+
+    function switchBlockSection(mode) {
+      activeBlockMode = mode;
+      const tabMain = document.getElementById('tabMainBlocks');
+      const tabCam = document.getElementById('tabCameraBlocks');
+      const secMain = document.getElementById('mainBlocksSection');
+      const secCam = document.getElementById('cameraBlocksSection');
+
+      if (mode === 'camera') {
+        if (tabMain) tabMain.classList.remove('active');
+        if (tabCam) tabCam.classList.add('active');
+        if (secMain) secMain.style.display = 'none';
+        if (secCam) secCam.style.display = 'block';
+
+        if (!workspaceCamera) {
+          const toolboxCam = document.getElementById('toolbox_camera');
+          if (toolboxCam && typeof Blockly !== 'undefined') {
+            try {
+              workspaceCamera = Blockly.inject('blocklyDivCamera', {
+                toolbox: toolboxCam,
+                grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
+                zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
+                move: { scrollbars: { horizontal: true, vertical: true }, drag: true, wheel: false },
+                theme: Blockly.Themes.Classic,
+                trashcan: false
+              });
+              attachWorkspaceDragToDelete(workspaceCamera, 'btnDeleteCamera');
+            } catch (err) {
+              console.error('Failed to inject camera workspace:', err);
+            }
+          }
+        }
+        workspace = workspaceCamera || workspaceMain;
+        setTimeout(() => {
+          if (workspaceCamera) Blockly.svgResize(workspaceCamera);
+        }, 80);
+      } else {
+        if (tabCam) tabCam.classList.remove('active');
+        if (tabMain) tabMain.classList.add('active');
+        if (secCam) secCam.style.display = 'none';
+        if (secMain) secMain.style.display = 'block';
+
+        workspace = workspaceMain;
+        setTimeout(() => {
+          if (workspaceMain) Blockly.svgResize(workspaceMain);
+        }, 80);
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', async () => {
       if (typeof Blockly === 'undefined') {
         console.error("Blockly not loaded.");
@@ -2250,7 +2473,7 @@
       try {
         const toolboxElement = document.getElementById('toolbox');
 
-        workspace = Blockly.inject('blocklyDiv', {
+        workspaceMain = Blockly.inject('blocklyDiv', {
           toolbox: toolboxElement,
           grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
           zoom: { controls: false, wheel: true, startScale: 1.0, scaleSpeed: 1.2 },
@@ -2258,9 +2481,10 @@
           theme: Blockly.Themes.Classic,
           trashcan: false
         });
+        workspace = workspaceMain;
 
         setTimeout(() => {
-          Blockly.svgResize(workspace);
+          if (workspaceMain) Blockly.svgResize(workspaceMain);
         }, 100);
 
         window.addEventListener('resize', () => {
@@ -2291,33 +2515,68 @@
       if (workspace) workspace.zoom(0, 0, -1);
     }
 
+    let lastSelectedBlock = null;
+
+    function getSelectedBlock() {
+      const currentWs = (activeBlockMode === 'camera' && workspaceCamera) ? workspaceCamera : (workspace || workspaceMain);
+      if (Blockly.common && typeof Blockly.common.getSelected === 'function') {
+        const sel = Blockly.common.getSelected();
+        if (sel) return sel;
+      }
+      if (Blockly.selected) return Blockly.selected;
+      if (lastSelectedBlock && typeof lastSelectedBlock.dispose === 'function' && !lastSelectedBlock.isDeadOrDying?.()) {
+        return lastSelectedBlock;
+      }
+      return null;
+    }
+
     function deleteSelectedBlock() {
-      if (workspace) {
-        const selected = Blockly.selected;
-        if (selected && typeof selected.dispose === 'function') {
-          selected.dispose(true, true);
-          showToast('Block deleted', 'success');
+      const selected = getSelectedBlock();
+      if (selected && typeof selected.dispose === 'function') {
+        selected.dispose(true, true);
+        lastSelectedBlock = null;
+        if (Blockly.common && typeof Blockly.common.setSelected === 'function') {
+          try { Blockly.common.setSelected(null); } catch (e) { }
         } else {
-          showToast('Drag a block here to delete it', 'info');
+          Blockly.selected = null;
         }
+        showToast('Block deleted', 'success');
+      } else {
+        showToast('Select a block or drag it to Delete', 'info');
       }
     }
 
-    function setupDragToDelete() {
-      const deleteBtn = document.getElementById('btnDelete');
-      if (!deleteBtn || !workspace) return;
+    let isDraggingBlock = false;
+    let activeDragBlockId = null;
+    let lastPointerX = 0, lastPointerY = 0;
 
-      if (workspace.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
+    function getActiveDeleteBtn() {
+      if (activeBlockMode === 'camera') {
+        return document.getElementById('btnDeleteCamera') || document.getElementById('btnDelete');
+      }
+      return document.getElementById('btnDelete');
+    }
+
+    function isOverDeleteBtn(btn, x, y) {
+      if (!btn) return false;
+      const r = btn.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    }
+
+    function attachWorkspaceDragToDelete(ws, btnId) {
+      if (!ws) return;
+      const btn = document.getElementById(btnId);
+      if (btn && ws.getComponentManager && Blockly.ComponentManager && Blockly.ComponentManager.Capability) {
         try {
           const deleteArea = {
-            id: 'deleteButtonArea',
+            id: 'deleteButtonArea_' + btnId,
             getClientRect: function () {
-              const r = deleteBtn.getBoundingClientRect();
+              const r = btn.getBoundingClientRect();
               return new Blockly.utils.Rect(r.top, r.bottom, r.left, r.right);
             },
             wouldDelete: function () { return true; }
           };
-          workspace.getComponentManager().addComponent({
+          ws.getComponentManager().addComponent({
             component: deleteArea,
             weight: 0,
             capabilities: [Blockly.ComponentManager.Capability.DELETE_AREA]
@@ -2325,23 +2584,62 @@
         } catch (err) { }
       }
 
-      let isDraggingBlock = false;
-      let activeDragBlockId = null;
-      let lastPointerX = 0, lastPointerY = 0;
+      ws.addChangeListener((e) => {
+        if (e.type === Blockly.Events.SELECTED) {
+          if (e.newElementId) {
+            lastSelectedBlock = ws.getBlockById(e.newElementId);
+          }
+        }
+        if (e.type === Blockly.Events.BLOCK_DRAG) {
+          if (e.isStart) {
+            isDraggingBlock = true;
+            activeDragBlockId = e.blockId;
+          } else {
+            handleDropDelete(ws, e.blockId);
+            isDraggingBlock = false;
+            activeDragBlockId = null;
+          }
+        }
+      });
+    }
 
-      function isOverDeleteBtn(x, y) {
-        const r = deleteBtn.getBoundingClientRect();
-        return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    function handleDropDelete(ws, blockId) {
+      const activeBtn = getActiveDeleteBtn();
+      const wasOver = isOverDeleteBtn(activeBtn, lastPointerX, lastPointerY);
+      const btnMain = document.getElementById('btnDelete');
+      const btnCam = document.getElementById('btnDeleteCamera');
+      if (btnMain) btnMain.classList.remove('drag-over-delete');
+      if (btnCam) btnCam.classList.remove('drag-over-delete');
+
+      if (wasOver) {
+        const targetWs = ws || (activeBlockMode === 'camera' && workspaceCamera ? workspaceCamera : (workspace || workspaceMain));
+        const targetId = blockId || activeDragBlockId;
+        const block = (targetId && targetWs) ? targetWs.getBlockById(targetId) : getSelectedBlock();
+        if (block && typeof block.dispose === 'function' && !block.isDeadOrDying?.()) {
+          block.dispose(true, true);
+          lastSelectedBlock = null;
+          showToast('Block deleted', 'success');
+        }
+      }
+    }
+
+    function setupDragToDelete() {
+      if (workspaceMain) {
+        attachWorkspaceDragToDelete(workspaceMain, 'btnDelete');
       }
 
       function updatePointerPos(x, y) {
         lastPointerX = x;
         lastPointerY = y;
         if (isDraggingBlock) {
-          if (isOverDeleteBtn(x, y)) {
-            deleteBtn.classList.add('drag-over-delete');
+          const activeBtn = getActiveDeleteBtn();
+          const btnMain = document.getElementById('btnDelete');
+          const btnCam = document.getElementById('btnDeleteCamera');
+          if (activeBtn && isOverDeleteBtn(activeBtn, x, y)) {
+            activeBtn.classList.add('drag-over-delete');
           } else {
-            deleteBtn.classList.remove('drag-over-delete');
+            if (btnMain) btnMain.classList.remove('drag-over-delete');
+            if (btnCam) btnCam.classList.remove('drag-over-delete');
           }
         }
       }
@@ -2350,33 +2648,6 @@
       document.addEventListener('touchmove', (e) => {
         if (e.touches && e.touches[0]) updatePointerPos(e.touches[0].clientX, e.touches[0].clientY);
       }, { passive: true });
-
-      function handleDropDelete(blockId) {
-        const wasOver = isOverDeleteBtn(lastPointerX, lastPointerY);
-        deleteBtn.classList.remove('drag-over-delete');
-
-        if (wasOver) {
-          const targetId = blockId || activeDragBlockId;
-          const block = targetId ? workspace.getBlockById(targetId) : Blockly.selected;
-          if (block && typeof block.dispose === 'function' && !block.isDeadOrDying?.()) {
-            block.dispose(true, true);
-            showToast('Block deleted', 'success');
-          }
-        }
-      }
-
-      workspace.addChangeListener((e) => {
-        if (e.type === Blockly.Events.BLOCK_DRAG) {
-          if (e.isStart) {
-            isDraggingBlock = true;
-            activeDragBlockId = e.blockId;
-          } else {
-            handleDropDelete(e.blockId);
-            isDraggingBlock = false;
-            activeDragBlockId = null;
-          }
-        }
-      });
 
       document.addEventListener('pointerup', () => {
         if (isDraggingBlock) {
@@ -2396,19 +2667,34 @@
     }
 
     function setupXmlDragAndDrop() {
-      const overlay = document.getElementById('dragOverlay');
-      if (!overlay) return;
+      const overlayMain = document.getElementById('dragOverlay');
+      const overlayCam = document.getElementById('dragOverlayCamera');
+
+      function setOverlays(show) {
+        if (show) {
+          if (activeBlockMode === 'camera') {
+            if (overlayCam) overlayCam.style.display = 'flex';
+            if (overlayMain) overlayMain.style.display = 'none';
+          } else {
+            if (overlayMain) overlayMain.style.display = 'flex';
+            if (overlayCam) overlayCam.style.display = 'none';
+          }
+        } else {
+          if (overlayMain) overlayMain.style.display = 'none';
+          if (overlayCam) overlayCam.style.display = 'none';
+        }
+      }
 
       let counter = 0;
       window.addEventListener('dragenter', (e) => {
         if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
           counter++;
-          overlay.style.display = 'flex';
+          setOverlays(true);
         }
       });
       window.addEventListener('dragleave', () => {
         counter = Math.max(0, counter - 1);
-        if (counter === 0) overlay.style.display = 'none';
+        if (counter === 0) setOverlays(false);
       });
       window.addEventListener('dragover', (e) => {
         if (e.dataTransfer && Array.from(e.dataTransfer.types).includes('Files')) {
@@ -2417,7 +2703,7 @@
       });
       window.addEventListener('drop', (e) => {
         counter = 0;
-        overlay.style.display = 'none';
+        setOverlays(false);
         if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
           e.preventDefault();
           const file = e.dataTransfer.files[0];
@@ -2551,6 +2837,52 @@
       reader.readAsText(file, 'UTF-8');
     }
 
+    function validateXmlForCameraMode(xmlDom) {
+      const disallowedPrefixes = [
+        { prefix: 'lib_argb_', label: 'ARGB' },
+        { prefix: 'lib_servo_', label: 'Servo' },
+        { prefix: 'lib_mpu6050_', label: 'MPU6050' },
+        { prefix: 'lib_tof_', label: 'TOF Sensor' },
+        { prefix: 'lib_ldr_', label: 'LDR Sensor' },
+        { prefix: 'lib_display_oled_', label: 'OLED Display' },
+        { prefix: 'lib_buzzer_', label: 'Buzzer' },
+        { prefix: 'lib_dht22_', label: 'DHT22' },
+        { prefix: 'lib_temperature_', label: 'Temperature' },
+        { prefix: 'lib_humidity_', label: 'Humidity' },
+        { prefix: 'lib_led_', label: 'LED' }
+      ];
+
+      const disallowedFound = new Set();
+      const allElements = xmlDom.querySelectorAll ? xmlDom.querySelectorAll('block, shadow') : [];
+      for (let i = 0; i < allElements.length; i++) {
+        const type = (allElements[i].getAttribute('type') || '').toLowerCase();
+        for (const rule of disallowedPrefixes) {
+          if (type.startsWith(rule.prefix.toLowerCase())) {
+            disallowedFound.add(rule.label);
+          }
+        }
+      }
+      return Array.from(disallowedFound);
+    }
+
+    function validateXmlForMainMode(xmlDom) {
+      const disallowedPrefixes = [
+        { prefix: 'lib_camera_', label: 'Camera' }
+      ];
+
+      const disallowedFound = new Set();
+      const allElements = xmlDom.querySelectorAll ? xmlDom.querySelectorAll('block, shadow') : [];
+      for (let i = 0; i < allElements.length; i++) {
+        const type = (allElements[i].getAttribute('type') || '').toLowerCase();
+        for (const rule of disallowedPrefixes) {
+          if (type.startsWith(rule.prefix.toLowerCase())) {
+            disallowedFound.add(rule.label);
+          }
+        }
+      }
+      return Array.from(disallowedFound);
+    }
+
     function loadXmlText(rawText) {
       if (!rawText || !rawText.trim()) {
         showToast('XML file is empty', 'error');
@@ -2564,10 +2896,34 @@
         }
 
         const xml = textToDom(xmlText);
-        workspace.clear();
-        Blockly.Xml.domToWorkspace(xml, workspace);
-        Blockly.svgResize(workspace);
-        if (workspace.scrollCenter) workspace.scrollCenter();
+
+        // Resistance / Validation when in Camera Blocks mode:
+        // Prohibit modular sensors that are disabled in camera mode
+        if (activeBlockMode === 'camera') {
+          const forbiddenSensors = validateXmlForCameraMode(xml);
+          if (forbiddenSensors.length > 0) {
+            const listStr = forbiddenSensors.join(', ');
+            showToast('Upload rejected: Disabled sensor blocks (' + listStr + ') not allowed in Camera mode. Switch to Main Blocks to use them.', 'error');
+            console.warn('Rejected XML upload in Camera mode due to disabled sensors:', forbiddenSensors);
+            return;
+          }
+        } else {
+          // Resistance / Validation when in Main Blocks mode:
+          // Prohibit camera blocks in Main mode
+          const forbiddenBlocks = validateXmlForMainMode(xml);
+          if (forbiddenBlocks.length > 0) {
+            const listStr = forbiddenBlocks.join(', ');
+            showToast('Upload rejected: Camera blocks (' + listStr + ') not allowed in Main mode. Switch to Camera Blocks to use them.', 'error');
+            console.warn('Rejected XML upload in Main mode due to camera blocks:', forbiddenBlocks);
+            return;
+          }
+        }
+
+        const targetWs = (activeBlockMode === 'camera' && workspaceCamera) ? workspaceCamera : (workspace || workspaceMain);
+        targetWs.clear();
+        Blockly.Xml.domToWorkspace(xml, targetWs);
+        Blockly.svgResize(targetWs);
+        if (targetWs.scrollCenter) targetWs.scrollCenter();
         showToast('Blocks loaded successfully!', 'success');
       } catch (err) {
         console.error('XML Upload Error:', err);
