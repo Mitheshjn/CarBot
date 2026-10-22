@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gesture Classifier + Tic-Tac-Toe</title>
+    <!-- Load Mediapipe scripts locally -->
+    <script src="camera_utils.js"></script>
+    <script src="control_utils.js"></script>
+    <script src="drawing_utils.js"></script>
+    <script src="hands.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+            background: #111;
+            overflow: hidden;
+        }
+        .output_canvas { 
+            width: 100vw;
+            height: 65vh;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: scaleX(-1);
+        }
+        #gestureUI {
+            display: block;
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+            max-width: 520px;
+            padding: 0 8px;
+            box-sizing: border-box;
+        }
+        .gestureBtn-container, .gameBtn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        .gestureBtn, .gameBtn, #clearDataBtn, #placeBtn, #resetBoardBtn {
+            min-width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 0 10px;
+        }
+        #statusBar {
+            margin-bottom: 4px;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+            text-shadow: 1px 1px 3px black;
+            min-height: 24px;
+        }
+        #recordingStatus {
+            margin-bottom: 4px;
+            font-weight: bold;
+            color: #ff6b6b;
+            min-height: 18px;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px black;
+        }
+        .mode-label {
+            font-size: 13px;
+            color: #ddd;
+            margin-bottom: 4px;
+            text-shadow: 1px 1px 2px black;
+        }
+        .active-mode {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
+        }
+        #flipCameraBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+            font-size: 20px;
+            padding: 8px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="flipCameraBtn">📷</button>
+    <div id="gestureUI">
+        <div id="statusBar">Prediction: None</div>
+        <div id="recordingStatus"></div>
+        <div class="mode-label">Control Panel</div>
+        <div class="gameBtn-container">
+            <button class="gestureBtn" data-label="1" id="btnG1" style="background: #3498db;">G1</button>
+            <button class="gestureBtn" data-label="2" id="btnG2" style="background: #e74c3c;">G2</button>
+            <button id="clearDataBtn" style="background: #2c3e50;">Clear</button>
+            <button id="placeBtn" style="background: #9b59b6;">Place</button>
+            <button id="resetBoardBtn" style="background: #7f8c8d;">Reset</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div style="display: none;">
+            <video class="input_video" playsinline></video>
+        </div>
+        <canvas class="output_canvas"></canvas>
+    </div>
+
+    <script type="module">
+        // Suppress Mediapipe glog noise
+        function isMediapipeLog(msg) {
+            if (typeof msg !== 'string') return false;
+            return msg.startsWith('I0000') || msg.startsWith('W0000') || msg.startsWith('E0000') || msg.includes('gl_context');
+        }
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (isMediapipeLog(args[0])) return;
+            originalWarn.apply(console, args);
+        };
+        const originalLog = console.log;
+        console.log = function(...args) {
+            if (isMediapipeLog(args[0])) return;
+            originalLog.apply(console, args);
+        };
+        const originalError = console.error;
+        console.error = function(...args) {
+            if (isMediapipeLog(args[0])) return;
+            originalError.apply(console, args);
+        };
+        if (console.info) {
+            const originalInfo = console.info;
+            console.info = function(...args) {
+                if (isMediapipeLog(args[0])) return;
+                originalInfo.apply(console, args);
+            };
+        }
+
+        // ---------- Simple 2D Kalman Filter ----------
+        class Kalman2D {
+            constructor() {
+                // State: [x, y, vx, vy]
+                this.x = 0; this.y = 0; this.vx = 0; this.vy = 0;
+                this.P = [
+                    [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1]
+                ];
+                this.Q = 0.01;   // process noise
+                this.R = 0.1;    // measurement noise
+                this.initialized = false;
+            }
+            update(mx, my) {
+                if (!this.initialized) {
+                    this.x = mx; this.y = my;
+                    this.vx = 0; this.vy = 0;
+                    this.initialized = true;
+                    return { x: this.x, y: this.y };
+                }
+                // Predict
+                this.x += this.vx;
+                this.y += this.vy;
+                // Simple covariance prediction (diagonal approximation for speed)
+                for (let i = 0; i < 4; i++) this.P[i][i] += this.Q;
+
+                // Update
+                const yx = mx - this.x;
+                const yy = my - this.y;
+                const S = this.P[0][0] + this.R;
+                const Kx = this.P[0][0] / S;
+                const Ky = this.P[1][1] / S;
+
+                this.x += Kx * yx;
+                this.y += Ky * yy;
+                this.vx += Kx * yx * 0.3; // mild velocity update
+                this.vy += Ky * yy * 0.3;
+
+                this.P[0][0] *= (1 - Kx);
+                this.P[1][1] *= (1 - Ky);
+
+                return { x: this.x, y: this.y };
+            }
+            reset() {
+                this.initialized = false;
+            }
+        }
+
+        // One filter per landmark (21 landmarks)
+        const kalmanFilters = Array.from({ length: 21 }, () => new Kalman2D());
+
+        // ---------- Offline KNN (2 gestures only) ----------
+        class KNNClassifier {
+            constructor(k = 5) {
+                this.k = k;
+                this.data = [];
+            }
+            addExample(features, label) {
+                this.data.push({ features, label });
+            }
+            clear() {
+                this.data = [];
+            }
+            hasTrainedBoth() {
+                let has1 = false;
+                let has2 = false;
+                for (let i = 0; i < this.data.length; i++) {
+                    if (this.data[i].label === 1) has1 = true;
+                    if (this.data[i].label === 2) has2 = true;
+                    if (has1 && has2) return true;
+                }
+                return false;
+            }
+            predict(features) {
+                if (!this.hasTrainedBoth()) return null;
+                const distances = this.data.map(d => {
+                    let dist = 0;
+                    for (let j = 0; j < features.length; j++) {
+                        const diff = features[j] - d.features[j];
+                        dist += diff * diff;
+                    }
+                    return { dist, label: d.label };
+                });
+                distances.sort((a, b) => a.dist - b.dist);
+                const kNearest = distances.slice(0, Math.min(this.k, distances.length));
+                const counts = {};
+                for (const n of kNearest) {
+                    counts[n.label] = (counts[n.label] || 0) + 1;
+                }
+                let maxCount = -1, prediction = null;
+                for (const label in counts) {
+                    if (counts[label] > maxCount) {
+                        maxCount = counts[label];
+                        prediction = parseInt(label);
+                    }
+                }
+                return prediction;
+            }
+        }
+
+        const knn = new KNNClassifier(5);
+        let recordingLabel = null;
+        let board = Array(9).fill(null);
+        let gameActive = true;
+        let winLine = null;
+        let lastPlacedSymbol = null;
+        let lastPredicted = null;
+        let lastHandCenter = null; // normalized 0-1 for grid mapping
+
+        let hoverCell = -1;
+        let hoverStartTime = 0;
+        const AUTO_PLACE_TIME = 1500; // ms
+
+        // ROI (central region of the frame, normalized)
+        const ROI = { x: 0.15, y: 0.10, w: 0.70, h: 0.80 };
+
+        const statusBar = document.getElementById('statusBar');
+        const recordingStatusDisplay = document.getElementById('recordingStatus');
+        const btnG1 = document.getElementById('btnG1');
+        const btnG2 = document.getElementById('btnG2');
+        const placeBtn = document.getElementById('placeBtn');
+        const resetBoardBtn = document.getElementById('resetBoardBtn');
+
+        // Training buttons (only 2)
+        document.querySelectorAll('.gestureBtn').forEach(btn => {
+            btn.addEventListener('pointerdown', (e) => {
+                recordingLabel = parseInt(e.target.dataset.label);
+                recordingStatusDisplay.innerText = `Recording G${recordingLabel}...`;
+            });
+            const stopRecording = (e) => {
+                if (recordingLabel === parseInt(e.target.dataset.label)) {
+                    recordingLabel = null;
+                    recordingStatusDisplay.innerText = '';
+                }
+            };
+            btn.addEventListener('pointerup', stopRecording);
+            btn.addEventListener('pointerleave', stopRecording);
+        });
+
+        document.getElementById('clearDataBtn').addEventListener('click', () => {
+            knn.clear();
+            lastPredicted = null;
+            statusBar.innerText = 'Prediction: None';
+        });
+
+        // Choose X / O actions no longer needed as they are combined with G1 / G2
+
+        function placeSymbolAtCell(cell, currentSymbol) {
+            board[cell] = currentSymbol;
+            lastPlacedSymbol = currentSymbol;
+            
+            const winner = checkWinner();
+            if (winner) {
+                statusBar.innerText = `Winner: ${winner === 'X' ? 'Blue' : 'Red'}!`;
+                gameActive = false;
+            } else if (board.every(c => c !== null)) {
+                statusBar.innerText = 'Draw!';
+                gameActive = false;
+            } else {
+                updateStatus();
+            }
+        }
+
+        // Place mark on button press
+        placeBtn.addEventListener('click', () => {
+            if (!gameActive) {
+                statusBar.innerText = 'Game Over. Reset to play again.';
+                return;
+            }
+            if (lastPredicted === null) {
+                statusBar.innerText = 'No trained gesture detected';
+                return;
+            }
+            if (!lastHandCenter) {
+                statusBar.innerText = 'Hand not over grid';
+                return;
+            }
+            const cell = pointToCell(lastHandCenter.x, lastHandCenter.y);
+            if (cell === -1) {
+                statusBar.innerText = 'Hand outside grid';
+                return;
+            }
+            if (board[cell] !== null) {
+                statusBar.innerText = 'Cell already taken';
+                return;
+            }
+            
+            const currentSymbol = lastPredicted === 1 ? 'X' : 'O';
+            if (lastPlacedSymbol === currentSymbol) {
+                statusBar.innerText = `Not your turn! Waiting for ${currentSymbol === 'X' ? 'G2 (Red)' : 'G1 (Blue)'}.`;
+                return;
+            }
+            
+            placeSymbolAtCell(cell, currentSymbol);
+        });
+
+        resetBoardBtn.addEventListener('click', () => {
+            board = Array(9).fill(null);
+            gameActive = true;
+            winLine = null;
+            lastPlacedSymbol = null;
+            hoverCell = -1;
+            updateStatus();
+        });
+
+        function updateStatus() {
+            if (!gameActive) return; // Keep winner text on screen
+            
+            if (lastPredicted === 1) {
+                btnG1.classList.add('active-mode');
+                btnG2.classList.remove('active-mode');
+                if (lastPlacedSymbol === 'X') {
+                    statusBar.innerText = 'Detected: G1 (Blue) - Waiting for Red\'s turn';
+                } else {
+                    statusBar.innerText = 'Detected: G1 (Blue) - Ready to Place';
+                }
+            } else if (lastPredicted === 2) {
+                btnG2.classList.add('active-mode');
+                btnG1.classList.remove('active-mode');
+                if (lastPlacedSymbol === 'O') {
+                    statusBar.innerText = 'Detected: G2 (Red) - Waiting for Blue\'s turn';
+                } else {
+                    statusBar.innerText = 'Detected: G2 (Red) - Ready to Place';
+                }
+            } else {
+                btnG1.classList.remove('active-mode');
+                btnG2.classList.remove('active-mode');
+                
+                if (knn.data.length === 0) {
+                    statusBar.innerText = "Train G1 (Blue) & G2 (Red) to begin!";
+                } else if (!knn.hasTrainedBoth()) {
+                    statusBar.innerText = "Please train BOTH G1 & G2 before playing!";
+                } else {
+                    statusBar.innerText = 'Prediction: None';
+                }
+            }
+        }
+
+        function checkWinner() {
+            const lines = [
+                [0,1,2],[3,4,5],[6,7,8], // rows
+                [0,3,6],[1,4,7],[2,5,8], // cols
+                [0,4,8],[2,4,6]          // diagonals
+            ];
+            for (const [a,b,c] of lines) {
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    winLine = [a, c];
+                    return board[a];
+                }
+            }
+            return null;
+        }
+
+        // Map normalized hand center to grid cell (0-8) or -1 if outside
+        function pointToCell(nx, ny) {
+            // Grid occupies the ROI area
+            const gx = (nx - ROI.x) / ROI.w;
+            const gy = (ny - ROI.y) / ROI.h;
+            if (gx < 0 || gx > 1 || gy < 0 || gy > 1) return -1;
+            const col = Math.min(2, Math.floor(gx * 3));
+            const row = Math.min(2, Math.floor(gy * 3));
+            return row * 3 + col;
+        }
+
+        function isMobileDevice() {
+            return window.innerWidth <= 430;
+        }
+
+        let canvasWidth = 1080, canvasHeight = 720;
+        function setCanvasDimensions() {
+            const canvasElement = document.getElementsByClassName('output_canvas')[0];
+            canvasElement.width = canvasWidth;
+            canvasElement.height = canvasHeight;
+        }
+        setCanvasDimensions();
+
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const canvasElement = document.getElementsByClassName('output_canvas')[0];
+        const canvasCtx = canvasElement.getContext('2d');
+
+        // Feature extraction (relative to wrist, scale-normalized)
+        function extractFeatures(landmarks) {
+            const wrist = landmarks[0];
+            let maxDist = 0;
+            for (let i = 1; i < landmarks.length; i++) {
+                const dx = landmarks[i].x - wrist.x;
+                const dy = landmarks[i].y - wrist.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > maxDist) maxDist = dist;
+            }
+            const features = [];
+            for (let i = 0; i < landmarks.length; i++) {
+                const dx = landmarks[i].x - wrist.x;
+                const dy = landmarks[i].y - wrist.y;
+                if (maxDist > 0) {
+                    features.push(dx / maxDist);
+                    features.push(dy / maxDist);
+                } else {
+                    features.push(dx);
+                    features.push(dy);
+                }
+            }
+            return features;
+        }
+
+        // Apply Kalman to all landmarks
+        function smoothLandmarks(landmarks) {
+            const smoothed = [];
+            for (let i = 0; i < landmarks.length; i++) {
+                const f = kalmanFilters[i].update(landmarks[i].x, landmarks[i].y);
+                smoothed.push({ x: f.x, y: f.y, z: landmarks[i].z });
+            }
+            return smoothed;
+        }
+
+        // Draw thin 3x3 grid inside ROI
+        function drawGrid() {
+            const x0 = ROI.x * canvasWidth;
+            const y0 = ROI.y * canvasHeight;
+            const gw = ROI.w * canvasWidth;
+            const gh = ROI.h * canvasHeight;
+            const cellW = gw / 3;
+            const cellH = gh / 3;
+
+            canvasCtx.strokeStyle = 'rgba(255,255,255,0.55)';
+            canvasCtx.lineWidth = 2;
+            canvasCtx.beginPath();
+            // Vertical
+            for (let i = 1; i < 3; i++) {
+                canvasCtx.moveTo(x0 + i * cellW, y0);
+                canvasCtx.lineTo(x0 + i * cellW, y0 + gh);
+            }
+            // Horizontal
+            for (let i = 1; i < 3; i++) {
+                canvasCtx.moveTo(x0, y0 + i * cellH);
+                canvasCtx.lineTo(x0 + gw, y0 + i * cellH);
+            }
+            // Outer thin border
+            canvasCtx.strokeRect(x0, y0, gw, gh);
+            canvasCtx.stroke();
+
+            // Draw existing marks
+            for (let i = 0; i < 9; i++) {
+                if (!board[i]) continue;
+                const row = Math.floor(i / 3);
+                const col = i % 3;
+                const cx = x0 + col * cellW + cellW / 2;
+                const cy = y0 + row * cellH + cellH / 2;
+                const size = Math.min(cellW, cellH) * 0.32;
+
+                canvasCtx.lineWidth = 5;
+                canvasCtx.lineCap = 'round';
+                if (board[i] === 'X') {
+                    canvasCtx.strokeStyle = '#3498db'; // blue
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(cx - size, cy - size);
+                    canvasCtx.lineTo(cx + size, cy + size);
+                    canvasCtx.moveTo(cx + size, cy - size);
+                    canvasCtx.lineTo(cx - size, cy + size);
+                    canvasCtx.stroke();
+                } else {
+                    canvasCtx.strokeStyle = '#e74c3c'; // red
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(cx, cy, size, 0, Math.PI * 2);
+                    canvasCtx.stroke();
+                }
+            }
+            // Draw win line if it exists
+            if (winLine) {
+                const [startIdx, endIdx] = winLine;
+                const startRow = Math.floor(startIdx / 3);
+                const startCol = startIdx % 3;
+                const endRow = Math.floor(endIdx / 3);
+                const endCol = endIdx % 3;
+
+                const startX = x0 + startCol * cellW + cellW / 2;
+                const startY = y0 + startRow * cellH + cellH / 2;
+                const endX = x0 + endCol * cellW + cellW / 2;
+                const endY = y0 + endRow * cellH + cellH / 2;
+
+                canvasCtx.lineWidth = 10;
+                canvasCtx.strokeStyle = board[startIdx] === 'X' ? 'rgba(52, 152, 219, 0.8)' : 'rgba(231, 76, 60, 0.8)';
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(startX, startY);
+                canvasCtx.lineTo(endX, endY);
+                canvasCtx.stroke();
+            }
+        }
+
+        // Draw ROI rectangle (very thin)
+        function drawROI() {
+            canvasCtx.strokeStyle = 'rgba(0,255,255,0.35)';
+            canvasCtx.lineWidth = 1.5;
+            canvasCtx.strokeRect(
+                ROI.x * canvasWidth,
+                ROI.y * canvasHeight,
+                ROI.w * canvasWidth,
+                ROI.h * canvasHeight
+            );
+        }
+
+        function onResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            // Always draw ROI + grid + marks
+            drawROI();
+            drawGrid();
+
+            lastPredicted = null;
+            lastHandCenter = null;
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                let landmarks = results.multiHandLandmarks[0];
+
+                // Kalman smoothing
+                landmarks = smoothLandmarks(landmarks);
+
+                // Hand center (average of landmarks) for grid mapping
+                let cx = 0, cy = 0;
+                for (const lm of landmarks) {
+                    cx += lm.x;
+                    cy += lm.y;
+                }
+                cx /= landmarks.length;
+                cy /= landmarks.length;
+                lastHandCenter = { x: cx, y: cy };
+
+                // Only use features if hand is roughly inside ROI
+                const insideROI = cx >= ROI.x && cx <= ROI.x + ROI.w &&
+                                  cy >= ROI.y && cy <= ROI.y + ROI.h;
+
+                if (insideROI) {
+                    const features = extractFeatures(landmarks);
+
+                    if (recordingLabel !== null) {
+                        knn.addExample(features, recordingLabel);
+                    } else {
+                        const pred = knn.predict(features);
+                        lastPredicted = pred;
+                    }
+                }
+
+                // Draw skeleton
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 4 });
+                drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 1.5, radius: 3 });
+
+                // Highlight cell under hand
+                if (gameActive && lastHandCenter) {
+                    const cell = pointToCell(lastHandCenter.x, lastHandCenter.y);
+                    if (cell !== -1) {
+                        const row = Math.floor(cell / 3);
+                        const col = cell % 3;
+                        const x0 = ROI.x * canvasWidth;
+                        const y0 = ROI.y * canvasHeight;
+                        const cellW = (ROI.w * canvasWidth) / 3;
+                        const cellH = (ROI.h * canvasHeight) / 3;
+                        canvasCtx.fillStyle = 'rgba(255,255,0,0.18)';
+                        canvasCtx.fillRect(x0 + col * cellW, y0 + row * cellH, cellW, cellH);
+                        
+                        // Show translucent preview
+                        const previewSymbol = lastPredicted === 1 ? 'X' : 'O';
+                        if (board[cell] === null && lastPredicted !== null && lastPlacedSymbol !== previewSymbol) {
+                            const cx = x0 + col * cellW + cellW / 2;
+                            const cy = y0 + row * cellH + cellH / 2;
+                            const size = Math.min(cellW, cellH) * 0.32;
+                            
+                            canvasCtx.lineWidth = 5;
+                            canvasCtx.lineCap = 'round';
+                            if (lastPredicted === 1) {
+                                canvasCtx.strokeStyle = 'rgba(52, 152, 219, 0.4)';
+                                canvasCtx.beginPath();
+                                canvasCtx.moveTo(cx - size, cy - size);
+                                canvasCtx.lineTo(cx + size, cy + size);
+                                canvasCtx.moveTo(cx + size, cy - size);
+                                canvasCtx.lineTo(cx - size, cy + size);
+                                canvasCtx.stroke();
+                            } else if (lastPredicted === 2) {
+                                canvasCtx.strokeStyle = 'rgba(231, 76, 60, 0.4)';
+                                canvasCtx.beginPath();
+                                canvasCtx.arc(cx, cy, size, 0, Math.PI * 2);
+                                canvasCtx.stroke();
+                            }
+
+                            // Auto-Placement logic
+                            if (hoverCell === cell) {
+                                const elapsed = performance.now() - hoverStartTime;
+                                const progress = Math.min(elapsed / AUTO_PLACE_TIME, 1.0);
+                                
+                                canvasCtx.lineWidth = 6;
+                                canvasCtx.strokeStyle = previewSymbol === 'X' ? 'rgba(52, 152, 219, 0.8)' : 'rgba(231, 76, 60, 0.8)';
+                                canvasCtx.beginPath();
+                                canvasCtx.arc(cx, cy, size * 1.5, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * progress));
+                                canvasCtx.stroke();
+                                
+                                if (progress >= 1.0) {
+                                    placeSymbolAtCell(cell, previewSymbol);
+                                    hoverCell = -1; // Reset hover to wait for a new cell interaction
+                                }
+                            } else {
+                                hoverCell = cell;
+                                hoverStartTime = performance.now();
+                            }
+                        } else {
+                            hoverCell = -1;
+                        }
+                    } else {
+                        hoverCell = -1;
+                    }
+                } else {
+                    hoverCell = -1;
+                }
+            } else {
+                // Reset filters when hand is lost
+                hoverCell = -1;
+                kalmanFilters.forEach(f => f.reset());
+            }
+
+            updateStatus();
+            canvasCtx.restore();
+        }
+
+        const hands = new Hands({
+            locateFile: (file) => `${file}`
+        });
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+
+        let currentFacingMode = 'user';
+        const flipCameraBtn = document.getElementById('flipCameraBtn');
+        flipCameraBtn.addEventListener('click', () => {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            if (camera) {
+                camera.stop();
+            }
+            startCamera();
+        });
+
+        let camera;
+        function startCamera() {
+            camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({ image: videoElement });
+                },
+                width: canvasHeight,
+                height: canvasWidth,
+                facingMode: currentFacingMode,
+            });
+            camera.start();
+        }
+        startCamera();
+    </script>
+</body>
+</html>

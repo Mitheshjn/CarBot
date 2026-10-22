@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gesture Classifier</title>
+    <!-- Load Mediapipe scripts locally -->
+    <script src="camera_utils.js"></script>
+    <script src="control_utils.js"></script>
+    <script src="drawing_utils.js"></script>
+    <script src="hands.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
+        .output_canvas { 
+            width: 100vw;
+            height: 65vh;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: scaleX(-1);
+        }
+        #gestureUI {
+            display: block;
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+        .gestureBtn-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .gestureBtn, #clearDataBtn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gestureUI">
+        <div id="gesturePrediction" style="margin-bottom:6px; font-weight:bold; font-size:20px; color:white; text-shadow: 1px 1px 3px black;">Prediction: None</div>
+        <div id="recordingStatus" style="margin-bottom:6px; font-weight:bold; color:red; min-height: 20px; font-size:16px; text-shadow: 1px 1px 2px white;"></div>
+        <div class="gestureBtn-container">
+            <button class="gestureBtn" data-label="1" style="background: #e74c3c;">1</button>
+            <button class="gestureBtn" data-label="2" style="background: #27ae60;">2</button>
+            <button class="gestureBtn" data-label="3" style="background: #2980b9;">3</button>
+            <button class="gestureBtn" data-label="4" style="background: #8e44ad;">4</button>
+            <button class="gestureBtn" data-label="5" style="background: #f39c12;">5</button>
+            <button id="clearDataBtn" style="background: #2c3e50;">X</button>
+        </div>
+    </div>
+
+    <div class="container" style="position:relative;">
+        <button id="switch-cam-btn" style="position:absolute;top:10px;right:10px;z-index:100;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.8);border:none;font-size:20px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;">📷</button>
+        <div style="display: none;">
+            <video class="input_video" playsinline></video>
+        </div>
+        <canvas class="output_canvas"></canvas>
+    </div>
+
+    <script type="module">
+        // Intercept and suppress Mediapipe glog Output from appearing on the screen
+        function isMediapipeLog(msg) {
+            if (typeof msg !== 'string') return false;
+            return msg.startsWith('I0000') || msg.startsWith('W0000') || msg.startsWith('E0000') || msg.includes('gl_context');
+        }
+
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (isMediapipeLog(args[0])) return;
+            originalWarn.apply(console, args);
+        };
+        const originalLog = console.log;
+        console.log = function(...args) {
+            if (isMediapipeLog(args[0])) return;
+            originalLog.apply(console, args);
+        };
+        const originalError = console.error;
+        console.error = function(...args) {
+            if (isMediapipeLog(args[0])) return;
+            originalError.apply(console, args);
+        };
+        if(console.info) {
+            const originalInfo = console.info;
+            console.info = function(...args) {
+                if (isMediapipeLog(args[0])) return;
+                originalInfo.apply(console, args);
+            };
+        }
+
+        // Basic offline KNN Classifier
+        class KNNClassifier {
+            constructor(k=5) {
+                this.k = k;
+                this.data = [];
+            }
+            addExample(features, label) {
+                this.data.push({features, label});
+            }
+            clear() {
+                this.data = [];
+            }
+            predict(features) {
+                if (this.data.length === 0) return null;
+                
+                let distances = [];
+                for (let i = 0; i < this.data.length; i++) {
+                    let dist = 0;
+                    for (let j = 0; j < features.length; j++) {
+                        dist += Math.pow(features[j] - this.data[i].features[j], 2);
+                    }
+                    distances.push({dist: dist, label: this.data[i].label});
+                }
+                
+                distances.sort((a,b) => a.dist - b.dist);
+                let kNearest = distances.slice(0, this.k);
+                let counts = {};
+                for (let neighbor of kNearest) {
+                    counts[neighbor.label] = (counts[neighbor.label] || 0) + 1;
+                }
+                
+                let maxCount = -1;
+                let prediction = null;
+                for (let label in counts) {
+                    if (counts[label] > maxCount) {
+                        maxCount = counts[label];
+                        prediction = parseInt(label);
+                    }
+                }
+                return prediction;
+            }
+        }
+
+        const knn = new KNNClassifier(5);
+        let recordingLabel = null;
+
+        const recordingStatusDisplay = document.getElementById('recordingStatus');
+        const gesturePredictionDisplay = document.getElementById('gesturePrediction');
+
+        const gestureBtns = document.querySelectorAll('.gestureBtn');
+        gestureBtns.forEach(btn => {
+            btn.addEventListener('pointerdown', (e) => {
+                recordingLabel = parseInt(e.target.dataset.label);
+                recordingStatusDisplay.innerText = `Recording label ${recordingLabel}...`;
+            });
+            const stopRecording = (e) => {
+                if(recordingLabel === parseInt(e.target.dataset.label)) {
+                    recordingLabel = null;
+                    recordingStatusDisplay.innerText = '';
+                }
+            };
+            btn.addEventListener('pointerup', stopRecording);
+            btn.addEventListener('pointerleave', stopRecording);
+        });
+
+        document.getElementById('clearDataBtn').addEventListener('click', () => {
+            knn.clear();
+            gesturePredictionDisplay.innerText = `Prediction: None`;
+        });
+
+        function isMobileDevice() {
+            return window.innerWidth <= 430;
+        }
+
+        let canvasWidth, canvasHeight;
+        let mobileDevice = isMobileDevice();
+
+        function setCanvasDimensions() {
+            mobileDevice = isMobileDevice();
+            if (mobileDevice) {
+                canvasWidth = 1080;
+                canvasHeight = 720;
+            } else {
+                canvasWidth = 1080;
+                canvasHeight = 720;
+            }
+
+            const canvasElement = document.getElementsByClassName('output_canvas')[0];
+            canvasElement.width = canvasWidth;
+            canvasElement.height = canvasHeight;
+        }
+        setCanvasDimensions();
+
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const canvasElement = document.getElementsByClassName('output_canvas')[0];
+        const canvasCtx = canvasElement.getContext('2d');
+
+        function extractFeatures(landmarks) {
+            let wrist = landmarks[0];
+            let features = [];
+            let maxDist = 0;
+            
+            for (let i = 1; i < landmarks.length; i++) {
+                let dx = landmarks[i].x - wrist.x;
+                let dy = landmarks[i].y - wrist.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist > maxDist) maxDist = dist;
+            }
+            
+            for (let i = 0; i < landmarks.length; i++) {
+                let dx = landmarks[i].x - wrist.x;
+                let dy = landmarks[i].y - wrist.y;
+                if (maxDist > 0) {
+                    features.push(dx / maxDist);
+                    features.push(dy / maxDist);
+                } else {
+                    features.push(dx);
+                    features.push(dy);
+                }
+            }
+            return features;
+        }
+
+        function onResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.multiHandLandmarks) {
+                for (const landmarks of results.multiHandLandmarks) {
+                    let features = extractFeatures(landmarks);
+                    
+                    if (recordingLabel !== null) {
+                        knn.addExample(features, recordingLabel);
+                    } else {
+                        let pred = knn.predict(features);
+                        if (pred !== null) {
+                            console.log(pred);
+                            gesturePredictionDisplay.innerText = `Prediction: ${pred}`;
+                        } else {
+                            gesturePredictionDisplay.innerText = `Prediction: None`;
+                        }
+                    }
+
+                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
+                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 2 });
+                }
+            } else {
+                if (knn.data.length > 0) {
+                    gesturePredictionDisplay.innerText = `Prediction: None`;
+                }
+            }
+            canvasCtx.restore();
+        }
+
+        const hands = new Hands({
+            locateFile: (file) => `${file}`
+        });
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.5
+        });
+        hands.onResults(onResults);
+
+        let camera;
+        let currentFacingMode = 'user';
+        
+        document.getElementById('switch-cam-btn').addEventListener('click', () => {
+            currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            if (camera) {
+                camera.stop();
+            }
+            startCamera();
+        });
+
+        function startCamera() {
+            camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({ image: videoElement });
+                },
+                width: canvasHeight,
+                height: canvasWidth,
+                facingMode: currentFacingMode,
+            });
+            camera.start();
+        }
+        startCamera();
+    </script>
+</body>
+</html>

@@ -305,3 +305,29 @@ registerPythonBlock('lib_neo_sleep_ms', function (block) {
         const duration = Blockly.Python.valueToCode(block, 'duration', Blockly.Python.ORDER_ATOMIC) || '0';
         return `sleep_ms(${duration})\n`;
 });
+
+// Camera Generators
+registerPythonBlock('lib_camera_initialize', function (a) {
+        Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var b = ("1");
+        a = a.getFieldValue("ob");
+        return ["0" === b ? "Camera(ob=" + a + ")" : "Camera(port=" + b + ",ob=" + a + ")", Blockly.Python.ORDER_MEMBER];
+});
+
+registerPythonBlock('lib_camera_take_picture', function (a) {
+        Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var b = Blockly.Python.valueToCode(a, "camera_object", Blockly.Python.ORDER_MEMBER) || "camera";
+        return [b + ".take_picture()", Blockly.Python.ORDER_MEMBER];
+});
+
+registerPythonBlock('lib_camera_convert_to_grayscale', function (a) {
+        Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var b = Blockly.Python.valueToCode(a, "camera_object", Blockly.Python.ORDER_MEMBER) || "camera";
+        return [b + ".convert_to_grayscale()", Blockly.Python.ORDER_MEMBER];
+});
+
+registerPythonBlock('lib_camera_read_console_values', function (a) {
+        Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var b = Blockly.Python.valueToCode(a, "camera_object", Blockly.Python.ORDER_MEMBER) || "camera";
+        return [b + ".read_console_values()", Blockly.Python.ORDER_MEMBER];
+});

@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vision AI Suite</title>
+
+    <!-- External Local Libraries -->
+    <script src="camera_utils.js"></script>
+    <script src="control_utils.js"></script>
+    <script src="drawing_utils.js"></script>
+    <script src="hands.js"></script>
+    <script src="tf.min.js"></script>
+    <script src="mobilenet.js"></script>
+    <script src="knn-classifier.js"></script>
+
+    <style>
+        :root {
+            --primary-accent: #3b82f6;
+            --bg-base: #0f172a;
+            --bg-nav: rgba(15, 23, 42, 0.92);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #000;
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Global Header & Tab Bar --- */
+        #global-header {
+            flex-shrink: 0;
+            background: var(--bg-nav);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            gap: 12px;
+            z-index: 1000;
+            user-select: none;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .header-brand .dot {
+            width: 9px;
+            height: 9px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            display: inline-block;
+        }
+
+        #nav-tabs-wrapper {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding: 2px 0;
+        }
+
+        #nav-tabs-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab-btn {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 6px 13px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-tab-btn:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+        }
+
+        .nav-tab-btn.active {
+            background: var(--primary-accent);
+            border-color: #60a5fa;
+            color: #fff;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+        }
+
+        /* --- Workspace Blocks --- */
+        #workspace-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .app-block {
+            display: none; /* Managed by JS switcher */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .app-block.active {
+            display: flex;
+        }
+
+        /* Common Camera Flip Button */
+        .cam-switch-floating {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 100;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.85);
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .cam-switch-floating:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 1);
+        }
+
+        /* ========================================================= */
+        /* BLOCK 1: FINGER TRACKING                                  */
+        /* ========================================================= */
+        #block-finger-tracking {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+
+        #block-finger-tracking .ft-canvas {
+            width: 100vw;
+            height: calc(100vh - 120px);
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transform: scaleX(-1);
+        }
+
+        #block-finger-tracking #ft-fingerCount {
+            position: absolute;
+            bottom: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 4px black, 0 0 8px rgba(0,0,0,0.9);
+            text-align: center;
+            background: rgba(0,0,0,0.45);
+            padding: 6px 16px;
+            border-radius: 20px;
+        }
+
+        #block-finger-tracking #ft-modeSwitchContainer {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        #block-finger-tracking #ft-modeToggleBtn {
+            padding: 7px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #111;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        #block-finger-tracking #ft-gestureUI {
+            display: none;
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .gesture-btn-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gesture-action-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: transform 0.1s ease;
+        }
+
+        .gesture-action-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* ========================================================= */
+        /* BLOCK 2: GESTURE CLASSIFIER                              */
+        /* ========================================================= */
+        #block-gesture-classifier {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+
+        #block-gesture-classifier .gc-canvas {
+            width: 100vw;
+            height: calc(100vh - 120px);
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transform: scaleX(-1);
+        }
+
+        #block-gesture-classifier #gc-gestureUI {
+            display: block;
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        /* ========================================================= */
+        /* BLOCK 3: IMAGE CLASSIFIER (TEACHABLE WEBCAM)             */
+        /* ========================================================= */
+        #block-image-classifier {
+            flex-direction: column;
+            height: 100%;
+            background: #000;
+        }
+
+        #block-image-classifier .ic-video-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #block-image-classifier video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        @media (orientation: landscape) {
+            #block-image-classifier video {
+                object-fit: contain;
+            }
+        }
+
+        #block-image-classifier #ic-status {
+            position: absolute;
+            top: 14px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #00ff66;
+            font-size: 15px;
+            font-weight: 600;
+            pointer-events: none;
+            text-shadow: 0 0 6px rgba(0,0,0,0.9);
+        }
+
+        #block-image-classifier #ic-controls {
+            display: flex;
+            gap: 10px;
+            padding: 14px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            background: #111827;
+            border-top: 1px solid var(--border-color);
+            justify-content: center;
+        }
+
+        .ic-train-btn {
+            flex: 1;
+            max-width: 72px;
+            height: 54px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            background: #1f2937;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            touch-action: none;
+            user-select: none;
+            position: relative;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .ic-train-btn:active, .ic-train-btn.holding {
+            background: var(--theme);
+            border-color: var(--theme);
+            transform: scale(0.95);
+        }
+
+        .ic-train-btn.has-data {
+            border-color: var(--theme);
+            box-shadow: 0 0 10px var(--theme);
+        }
+
+        .ic-train-btn .badge {
+            display: none;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: white;
+            color: black;
+            font-size: 12px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .ic-train-btn.has-data .badge {
+            display: block;
+        }
+
+        .ic-clear-btn {
+            flex: 1;
+            max-width: 80px;
+            height: 54px;
+            border: none;
+            border-radius: 12px;
+            background: #ef4444;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            touch-action: none;
+            user-select: none;
+            cursor: pointer;
+            margin-left: 6px;
+        }
+
+        .ic-clear-btn:active {
+            background: #dc2626;
+            transform: scale(0.95);
+        }
+
+        /* ========================================================= */
+        /* BLOCKS 4, 5, 6: RGB TRACKERS (Coords, ColorPicker, Grid)  */
+        /* ========================================================= */
+        .rgb-block-wrapper {
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        .rgb-cam-area {
+            flex: 1;
+            position: relative;
+            background: #09090b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .rgb-cam-area canvas.rgb-out-canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transform: scaleX(-1);
+        }
+
+        .rgb-cam-area .target-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 2px solid #00ff66;
+            display: none;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.4);
+        }
+
+        .rgb-cam-area .target-crosshair::after {
+            content: '+';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ff66;
+            font-size: 22px;
+            font-weight: 300;
+        }
+
+        .rgb-status-tag {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-weight: bold;
+            z-index: 10;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .rgb-bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: #111827;
+            border-top: 1px solid var(--border-color);
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .rgb-action-btn {
+            padding: 9px 18px;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+        }
+
+        .rgb-action-btn:active {
+            transform: scale(0.96);
+        }
+
+        .rgb-stats-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 13px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color: #e2e8f0;
+        }
+
+        .rgb-preview-chip {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #fff;
+            border-radius: 4px;
+            background: #000;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Global App Header with Module Switcher -->
+    <header id="global-header">
+        <div class="header-brand">
+            <span class="dot"></span>
+            <span>Vision Suite</span>
+        </div>
+        <nav id="nav-tabs-wrapper" aria-label="Modules">
+            <button class="nav-tab-btn active" data-target="block-finger-tracking">🖐️ Finger Tracking</button>
+            <button class="nav-tab-btn" data-target="block-gesture-classifier">✌️ Gesture Classifier</button>
+            <button class="nav-tab-btn" data-target="block-image-classifier">📷 Image Classifier</button>
+            <button class="nav-tab-btn" data-target="block-rgb-coords">🎯 RGB Coordinates</button>
+            <button class="nav-tab-btn" data-target="block-rgb-colorpicker">🎨 RGB Color Picker</button>
+            <button class="nav-tab-btn" data-target="block-rgb-grid">⊞ RGB 3x3 Grid</button>
+        </nav>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main id="workspace-container">
+
+        <!-- ================================================================= -->
+        <!-- 1. FINGER TRACKING BLOCK                                          -->
+        <!-- ================================================================= -->
+        <div id="block-finger-tracking" class="app-block active">
+            <div id="ft-modeSwitchContainer">
+                <button id="ft-modeToggleBtn">Gesture Mode</button>
+            </div>
+
+            <div id="ft-gestureUI">
+                <div id="ft-gesturePrediction" style="margin-bottom:6px; font-weight:bold; font-size:20px; color:white; text-shadow: 1px 1px 3px black;">Prediction: None</div>
+                <div id="ft-recordingStatus" style="margin-bottom:6px; font-weight:bold; color:#ef4444; min-height: 20px; font-size:16px; text-shadow: 1px 1px 2px white;"></div>
+                <div class="gesture-btn-row">
+                    <button class="gesture-action-btn ft-gestureBtn" data-label="1" style="background: #ef4444;">1</button>
+                    <button class="gesture-action-btn ft-gestureBtn" data-label="2" style="background: #10b981;">2</button>
+                    <button class="gesture-action-btn ft-gestureBtn" data-label="3" style="background: #3b82f6;">3</button>
+                    <button class="gesture-action-btn ft-gestureBtn" data-label="4" style="background: #8b5cf6;">4</button>
+                    <button class="gesture-action-btn ft-gestureBtn" data-label="5" style="background: #f59e0b;">5</button>
+                    <button id="ft-clearDataBtn" class="gesture-action-btn" style="background: #475569;">X</button>
+                </div>
+            </div>
+
+            <div style="position:relative; width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
+                <button class="cam-switch-floating" id="ft-switch-cam-btn" title="Switch Camera">📷</button>
+                <div style="display: none;">
+                    <video id="ft-video" playsinline></video>
+                </div>
+                <canvas id="ft-output_canvas" class="ft-canvas"></canvas>
+                <div id="ft-fingerCount">Fingers Raised: 0</div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- 2. GESTURE CLASSIFIER BLOCK                                       -->
+        <!-- ================================================================= -->
+        <div id="block-gesture-classifier" class="app-block">
+            <div id="gc-gestureUI">
+                <div id="gc-gesturePrediction" style="margin-bottom:6px; font-weight:bold; font-size:20px; color:white; text-shadow: 1px 1px 3px black;">Prediction: None</div>
+                <div id="gc-recordingStatus" style="margin-bottom:6px; font-weight:bold; color:#ef4444; min-height: 20px; font-size:16px; text-shadow: 1px 1px 2px white;"></div>
+                <div class="gesture-btn-row">
+                    <button class="gesture-action-btn gc-gestureBtn" data-label="1" style="background: #ef4444;">1</button>
+                    <button class="gesture-action-btn gc-gestureBtn" data-label="2" style="background: #10b981;">2</button>
+                    <button class="gesture-action-btn gc-gestureBtn" data-label="3" style="background: #3b82f6;">3</button>
+                    <button class="gesture-action-btn gc-gestureBtn" data-label="4" style="background: #8b5cf6;">4</button>
+                    <button class="gesture-action-btn gc-gestureBtn" data-label="5" style="background: #f59e0b;">5</button>
+                    <button id="gc-clearDataBtn" class="gesture-action-btn" style="background: #475569;">X</button>
+                </div>
+            </div>
+
+            <div style="position:relative; width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
+                <button class="cam-switch-floating" id="gc-switch-cam-btn" title="Switch Camera">📷</button>
+                <div style="display: none;">
+                    <video id="gc-video" playsinline></video>
+                </div>
+                <canvas id="gc-output_canvas" class="gc-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- 3. IMAGE CLASSIFIER (TEACHABLE WEBCAM) BLOCK                      -->
+        <!-- ================================================================= -->
+        <div id="block-image-classifier" class="app-block">
+            <div class="ic-video-container">
+                <button class="cam-switch-floating" id="ic-switch-cam-btn" title="Switch Camera">📷</button>
+                <video id="ic-webcam" autoplay playsinline muted></video>
+                <div id="ic-status">Loading model...</div>
+            </div>
+
+            <div id="ic-controls">
+                <button class="ic-train-btn" data-class="1" style="--theme: #ef4444;">1<span class="badge">0</span></button>
+                <button class="ic-train-btn" data-class="2" style="--theme: #f97316;">2<span class="badge">0</span></button>
+                <button class="ic-train-btn" data-class="3" style="--theme: #eab308;">3<span class="badge">0</span></button>
+                <button class="ic-train-btn" data-class="4" style="--theme: #10b981;">4<span class="badge">0</span></button>
+                <button class="ic-train-btn" data-class="5" style="--theme: #3b82f6;">5<span class="badge">0</span></button>
+                <button class="ic-clear-btn" id="ic-clear-btn">Clear</button>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- 4. RGB COORDINATES TRACKER BLOCK                                  -->
+        <!-- ================================================================= -->
+        <div id="block-rgb-coords" class="app-block rgb-block-wrapper">
+            <div class="rgb-cam-area">
+                <div class="rgb-status-tag" id="rgb-coord-status">STANDBY</div>
+                <button class="cam-switch-floating" id="rgb-coord-switch-cam-btn" title="Switch Camera">📷</button>
+                <video id="rgb-coord-video" playsinline autoplay style="display:none;"></video>
+                <canvas id="rgb-coord-output" class="rgb-out-canvas"></canvas>
+                <canvas id="rgb-coord-proc" style="display:none;"></canvas>
+                <div class="target-crosshair" id="rgb-coord-box"></div>
+            </div>
+            <div class="rgb-bottom-bar">
+                <div>
+                    <button class="rgb-action-btn" id="rgb-coord-action-btn">Capture target</button>
+                </div>
+                <div class="rgb-stats-group">
+                    <div>X: <span id="rgb-coord-pos-x">-</span></div>
+                    <div>Y: <span id="rgb-coord-pos-y">-</span></div>
+                    <div>S: <span id="rgb-coord-blob-size">-</span></div>
+                    <div class="rgb-preview-chip" id="rgb-coord-preview"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- 5. RGB COLOR PICKER TRACKER BLOCK                                 -->
+        <!-- ================================================================= -->
+        <div id="block-rgb-colorpicker" class="app-block rgb-block-wrapper">
+            <div class="rgb-cam-area">
+                <div class="rgb-status-tag" id="rgb-color-status">STANDBY</div>
+                <button class="cam-switch-floating" id="rgb-color-switch-cam-btn" title="Switch Camera">📷</button>
+                <video id="rgb-color-video" playsinline autoplay style="display:none;"></video>
+                <canvas id="rgb-color-output" class="rgb-out-canvas"></canvas>
+                <canvas id="rgb-color-proc" style="display:none;"></canvas>
+                <div class="target-crosshair" id="rgb-color-box"></div>
+            </div>
+            <div class="rgb-bottom-bar">
+                <div>
+                    <button class="rgb-action-btn" id="rgb-color-action-btn">Capture target</button>
+                </div>
+                <div class="rgb-stats-group">
+                    <div>X: <span id="rgb-color-pos-x">-</span></div>
+                    <div>Y: <span id="rgb-color-pos-y">-</span></div>
+                    <div>S: <span id="rgb-color-blob-size">-</span></div>
+                    <div class="rgb-preview-chip" id="rgb-color-preview"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- 6. RGB 3x3 GRID TRACKER BLOCK                                     -->
+        <!-- ================================================================= -->
+        <div id="block-rgb-grid" class="app-block rgb-block-wrapper">
+            <div class="rgb-cam-area">
+                <div class="rgb-status-tag" id="rgb-grid-status">STANDBY</div>
+                <button class="cam-switch-floating" id="rgb-grid-switch-cam-btn" title="Switch Camera">📷</button>
+                <video id="rgb-grid-video" playsinline autoplay style="display:none;"></video>
+                <canvas id="rgb-grid-output" class="rgb-out-canvas"></canvas>
+                <canvas id="rgb-grid-proc" style="display:none;"></canvas>
+                <div class="target-crosshair" id="rgb-grid-box"></div>
+            </div>
+            <div class="rgb-bottom-bar">
+                <div>
+                    <button class="rgb-action-btn" id="rgb-grid-action-btn">Capture target</button>
+                </div>
+                <div class="rgb-stats-group">
+                    <div>X: <span id="rgb-grid-pos-x">-</span></div>
+                    <div>Y: <span id="rgb-grid-pos-y">-</span></div>
+                    <div>S: <span id="rgb-grid-blob-size">-</span></div>
+                    <div class="rgb-preview-chip" id="rgb-grid-preview"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Core Combined Scripts & Lifecycle Controller -->
+    <script>
+        // Suppress Mediapipe glog noise
+        function isMediapipeLog(msg) {
+            if (typeof msg !== 'string') return false;
+            return msg.startsWith('I0000') || msg.startsWith('W0000') || msg.startsWith('E0000') || msg.includes('gl_context');
+        }
+        const _warn = console.warn;
+        console.warn = function(...args) { if (isMediapipeLog(args[0])) return; _warn.apply(console, args); };
+        const _log = console.log;
+        console.log = function(...args) { if (isMediapipeLog(args[0])) return; _log.apply(console, args); };
+        const _err = console.error;
+        console.error = function(...args) { if (isMediapipeLog(args[0])) return; _err.apply(console, args); };
+
+        // Offline KNN Classifier class for Landmark Gestures
+        class LandmarkKNNClassifier {
+            constructor(k = 5) {
+                this.k = k;
+                this.data = [];
+            }
+            addExample(features, label) {
+                this.data.push({ features, label });
+            }
+            clear() {
+                this.data = [];
+            }
+            predict(features) {
+                if (this.data.length === 0) return null;
+                let distances = [];
+                for (let i = 0; i < this.data.length; i++) {
+                    let dist = 0;
+                    for (let j = 0; j < features.length; j++) {
+                        dist += Math.pow(features[j] - this.data[i].features[j], 2);
+                    }
+                    distances.push({ dist: dist, label: this.data[i].label });
+                }
+                distances.sort((a, b) => a.dist - b.dist);
+                let kNearest = distances.slice(0, this.k);
+                let counts = {};
+                for (let neighbor of kNearest) {
+                    counts[neighbor.label] = (counts[neighbor.label] || 0) + 1;
+                }
+                let maxCount = -1;
+                let prediction = null;
+                for (let label in counts) {
+                    if (counts[label] > maxCount) {
+                        maxCount = counts[label];
+                        prediction = parseInt(label);
+                    }
+                }
+                return prediction;
+            }
+        }
+
+        // Shared Color Math Utilities for RGB Tracker Modules
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h = max, s, v = max;
+            const d = max - min;
+            s = max === 0 ? 0 : d / max;
+            if (max === min) h = 0; 
+            else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return { h: h * 360, s: s, v: v };
+        }
+
+        function hsvToRgb(h, s, v) {
+            let r, g, b, i = Math.floor(h / 60);
+            let f = h / 60 - i, p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r=v; g=t; b=p; break;
+                case 1: r=q; g=v; b=p; break;
+                case 2: r=p; g=v; b=t; break;
+                case 3: r=p; g=q; b=v; break;
+                case 4: r=t; g=p; b=v; break;
+                case 5: r=v; g=p; b=q; break;
+            }
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        function hueDist(h1, h2) {
+            let d = Math.abs(h1 - h2);
+            return Math.min(d, 360 - d);
+        }
+
+        // =================================================================
+        // MODULE 1: FINGER TRACKING CONTROLLER
+        // =================================================================
+        const FingerTrackingModule = (() => {
+            const knn = new LandmarkKNNClassifier(5);
+            let currentMode = 'count';
+            let recordingLabel = null;
+            let camera = null;
+            let hands = null;
+            let currentFacingMode = 'user';
+            let isRunning = false;
+
+            const modeToggleBtn = document.getElementById('ft-modeToggleBtn');
+            const gestureUI = document.getElementById('ft-gestureUI');
+            const fingerCountDisplay = document.getElementById('ft-fingerCount');
+            const recordingStatusDisplay = document.getElementById('ft-recordingStatus');
+            const gesturePredictionDisplay = document.getElementById('ft-gesturePrediction');
+            const videoElement = document.getElementById('ft-video');
+            const canvasElement = document.getElementById('ft-output_canvas');
+            const canvasCtx = canvasElement.getContext('2d');
+            const switchCamBtn = document.getElementById('ft-switch-cam-btn');
+
+            function isMobileDevice() { return window.innerWidth <= 430; }
+
+            function setCanvasDimensions() {
+                canvasElement.width = 1080;
+                canvasElement.height = 720;
+            }
+
+            function countFingers(lmlist) {
+                let fingerCount = 0;
+                const tipIds = [4, 8, 12, 16, 20];
+                let isRightHand = lmlist[12][1] > lmlist[20][1];
+                const isThumbRaised = isRightHand
+                    ? lmlist[tipIds[0]][1] > lmlist[tipIds[0] - 1][1]
+                    : lmlist[tipIds[0]][1] < lmlist[tipIds[0] - 1][1];
+                if (isThumbRaised) fingerCount += 1;
+                for (let i = 1; i < tipIds.length; i++) {
+                    const isFingerRaised = lmlist[tipIds[i]][2] < lmlist[tipIds[i] - 2][2];
+                    if (isFingerRaised) fingerCount += 1;
+                }
+                return fingerCount;
+            }
+
+            function extractFeatures(landmarks) {
+                let wrist = landmarks[0];
+                let features = [];
+                let maxDist = 0;
+                for (let i = 1; i < landmarks.length; i++) {
+                    let dx = landmarks[i].x - wrist.x;
+                    let dy = landmarks[i].y - wrist.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist > maxDist) maxDist = dist;
+                }
+                for (let i = 0; i < landmarks.length; i++) {
+                    let dx = landmarks[i].x - wrist.x;
+                    let dy = landmarks[i].y - wrist.y;
+                    if (maxDist > 0) {
+                        features.push(dx / maxDist);
+                        features.push(dy / maxDist);
+                    } else {
+                        features.push(dx);
+                        features.push(dy);
+                    }
+                }
+                return features;
+            }
+
+            function onResults(results) {
+                if (!isRunning) return;
+                canvasCtx.save();
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+                if (results.multiHandLandmarks) {
+                    for (const landmarks of results.multiHandLandmarks) {
+                        const lmlist = [];
+                        for (let id = 0; id < 21; id++) {
+                            const lm = landmarks[id];
+                            let x = lm.x * canvasElement.width;
+                            let y = lm.y * canvasElement.height;
+                            lmlist.push([id, Math.round(x), Math.round(y)]);
+                        }
+
+                        if (currentMode === 'count') {
+                            if (lmlist.length === 21) {
+                                const fingerCount = countFingers(lmlist);
+                                console.log(fingerCount);
+                                fingerCountDisplay.innerText = `Fingers Raised: ${fingerCount}`;
+                            }
+                        } else if (currentMode === 'gesture') {
+                            let features = extractFeatures(landmarks);
+                            if (recordingLabel !== null) {
+                                knn.addExample(features, recordingLabel);
+                            } else {
+                                let pred = knn.predict(features);
+                                if (pred !== null) {
+                                    console.log(pred);
+                                    gesturePredictionDisplay.innerText = `Prediction: ${pred}`;
+                                } else {
+                                    gesturePredictionDisplay.innerText = `Prediction: None`;
+                                }
+                            }
+                        }
+
+                        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
+                        drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 2 });
+                    }
+                } else {
+                    if (currentMode === 'gesture' && knn.data.length > 0) {
+                        gesturePredictionDisplay.innerText = `Prediction: None`;
+                    }
+                }
+                canvasCtx.restore();
+            }
+
+            function initEvents() {
+                setCanvasDimensions();
+
+                modeToggleBtn.addEventListener('click', () => {
+                    if (currentMode === 'count') {
+                        currentMode = 'gesture';
+                        modeToggleBtn.innerText = 'Count Mode';
+                        gestureUI.style.display = 'block';
+                        fingerCountDisplay.style.display = 'none';
+                    } else {
+                        currentMode = 'count';
+                        modeToggleBtn.innerText = 'Gesture Mode';
+                        gestureUI.style.display = 'none';
+                        fingerCountDisplay.style.display = 'block';
+                    }
+                });
+
+                document.querySelectorAll('.ft-gestureBtn').forEach(btn => {
+                    btn.addEventListener('pointerdown', (e) => {
+                        recordingLabel = parseInt(e.target.dataset.label);
+                        recordingStatusDisplay.innerText = `Recording label ${recordingLabel}...`;
+                    });
+                    const stopRecording = (e) => {
+                        if (recordingLabel === parseInt(e.target.dataset.label)) {
+                            recordingLabel = null;
+                            recordingStatusDisplay.innerText = '';
+                        }
+                    };
+                    btn.addEventListener('pointerup', stopRecording);
+                    btn.addEventListener('pointerleave', stopRecording);
+                });
+
+                document.getElementById('ft-clearDataBtn').addEventListener('click', () => {
+                    knn.clear();
+                    gesturePredictionDisplay.innerText = `Prediction: None`;
+                });
+
+                switchCamBtn.addEventListener('click', () => {
+                    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+                    if (camera) camera.stop();
+                    if (isRunning) startCamera();
+                });
+            }
+
+            function setupHands() {
+                if (!hands) {
+                    hands = new Hands({ locateFile: (file) => `${file}` });
+                    hands.setOptions({
+                        maxNumHands: 1,
+                        modelComplexity: 1,
+                        minDetectionConfidence: 0.7,
+                        minTrackingConfidence: 0.5
+                    });
+                    hands.onResults(onResults);
+                }
+            }
+
+            function startCamera() {
+                setupHands();
+                camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        if (isRunning && hands) {
+                            await hands.send({ image: videoElement });
+                        }
+                    },
+                    width: canvasElement.height,
+                    height: canvasElement.width,
+                    facingMode: currentFacingMode,
+                });
+                camera.start();
+            }
+
+            initEvents();
+
+            return {
+                start: () => {
+                    isRunning = true;
+                    setCanvasDimensions();
+                    startCamera();
+                },
+                stop: () => {
+                    isRunning = false;
+                    if (camera) {
+                        camera.stop();
+                        camera = null;
+                    }
+                    if (videoElement.srcObject) {
+                        videoElement.srcObject.getTracks().forEach(t => t.stop());
+                        videoElement.srcObject = null;
+                    }
+                    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                }
+            };
+        })();
+
+        // =================================================================
+        // MODULE 2: GESTURE CLASSIFIER CONTROLLER
+        // =================================================================
+        const GestureClassifierModule = (() => {
+            const knn = new LandmarkKNNClassifier(5);
+            let recordingLabel = null;
+            let camera = null;
+            let hands = null;
+            let currentFacingMode = 'user';
+            let isRunning = false;
+
+            const recordingStatusDisplay = document.getElementById('gc-recordingStatus');
+            const gesturePredictionDisplay = document.getElementById('gc-gesturePrediction');
+            const videoElement = document.getElementById('gc-video');
+            const canvasElement = document.getElementById('gc-output_canvas');
+            const canvasCtx = canvasElement.getContext('2d');
+            const switchCamBtn = document.getElementById('gc-switch-cam-btn');
+
+            function setCanvasDimensions() {
+                canvasElement.width = 1080;
+                canvasElement.height = 720;
+            }
+
+            function extractFeatures(landmarks) {
+                let wrist = landmarks[0];
+                let features = [];
+                let maxDist = 0;
+                for (let i = 1; i < landmarks.length; i++) {
+                    let dx = landmarks[i].x - wrist.x;
+                    let dy = landmarks[i].y - wrist.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist > maxDist) maxDist = dist;
+                }
+                for (let i = 0; i < landmarks.length; i++) {
+                    let dx = landmarks[i].x - wrist.x;
+                    let dy = landmarks[i].y - wrist.y;
+                    if (maxDist > 0) {
+                        features.push(dx / maxDist);
+                        features.push(dy / maxDist);
+                    } else {
+                        features.push(dx);
+                        features.push(dy);
+                    }
+                }
+                return features;
+            }
+
+            function onResults(results) {
+                if (!isRunning) return;
+                canvasCtx.save();
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+                if (results.multiHandLandmarks) {
+                    for (const landmarks of results.multiHandLandmarks) {
+                        let features = extractFeatures(landmarks);
+                        if (recordingLabel !== null) {
+                            knn.addExample(features, recordingLabel);
+                        } else {
+                            let pred = knn.predict(features);
+                            if (pred !== null) {
+                                console.log(pred);
+                                gesturePredictionDisplay.innerText = `Prediction: ${pred}`;
+                            } else {
+                                gesturePredictionDisplay.innerText = `Prediction: None`;
+                            }
+                        }
+
+                        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
+                        drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 2 });
+                    }
+                } else {
+                    if (knn.data.length > 0) {
+                        gesturePredictionDisplay.innerText = `Prediction: None`;
+                    }
+                }
+                canvasCtx.restore();
+            }
+
+            function initEvents() {
+                setCanvasDimensions();
+
+                document.querySelectorAll('.gc-gestureBtn').forEach(btn => {
+                    btn.addEventListener('pointerdown', (e) => {
+                        recordingLabel = parseInt(e.target.dataset.label);
+                        recordingStatusDisplay.innerText = `Recording label ${recordingLabel}...`;
+                    });
+                    const stopRecording = (e) => {
+                        if (recordingLabel === parseInt(e.target.dataset.label)) {
+                            recordingLabel = null;
+                            recordingStatusDisplay.innerText = '';
+                        }
+                    };
+                    btn.addEventListener('pointerup', stopRecording);
+                    btn.addEventListener('pointerleave', stopRecording);
+                });
+
+                document.getElementById('gc-clearDataBtn').addEventListener('click', () => {
+                    knn.clear();
+                    gesturePredictionDisplay.innerText = `Prediction: None`;
+                });
+
+                switchCamBtn.addEventListener('click', () => {
+                    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+                    if (camera) camera.stop();
+                    if (isRunning) startCamera();
+                });
+            }
+
+            function setupHands() {
+                if (!hands) {
+                    hands = new Hands({ locateFile: (file) => `${file}` });
+                    hands.setOptions({
+                        maxNumHands: 1,
+                        modelComplexity: 1,
+                        minDetectionConfidence: 0.7,
+                        minTrackingConfidence: 0.5
+                    });
+                    hands.onResults(onResults);
+                }
+            }
+
+            function startCamera() {
+                setupHands();
+                camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        if (isRunning && hands) {
+                            await hands.send({ image: videoElement });
+                        }
+                    },
+                    width: canvasElement.height,
+                    height: canvasElement.width,
+                    facingMode: currentFacingMode,
+                });
+                camera.start();
+            }
+
+            initEvents();
+
+            return {
+                start: () => {
+                    isRunning = true;
+                    setCanvasDimensions();
+                    startCamera();
+                },
+                stop: () => {
+                    isRunning = false;
+                    if (camera) {
+                        camera.stop();
+                        camera = null;
+                    }
+                    if (videoElement.srcObject) {
+                        videoElement.srcObject.getTracks().forEach(t => t.stop());
+                        videoElement.srcObject = null;
+                    }
+                    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                }
+            };
+        })();
+
+        // =================================================================
+        // MODULE 3: IMAGE CLASSIFIER (TEACHABLE WEBCAM)
+        // =================================================================
+        const ImageClassifierModule = (() => {
+            const video = document.getElementById('ic-webcam');
+            const statusEl = document.getElementById('ic-status');
+            const classifier = knnClassifier.create();
+
+            let net = null;
+            let isTraining = false;
+            let currentTrainClass = null;
+            let lastLogged = null;
+            let sameCount = 0;
+            let isRunning = false;
+            let animId = null;
+            let currentFacingMode = 'environment';
+            let modelLoaded = false;
+
+            const STABLE_FRAMES = 2;
+            const CONFIDENCE_THRESHOLD = 0.65;
+            const INTERVAL = 140;
+
+            function logStable(value) {
+                if (value === lastLogged) sameCount++;
+                else {
+                    lastLogged = value;
+                    sameCount = 1;
+                }
+                if (sameCount >= STABLE_FRAMES) {
+                    console.log(value);
+                }
+            }
+
+            function updateBadges() {
+                const counts = classifier.getNumClasses() > 0 ? classifier.getClassExampleCount() : {};
+                document.querySelectorAll('.ic-train-btn').forEach(btn => {
+                    const cId = btn.dataset.class;
+                    const count = counts[cId] || 0;
+                    const badge = btn.querySelector('.badge');
+                    badge.textContent = count;
+                    if (count > 0) btn.classList.add('has-data');
+                    else btn.classList.remove('has-data');
+                });
+            }
+
+            async function setupWebcam() {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: currentFacingMode } },
+                    audio: false
+                });
+                video.srcObject = stream;
+                return new Promise(r => video.onloadeddata = r);
+            }
+
+            async function addExample(classId) {
+                if (!net) return;
+                const img = tf.browser.fromPixels(video);
+                const activation = net.infer(img, true);
+                classifier.addExample(activation, classId);
+                img.dispose();
+                activation.dispose();
+                updateBadges();
+            }
+
+            function initEvents() {
+                document.getElementById('ic-switch-cam-btn').addEventListener('click', async () => {
+                    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+                    if (video.srcObject) {
+                        video.srcObject.getTracks().forEach(t => t.stop());
+                    }
+                    if (isRunning) await setupWebcam();
+                });
+
+                document.querySelectorAll('.ic-train-btn').forEach(btn => {
+                    const classId = Number(btn.dataset.class);
+                    const start = (e) => {
+                        e.preventDefault();
+                        isTraining = true;
+                        currentTrainClass = classId;
+                        btn.classList.add('holding');
+                        statusEl.textContent = `Training class ${classId}...`;
+                    };
+                    const stop = () => {
+                        isTraining = false;
+                        currentTrainClass = null;
+                        btn.classList.remove('holding');
+                        const counts = classifier.getClassExampleCount();
+                        statusEl.textContent = `Ready • Examples: ${JSON.stringify(counts)}`;
+                    };
+                    btn.addEventListener('touchstart', start, { passive: false });
+                    btn.addEventListener('mousedown', start);
+                    btn.addEventListener('touchend', stop);
+                    btn.addEventListener('mouseup', stop);
+                    btn.addEventListener('touchcancel', stop);
+                    btn.addEventListener('mouseleave', stop);
+                });
+
+                document.getElementById('ic-clear-btn').addEventListener('click', () => {
+                    if (classifier.getNumClasses() > 0) {
+                        classifier.clearAllClasses();
+                    }
+                    updateBadges();
+                    statusEl.textContent = 'Ready – hold a number to train';
+                    console.log("Memory cleared.");
+                });
+            }
+
+            initEvents();
+
+            async function runLoop() {
+                let lastRun = 0;
+                async function loop(ts) {
+                    if (!isRunning) return;
+                    if (ts - lastRun < INTERVAL || video.readyState < 2) {
+                        animId = requestAnimationFrame(loop);
+                        return;
+                    }
+                    lastRun = ts;
+
+                    if (isTraining && currentTrainClass) {
+                        await addExample(currentTrainClass);
+                        animId = requestAnimationFrame(loop);
+                        return;
+                    }
+
+                    if (classifier.getNumClasses() > 0) {
+                        const img = tf.browser.fromPixels(video);
+                        const activation = net.infer(img, true);
+                        const result = await classifier.predictClass(activation);
+
+                        img.dispose();
+                        activation.dispose();
+
+                        const conf = result.confidences[result.label];
+                        if (conf >= CONFIDENCE_THRESHOLD) {
+                            logStable(Number(result.label));
+                        }
+                    }
+
+                    animId = requestAnimationFrame(loop);
+                }
+                animId = requestAnimationFrame(loop);
+            }
+
+            return {
+                start: async () => {
+                    isRunning = true;
+                    try {
+                        if (!modelLoaded) {
+                            statusEl.textContent = 'Loading TensorFlow & MobileNet...';
+                            await tf.setBackend('webgl');
+                            await tf.ready();
+                            net = await mobilenet.load({ version: 2, alpha: 0.5, modelUrl: 'model.json' });
+                            modelLoaded = true;
+                        }
+                        statusEl.textContent = 'Starting camera...';
+                        await setupWebcam();
+                        statusEl.textContent = 'Ready – hold a number to train';
+                        runLoop();
+                    } catch (err) {
+                        console.error(err);
+                        statusEl.textContent = `Error: ${err.name} - ${err.message}`;
+                    }
+                },
+                stop: () => {
+                    isRunning = false;
+                    if (animId) cancelAnimationFrame(animId);
+                    if (video.srcObject) {
+                        video.srcObject.getTracks().forEach(t => t.stop());
+                        video.srcObject = null;
+                    }
+                }
+            };
+        })();
+
+        // =================================================================
+        // RGB TRACKER FACTORY (For Coords, ColorPicker, Grid)
+        // =================================================================
+        function createRGBTrackerModule(cfg) {
+            const video = document.getElementById(cfg.videoId);
+            const outputCanvas = document.getElementById(cfg.outputCanvasId);
+            const ctxOutput = outputCanvas.getContext('2d');
+            const procCanvas = document.getElementById(cfg.procCanvasId);
+            const ctxProc = procCanvas.getContext('2d', { willReadFrequently: true });
+
+            const targetBox = document.getElementById(cfg.boxId);
+            const btnAction = document.getElementById(cfg.btnActionId);
+            const statusInd = document.getElementById(cfg.statusId);
+            const uiPosX = document.getElementById(cfg.posXId);
+            const uiPosY = document.getElementById(cfg.posYId);
+            const uiBlobSize = document.getElementById(cfg.blobSizeId);
+            const colorPreview = document.getElementById(cfg.previewId);
+            const switchCamBtn = document.getElementById(cfg.switchCamId);
+
+            const PROC_WIDTH = 160;
+            const PROC_HEIGHT = 120;
+            procCanvas.width = PROC_WIDTH;
+            procCanvas.height = PROC_HEIGHT;
+
+            let appState = 0; // 0=Init, 1=Select, 2=Track
+            let currentFacingMode = 'user';
+            let isRunning = false;
+            let animId = null;
+
+            const THRESH_HUE = 15;
+            const THRESH_SAT = 0.35;
+            const THRESH_VAL = 0.40;
+            const MIN_BLOB_SIZE = 5;
+
+            let targetProfile = { h: 0, s: 0, v: 0, size: 0, whRatio: 1.0 };
+            let tracker = {
+                x: PROC_WIDTH / 2, y: PROC_HEIGHT / 2,
+                vx: 0, vy: 0,
+                framesDetected: 0, framesLost: 0, isLocked: false,
+                roi: [0, 0, PROC_WIDTH, PROC_HEIGHT]
+            };
+
+            const ALPHA = 0.6;
+            const BETA = 0.3;
+            let lastGridNum = null;
+
+            async function startCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: currentFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
+                        audio: false
+                    });
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        outputCanvas.width = video.videoWidth || 640;
+                        outputCanvas.height = video.videoHeight || 480;
+                        video.play();
+
+                        btnAction.style.display = 'block';
+                        appState = 1;
+                        targetBox.style.display = 'block';
+                        statusInd.innerText = "SELECT TARGET";
+                        statusInd.style.background = "rgba(0,0,0,0.6)";
+
+                        if (isRunning && !animId) renderLoop();
+                    };
+                } catch (err) {
+                    alert("Camera error: " + err);
+                }
+            }
+
+            function handleAction() {
+                if (appState === 1) {
+                    captureTargetProfile();
+                    appState = 2; // Track
+                    targetBox.style.display = 'none';
+                    btnAction.innerText = 'Reset target';
+                    btnAction.style.background = '#475569';
+                } else if (appState === 2) {
+                    appState = 1; // Select
+                    targetBox.style.display = 'block';
+                    btnAction.innerText = 'Capture target';
+                    btnAction.style.background = '#10b981';
+
+                    uiPosX.innerText = '-'; uiPosY.innerText = '-'; uiBlobSize.innerText = '-';
+                    colorPreview.style.background = '#000';
+                    statusInd.innerText = "SELECT TARGET";
+                    statusInd.style.background = "rgba(0,0,0,0.6)";
+                    lastGridNum = null;
+                }
+            }
+
+            function captureTargetProfile() {
+                ctxOutput.drawImage(video, 0, 0, outputCanvas.width, outputCanvas.height);
+                const cx = outputCanvas.width / 2, cy = outputCanvas.height / 2, box = 40;
+                const imgData = ctxOutput.getImageData(cx - box/2, cy - box/2, box, box).data;
+
+                let sats = [], vals = [], sumSin = 0, sumCos = 0;
+                for (let i = 0; i < imgData.length; i += 4) {
+                    const hsv = rgbToHsv(imgData[i], imgData[i+1], imgData[i+2]);
+                    sats.push(hsv.s); vals.push(hsv.v);
+                    let rad = hsv.h * Math.PI / 180;
+                    sumSin += Math.sin(rad); sumCos += Math.cos(rad);
+                }
+                const getMed = (arr) => { arr.sort((a, b) => a - b); const m = Math.floor(arr.length/2); return arr.length%2!==0?arr[m]:(arr[m-1]+arr[m])/2; };
+
+                targetProfile.h = (Math.atan2(sumSin, sumCos) * 180 / Math.PI + 360) % 360;
+                targetProfile.s = getMed(sats);
+                targetProfile.v = getMed(vals);
+
+                const ratioX = PROC_WIDTH / outputCanvas.width;
+                const ratioY = PROC_HEIGHT / outputCanvas.height;
+                targetProfile.size = (box * ratioX) * (box * ratioY) * 0.8;
+                targetProfile.whRatio = 1.0;
+
+                tracker.x = PROC_WIDTH / 2;
+                tracker.y = PROC_HEIGHT / 2;
+                tracker.vx = 0; tracker.vy = 0;
+                tracker.framesDetected = 0; tracker.framesLost = 0;
+                tracker.isLocked = false;
+                tracker.roi = [0, 0, PROC_WIDTH, PROC_HEIGHT];
+
+                const rgb = hsvToRgb(targetProfile.h, targetProfile.s, targetProfile.v);
+                colorPreview.style.backgroundColor = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+                statusInd.innerText = "INITIALIZING TRACKER...";
+            }
+
+            function findAllBlobs(binaryMask, minX, minY, maxX, maxY) {
+                const visited = new Uint8Array(PROC_WIDTH * PROC_HEIGHT);
+                const blobs = [];
+                const q = new Uint32Array(PROC_WIDTH * PROC_HEIGHT);
+
+                for (let y = minY; y < maxY; y++) {
+                    for (let x = minX; x < maxX; x++) {
+                        const idx = y * PROC_WIDTH + x;
+                        if (binaryMask[idx] === 1 && visited[idx] === 0) {
+                            let head = 0, tail = 0;
+                            q[tail++] = idx;
+                            visited[idx] = 1;
+
+                            let bx1 = x, bx2 = x, by1 = y, by2 = y, size = 0;
+                            let sumX = 0, sumY = 0;
+
+                            while(head < tail) {
+                                const curr = q[head++];
+                                const cx = curr % PROC_WIDTH, cy = Math.floor(curr / PROC_WIDTH);
+
+                                bx1 = Math.min(bx1, cx); bx2 = Math.max(bx2, cx);
+                                by1 = Math.min(by1, cy); by2 = Math.max(by2, cy);
+                                sumX += cx; sumY += cy;
+                                size++;
+
+                                if (cy > minY) { const n = curr - PROC_WIDTH; if (binaryMask[n]===1 && !visited[n]) { visited[n]=1; q[tail++]=n; } }
+                                if (cy < maxY - 1) { const n = curr + PROC_WIDTH; if (binaryMask[n]===1 && !visited[n]) { visited[n]=1; q[tail++]=n; } }
+                                if (cx > minX) { const n = curr - 1; if (binaryMask[n]===1 && !visited[n]) { visited[n]=1; q[tail++]=n; } }
+                                if (cx < maxX - 1) { const n = curr + 1; if (binaryMask[n]===1 && !visited[n]) { visited[n]=1; q[tail++]=n; } }
+                            }
+
+                            if (size >= MIN_BLOB_SIZE) {
+                                let w = bx2 - bx1 + 1;
+                                let h = by2 - by1 + 1;
+                                blobs.push({
+                                    x: bx1, y: by1, w: w, h: h, size: size,
+                                    cx: sumX / size, cy: sumY / size,
+                                    ratio: w / h
+                                });
+                            }
+                        }
+                    }
+                }
+                return blobs;
+            }
+
+            function scoreBlobArray(blobs, predX, predY) {
+                let bestBlob = null;
+                let highestScore = -1;
+
+                for (let b of blobs) {
+                    let sizeRatio = b.size / targetProfile.size;
+                    let sizeScore = sizeRatio > 1 ? (1 / sizeRatio) : sizeRatio;
+                    let ratioDiff = Math.abs(b.ratio - targetProfile.whRatio);
+                    let shapeScore = Math.max(0, 1 - ratioDiff);
+                    let dx = b.cx - predX;
+                    let dy = b.cy - predY;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    let distScore = Math.max(0, 1 - (dist / (PROC_WIDTH * 0.3)));
+                    let score = (0.4 * sizeScore) + (0.2 * shapeScore) + (0.4 * distScore);
+
+                    if (score > highestScore) {
+                        highestScore = score;
+                        bestBlob = b;
+                    }
+                }
+                return { bestBlob, highestScore };
+            }
+
+            function executeTracker() {
+                let minX = tracker.roi[0], minY = tracker.roi[1];
+                let maxX = tracker.roi[2], maxY = tracker.roi[3];
+
+                ctxProc.drawImage(video, 0, 0, PROC_WIDTH, PROC_HEIGHT);
+                const data = ctxProc.getImageData(0, 0, PROC_WIDTH, PROC_HEIGHT).data;
+                const mask = new Uint8Array(PROC_WIDTH * PROC_HEIGHT);
+
+                for (let y = minY; y < maxY; y++) {
+                    for (let x = minX; x < maxX; x++) {
+                        let i = (y * PROC_WIDTH + x) * 4;
+                        const hsv = rgbToHsv(data[i], data[i+1], data[i+2]);
+                        if (Math.abs(hsv.s - targetProfile.s) <= THRESH_SAT &&
+                            Math.abs(hsv.v - targetProfile.v) <= THRESH_VAL &&
+                            hueDist(hsv.h, targetProfile.h) <= THRESH_HUE) {
+                            mask[y * PROC_WIDTH + x] = 1;
+                        }
+                    }
+                }
+
+                const blobs = findAllBlobs(mask, minX, minY, maxX, maxY);
+                let predX = tracker.x + tracker.vx;
+                let predY = tracker.y + tracker.vy;
+                const { bestBlob, highestScore } = scoreBlobArray(blobs, predX, predY);
+
+                if (bestBlob && highestScore > 0.1) {
+                    tracker.framesLost = 0;
+                    tracker.framesDetected++;
+                    if (tracker.framesDetected >= 2) tracker.isLocked = true;
+
+                    let measurementX = bestBlob.cx;
+                    let measurementY = bestBlob.cy;
+                    tracker.x = predX + ALPHA * (measurementX - predX);
+                    tracker.y = predY + ALPHA * (measurementY - predY);
+                    tracker.vx = tracker.vx + BETA * (measurementX - predX);
+                    tracker.vy = tracker.vy + BETA * (measurementY - predY);
+
+                    targetProfile.size = (0.8 * targetProfile.size) + (0.2 * bestBlob.size);
+                    targetProfile.whRatio = (0.8 * targetProfile.whRatio) + (0.2 * bestBlob.ratio);
+                } else {
+                    tracker.framesDetected = 0;
+                    tracker.framesLost++;
+                    if (tracker.framesLost >= 10) tracker.isLocked = false;
+                    tracker.x = predX;
+                    tracker.y = predY;
+                    tracker.vx *= 0.8;
+                    tracker.vy *= 0.8;
+                }
+
+                if (tracker.isLocked) {
+                    statusInd.innerText = "LOCKED";
+                    statusInd.style.background = "rgba(16, 185, 129, 0.8)";
+                    let padding = 30;
+                    tracker.roi[0] = Math.max(0, Math.floor(tracker.x - padding));
+                    tracker.roi[1] = Math.max(0, Math.floor(tracker.y - padding));
+                    tracker.roi[2] = Math.min(PROC_WIDTH, Math.ceil(tracker.x + padding));
+                    tracker.roi[3] = Math.min(PROC_HEIGHT, Math.ceil(tracker.y + padding));
+                } else {
+                    if (tracker.framesLost < 20) {
+                        statusInd.innerText = "RECOVERING...";
+                        statusInd.style.background = "rgba(245, 158, 11, 0.8)";
+                        let padding = 50 + (tracker.framesLost * 2);
+                        tracker.roi[0] = Math.max(0, Math.floor(tracker.x - padding));
+                        tracker.roi[1] = Math.max(0, Math.floor(tracker.y - padding));
+                        tracker.roi[2] = Math.min(PROC_WIDTH, Math.ceil(tracker.x + padding));
+                        tracker.roi[3] = Math.min(PROC_HEIGHT, Math.ceil(tracker.y + padding));
+                    } else {
+                        statusInd.innerText = "LOST";
+                        statusInd.style.background = "rgba(239, 68, 68, 0.8)";
+                        tracker.roi = [0, 0, PROC_WIDTH, PROC_HEIGHT];
+                    }
+                }
+
+                return { x: tracker.x, y: tracker.y, blob: bestBlob, isLocked: tracker.isLocked };
+            }
+
+            function renderLoop() {
+                if (!isRunning) return;
+                ctxOutput.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+                ctxOutput.drawImage(video, 0, 0, outputCanvas.width, outputCanvas.height);
+
+                // Mode: 3x3 Grid
+                if (cfg.hasGrid) {
+                    const cellW = outputCanvas.width / 3;
+                    const cellH = outputCanvas.height / 3;
+                    ctxOutput.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctxOutput.lineWidth = 1;
+                    ctxOutput.beginPath();
+                    ctxOutput.moveTo(cellW, 0); ctxOutput.lineTo(cellW, outputCanvas.height);
+                    ctxOutput.moveTo(cellW * 2, 0); ctxOutput.lineTo(cellW * 2, outputCanvas.height);
+                    ctxOutput.moveTo(0, cellH); ctxOutput.lineTo(outputCanvas.width, cellH);
+                    ctxOutput.moveTo(0, cellH * 2); ctxOutput.lineTo(outputCanvas.width, cellH * 2);
+                    ctxOutput.stroke();
+                }
+
+                if (appState === 2) {
+                    const res = executeTracker();
+                    const scaleX = outputCanvas.width / PROC_WIDTH;
+                    const scaleY = outputCanvas.height / PROC_HEIGHT;
+
+                    if (res.isLocked || tracker.framesLost < 20) {
+                        const rx = tracker.roi[0] * scaleX, ry = tracker.roi[1] * scaleY;
+                        const rw = (tracker.roi[2] - tracker.roi[0]) * scaleX;
+                        const rh = (tracker.roi[3] - tracker.roi[1]) * scaleY;
+                        ctxOutput.strokeStyle = 'rgba(255,255,255,0.2)';
+                        ctxOutput.lineWidth = 1;
+                        ctxOutput.setLineDash([5, 5]);
+                        ctxOutput.strokeRect(rx, ry, rw, rh);
+                        ctxOutput.setLineDash([]);
+                    }
+
+                    if (res.blob && tracker.isLocked) {
+                        const drawCX = res.x * scaleX;
+                        const drawCY = res.y * scaleY;
+                        const drawW = res.blob.w * scaleX;
+                        const drawH = res.blob.h * scaleY;
+
+                        ctxOutput.strokeStyle = '#0f0';
+                        ctxOutput.lineWidth = 2;
+                        ctxOutput.strokeRect(drawCX - drawW/2, drawCY - drawH/2, drawW, drawH);
+
+                        ctxOutput.beginPath();
+                        ctxOutput.arc(drawCX, drawCY, 4, 0, 2 * Math.PI);
+                        ctxOutput.fillStyle = '#f00';
+                        ctxOutput.fill();
+
+                        ctxOutput.beginPath();
+                        ctxOutput.moveTo(drawCX, drawCY);
+                        ctxOutput.lineTo(drawCX + (tracker.vx * scaleX * 3), drawCY + (tracker.vy * scaleY * 3));
+                        ctxOutput.strokeStyle = '#ff0';
+                        ctxOutput.lineWidth = 2;
+                        ctxOutput.stroke();
+
+                        const displayX = Math.round(outputCanvas.width - drawCX);
+                        uiPosX.innerText = displayX;
+                        uiPosY.innerText = Math.round(drawCY);
+                        uiBlobSize.innerText = Math.round(res.blob.size);
+
+                        // Mode specific logging
+                        if (cfg.logCoords) {
+                            console.log(`X: ${displayX}, Y: ${Math.round(drawCY)}`);
+                        }
+
+                        if (cfg.hasGrid) {
+                            let col = Math.floor(displayX / (outputCanvas.width / 3));
+                            let row = Math.floor(drawCY / (outputCanvas.height / 3));
+                            col = Math.max(0, Math.min(2, col));
+                            row = Math.max(0, Math.min(2, row));
+                            let currentGridNum = row * 3 + col + 1;
+                            if (currentGridNum !== lastGridNum) {
+                                console.log(currentGridNum);
+                                lastGridNum = currentGridNum;
+                            }
+                        }
+                    }
+                }
+
+                animId = requestAnimationFrame(renderLoop);
+            }
+
+            btnAction.addEventListener('click', handleAction);
+
+            switchCamBtn.addEventListener('click', () => {
+                currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(t => t.stop());
+                }
+                if (isRunning) startCamera();
+            });
+
+            return {
+                start: () => {
+                    isRunning = true;
+                    startCamera();
+                },
+                stop: () => {
+                    isRunning = false;
+                    if (animId) {
+                        cancelAnimationFrame(animId);
+                        animId = null;
+                    }
+                    if (video.srcObject) {
+                        video.srcObject.getTracks().forEach(t => t.stop());
+                        video.srcObject = null;
+                    }
+                    ctxOutput.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+                }
+            };
+        }
+
+        // Initialize RGB Modules
+        const RGBCoordinatesModule = createRGBTrackerModule({
+            videoId: 'rgb-coord-video',
+            outputCanvasId: 'rgb-coord-output',
+            procCanvasId: 'rgb-coord-proc',
+            boxId: 'rgb-coord-box',
+            btnActionId: 'rgb-coord-action-btn',
+            statusId: 'rgb-coord-status',
+            posXId: 'rgb-coord-pos-x',
+            posYId: 'rgb-coord-pos-y',
+            blobSizeId: 'rgb-coord-blob-size',
+            previewId: 'rgb-coord-preview',
+            switchCamId: 'rgb-coord-switch-cam-btn',
+            logCoords: true,
+            hasGrid: false
+        });
+
+        const RGBColorPickerModule = createRGBTrackerModule({
+            videoId: 'rgb-color-video',
+            outputCanvasId: 'rgb-color-output',
+            procCanvasId: 'rgb-color-proc',
+            boxId: 'rgb-color-box',
+            btnActionId: 'rgb-color-action-btn',
+            statusId: 'rgb-color-status',
+            posXId: 'rgb-color-pos-x',
+            posYId: 'rgb-color-pos-y',
+            blobSizeId: 'rgb-color-blob-size',
+            previewId: 'rgb-color-preview',
+            switchCamId: 'rgb-color-switch-cam-btn',
+            logCoords: false,
+            hasGrid: false
+        });
+
+        const RGBGridModule = createRGBTrackerModule({
+            videoId: 'rgb-grid-video',
+            outputCanvasId: 'rgb-grid-output',
+            procCanvasId: 'rgb-grid-proc',
+            boxId: 'rgb-grid-box',
+            btnActionId: 'rgb-grid-action-btn',
+            statusId: 'rgb-grid-status',
+            posXId: 'rgb-grid-pos-x',
+            posYId: 'rgb-grid-pos-y',
+            blobSizeId: 'rgb-grid-blob-size',
+            previewId: 'rgb-grid-preview',
+            switchCamId: 'rgb-grid-switch-cam-btn',
+            logCoords: false,
+            hasGrid: true
+        });
+
+        // =================================================================
+        // GLOBAL BLOCK SWITCHER & LIFECYCLE COORDINATOR
+        // =================================================================
+        const modules = {
+            'block-finger-tracking': FingerTrackingModule,
+            'block-gesture-classifier': GestureClassifierModule,
+            'block-image-classifier': ImageClassifierModule,
+            'block-rgb-coords': RGBCoordinatesModule,
+            'block-rgb-colorpicker': RGBColorPickerModule,
+            'block-rgb-grid': RGBGridModule
+        };
+
+        let currentActiveBlockId = 'block-finger-tracking';
+
+        function switchModule(targetBlockId) {
+            if (targetBlockId === currentActiveBlockId && modules[targetBlockId]) {
+                return;
+            }
+
+            // 1. Stop current active module
+            if (currentActiveBlockId && modules[currentActiveBlockId]) {
+                try {
+                    modules[currentActiveBlockId].stop();
+                } catch (e) {
+                    console.warn(`Error stopping ${currentActiveBlockId}:`, e);
+                }
+            }
+
+            // 2. Hide all block divs & deactivate nav buttons
+            document.querySelectorAll('.app-block').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            // 3. Show target block div & activate button
+            const targetBlock = document.getElementById(targetBlockId);
+            const targetBtn = document.querySelector(`.nav-tab-btn[data-target="${targetBlockId}"]`);
+
+            if (targetBlock) targetBlock.classList.add('active');
+            if (targetBtn) {
+                targetBtn.classList.add('active');
+                targetBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+
+            currentActiveBlockId = targetBlockId;
+
+            // 4. Start new module
+            if (modules[targetBlockId]) {
+                try {
+                    modules[targetBlockId].start();
+                } catch (e) {
+                    console.error(`Error starting ${targetBlockId}:`, e);
+                }
+            }
+        }
+
+        // Attach click handlers to navigation tabs
+        document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = btn.dataset.target;
+                if (target) switchModule(target);
+            });
+        });
+
+        // Start initial module on page load
+        window.addEventListener('load', () => {
+            if (modules[currentActiveBlockId]) {
+                modules[currentActiveBlockId].start();
+            }
+        });
+    </script>
+</body>
+</html>

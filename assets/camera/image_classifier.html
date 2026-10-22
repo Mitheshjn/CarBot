@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Teachable Webcam</title>
+  <script src="tf.min.js"></script>
+  <script src="mobilenet.js"></script>
+  <script src="knn-classifier.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #000;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-family: system-ui, sans-serif;
+    }
+    #video-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+    @media (orientation: landscape) {
+      video {
+        object-fit: contain;
+      }
+    }
+    #controls {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      background: #111;
+      justify-content: center;
+    }
+    .train-btn {
+      flex: 1;
+      max-width: 70px;
+      height: 54px;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      background: #333;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      touch-action: none;
+      user-select: none;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+    .train-btn:active, .train-btn.holding {
+      background: var(--theme);
+      border-color: var(--theme);
+      transform: scale(0.95);
+    }
+    .train-btn.has-data {
+      border-color: var(--theme);
+      box-shadow: 0 0 10px var(--theme);
+    }
+    .badge {
+      display: none;
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: white;
+      color: black;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .train-btn.has-data .badge {
+      display: block;
+    }
+    .clear-btn {
+      flex: 1;
+      max-width: 80px;
+      height: 54px;
+      border: none;
+      border-radius: 12px;
+      background: #ff3b30;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      touch-action: none;
+      user-select: none;
+      margin-left: 10px;
+    }
+    .clear-btn:active {
+      background: #d32f2f;
+      transform: scale(0.95);
+    }
+    #status {
+      position: absolute;
+      top: 12px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #0f0;
+      font-size: 14px;
+      pointer-events: none;
+      text-shadow: 0 0 4px #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="video-container">
+    <button id="switch-cam-btn" style="position:absolute;top:10px;right:10px;z-index:100;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.8);border:none;font-size:20px;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;">📷</button>
+    <video id="webcam" autoplay playsinline muted></video>
+    <div id="status">Loading...</div>
+  </div>
+
+  <div id="controls">
+    <button class="train-btn" data-class="1" style="--theme: #FF3B30;">1<span class="badge">0</span></button>
+    <button class="train-btn" data-class="2" style="--theme: #FF9500;">2<span class="badge">0</span></button>
+    <button class="train-btn" data-class="3" style="--theme: #FFCC00;">3<span class="badge">0</span></button>
+    <button class="train-btn" data-class="4" style="--theme: #34C759;">4<span class="badge">0</span></button>
+    <button class="train-btn" data-class="5" style="--theme: #007AFF;">5<span class="badge">0</span></button>
+    <button class="clear-btn" id="clear-btn">Clear</button>
+  </div>
+
+  <script>
+    const video = document.getElementById('webcam');
+    const statusEl = document.getElementById('status');
+    const classifier = knnClassifier.create();
+
+    let net;
+    let isTraining = false;
+    let currentTrainClass = null;
+    let lastLogged = null;
+    let sameCount = 0;
+
+    const STABLE_FRAMES = 2;
+    const CONFIDENCE_THRESHOLD = 0.65;
+
+    function logStable(value) {
+      if (value === lastLogged) sameCount++;
+      else {
+        lastLogged = value;
+        sameCount = 1;
+      }
+      if (sameCount >= STABLE_FRAMES) {
+        console.log(value);   // only the integer
+      }
+    }
+
+    function updateBadges() {
+      const counts = classifier.getNumClasses() > 0 ? classifier.getClassExampleCount() : {};
+      document.querySelectorAll('.train-btn').forEach(btn => {
+        const cId = btn.dataset.class;
+        const count = counts[cId] || 0;
+        const badge = btn.querySelector('.badge');
+        badge.textContent = count;
+        if (count > 0) {
+          btn.classList.add('has-data');
+        } else {
+          btn.classList.remove('has-data');
+        }
+      });
+    }
+
+    let currentFacingMode = 'environment';
+    document.getElementById('switch-cam-btn').addEventListener('click', async () => {
+        currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+        if(video.srcObject) {
+            video.srcObject.getTracks().forEach(t => t.stop());
+        }
+        await setupWebcam();
+    });
+
+    async function setupWebcam() {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: currentFacingMode } },
+        audio: false
+      });
+      video.srcObject = stream;
+      return new Promise(r => video.onloadeddata = r);
+    }
+
+    async function addExample(classId) {
+      if (!net) return;
+      const img = tf.browser.fromPixels(video);
+      const activation = net.infer(img, true);
+      classifier.addExample(activation, classId);
+      img.dispose();
+      activation.dispose();
+      updateBadges();
+    }
+
+    document.querySelectorAll('.train-btn').forEach(btn => {
+      const classId = Number(btn.dataset.class);
+
+      const start = (e) => {
+        e.preventDefault();
+        isTraining = true;
+        currentTrainClass = classId;
+        btn.classList.add('holding');
+        statusEl.textContent = `Training class ${classId}...`;
+      };
+
+      const stop = () => {
+        isTraining = false;
+        currentTrainClass = null;
+        btn.classList.remove('holding');
+        const counts = classifier.getClassExampleCount();
+        statusEl.textContent = `Ready • Examples: ${JSON.stringify(counts)}`;
+      };
+
+      btn.addEventListener('touchstart', start, { passive: false });
+      btn.addEventListener('mousedown', start);
+      btn.addEventListener('touchend', stop);
+      btn.addEventListener('mouseup', stop);
+      btn.addEventListener('touchcancel', stop);
+      btn.addEventListener('mouseleave', stop);
+    });
+
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      if (classifier.getNumClasses() > 0) {
+        classifier.clearAllClasses();
+      }
+      updateBadges();
+      statusEl.textContent = 'Ready – hold a number to train';
+      console.log("Memory cleared.");
+    });
+
+    async function app() {
+      await tf.setBackend('webgl');
+      await tf.ready();
+
+      statusEl.textContent = 'Loading model...';
+      net = await mobilenet.load({ version: 2, alpha: 0.5, modelUrl: 'model.json' });
+
+      await setupWebcam();
+      statusEl.textContent = 'Ready – hold a number to train';
+
+      let lastRun = 0;
+      const INTERVAL = 140;
+
+      async function loop(ts) {
+        if (ts - lastRun < INTERVAL || video.readyState < 2) {
+          requestAnimationFrame(loop);
+          return;
+        }
+        lastRun = ts;
+
+        if (isTraining && currentTrainClass) {
+          await addExample(currentTrainClass);
+          requestAnimationFrame(loop);
+          return;
+        }
+
+        if (classifier.getNumClasses() > 0) {
+          const img = tf.browser.fromPixels(video);
+          const activation = net.infer(img, true);
+          const result = await classifier.predictClass(activation);
+
+          img.dispose();
+          activation.dispose();
+
+          const conf = result.confidences[result.label];
+          if (conf >= CONFIDENCE_THRESHOLD) {
+            logStable(Number(result.label));   // only the integer
+          }
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+   app().catch(err => {
+  console.error(err);
+  statusEl.textContent =
+    `Error: ${err.name} - ${err.message}`;
+});
+  </script>
+</body>
+</html>

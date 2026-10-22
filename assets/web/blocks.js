@@ -1088,5 +1088,83 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": 210,
     "tooltip": "Wait for a specified number of milliseconds."
+  },
+  {
+    "type": "lib_camera_initialize",
+    "message0": "Camera Onboard %1 %2",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "ob",
+        "options": [
+          [
+            "True",
+            "True"
+          ],
+          [
+            "False",
+            "False"
+          ]
+        ]
+      },
+      {
+        "type": "input_dummy"
+      }
+    ],
+    "output": "camera_object",
+    "colour": 260,
+    "tooltip": "Make an object to initialize and control the camera. Specify whether camera is onboard.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/camera.html#camera"
+  },
+  {
+    "type": "lib_camera_take_picture",
+    "message0": "Camera Take Picture %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "camera_object",
+        "check": "camera_object"
+      }
+    ],
+    "output": "image_object",
+    "colour": 260,
+    "tooltip": "Capture a picture using the referenced camera object.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/camera.html#camera"
+  },
+  {
+    "type": "lib_camera_convert_to_grayscale",
+    "message0": "Camera Convert to Grayscale %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "camera_object",
+        "check": [
+          "camera_object",
+          "image_object"
+        ]
+      }
+    ],
+    "output": "image_object",
+    "colour": 260,
+    "tooltip": "Convert camera capture or image to grayscale.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/camera.html#camera"
+  },
+  {
+    "type": "lib_camera_read_console_values",
+    "message0": "Camera Read Console Values %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "camera_object",
+        "check": "camera_object"
+      }
+    ],
+    "output": [
+      "String",
+      "Number"
+    ],
+    "colour": 260,
+    "tooltip": "Read console values output by the camera Vision AI suite.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/camera.html#camera"
   }
 ]);
