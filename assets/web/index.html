@@ -64,7 +64,8 @@
       margin: 4px 0 12px;
     }
 
-    .header-actions-left, .header-actions-right {
+    .header-actions-left,
+    .header-actions-right {
       display: flex;
       gap: 8px;
       align-items: center;
@@ -271,25 +272,30 @@
       box-shadow: none;
     }
 
+    /* COMPACT RESTRUCTURED SWITCHES */
     .switches-row {
       display: flex;
-      justify-content: space-between;
-      gap: 10px;
+      justify-content: space-around;
+      gap: 6px;
       align-items: center;
-      margin-top: 14px;
-      padding: 0 4px;
+      margin-top: 10px;
+      padding: 0 2px;
+      flex-wrap: nowrap;
     }
 
     .switch-container {
-      display: flex;
+      display: inline-flex;
       align-items: center;
+      gap: 4px;
+      white-space: nowrap;
     }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 38px;
-      height: 22px;
+      width: 32px;
+      height: 18px;
+      flex-shrink: 0;
     }
 
     .switch input {
@@ -305,19 +311,20 @@
       right: 0;
       bottom: 0;
       background: #333;
-      transition: .25s;
-      border-radius: 22px;
+      transition: .22s;
+      border-radius: 18px;
+      cursor: pointer;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 16px;
-      width: 16px;
+      height: 12px;
+      width: 12px;
       left: 3px;
       bottom: 3px;
       background: #fff;
-      transition: .25s;
+      transition: .22s;
       border-radius: 50%;
     }
 
@@ -326,14 +333,15 @@
     }
 
     input:checked+.slider:before {
-      transform: translateX(16px);
+      transform: translateX(14px);
     }
 
     .switch-label {
       font-size: 11px;
-      margin-left: 7px;
       color: #aaa;
       font-weight: 600;
+      transition: color 0.2s ease;
+      user-select: none;
     }
 
     .cam-wrapper {
@@ -544,10 +552,22 @@
       transition: opacity 0.15s ease;
     }
 
-    .btn-primary { background: #238636; }
-    .btn-secondary { background: #30363d; color: #c9d1d9; }
-    .btn-blue { background: #0969da; }
-    .btn-amber { background: #d97706; }
+    .btn-primary {
+      background: #238636;
+    }
+
+    .btn-secondary {
+      background: #30363d;
+      color: #c9d1d9;
+    }
+
+    .btn-blue {
+      background: #0969da;
+    }
+
+    .btn-amber {
+      background: #d97706;
+    }
 
     #main-container {
       width: 100% !important;
@@ -556,7 +576,8 @@
       overflow: visible !important;
     }
 
-    #blocklyArea, #blocklyAreaCamera {
+    #blocklyArea,
+    #blocklyAreaCamera {
       width: 100% !important;
       height: 480px !important;
       position: relative !important;
@@ -566,7 +587,8 @@
       background: #1e1e1e !important;
     }
 
-    #blocklyDiv, #blocklyDivCamera {
+    #blocklyDiv,
+    #blocklyDivCamera {
       position: absolute;
       top: 0;
       left: 0;
@@ -577,7 +599,8 @@
       text-align: left;
     }
 
-    #dragOverlay, #dragOverlayCamera {
+    #dragOverlay,
+    #dragOverlayCamera {
       display: none;
       position: absolute;
       top: 0;
@@ -681,10 +704,21 @@
       gap: 6px;
     }
 
-    .rover-btn-run { background: #0284c7; }
-    .rover-btn-run:hover { background: #0369a1; }
-    .rover-btn-stop { background: #c62828; }
-    .rover-btn-stop:hover { background: #b71c1c; }
+    .rover-btn-run {
+      background: #0284c7;
+    }
+
+    .rover-btn-run:hover {
+      background: #0369a1;
+    }
+
+    .rover-btn-stop {
+      background: #c62828;
+    }
+
+    .rover-btn-stop:hover {
+      background: #b71c1c;
+    }
 
     .blocklyToolboxDiv {
       background-color: #e5e7eb !important;
@@ -796,7 +830,9 @@
       padding: 0 6px;
     }
 
-    .modal-close-btn:hover { color: #fff; }
+    .modal-close-btn:hover {
+      color: #fff;
+    }
 
     .modal-body {
       flex: 1;
@@ -845,7 +881,9 @@
       backdrop-filter: blur(4px);
     }
 
-    #varDialogBackdrop.open { display: flex; }
+    #varDialogBackdrop.open {
+      display: flex;
+    }
 
     #varDialog {
       background: #ffffff;
@@ -886,7 +924,9 @@
       display: none;
     }
 
-    #varDialogError.visible { display: block; }
+    #varDialogError.visible {
+      display: block;
+    }
 
     #varDialogFooter {
       display: flex;
@@ -903,8 +943,15 @@
       cursor: pointer;
     }
 
-    .vd-btn-cancel { background: #f0f2f8; color: #5a627a; }
-    .vd-btn-ok { background: #4f63d2; color: #fff; }
+    .vd-btn-cancel {
+      background: #f0f2f8;
+      color: #5a627a;
+    }
+
+    .vd-btn-ok {
+      background: #4f63d2;
+      color: #fff;
+    }
 
     #toast {
       position: fixed;
@@ -928,9 +975,17 @@
       opacity: 1;
     }
 
-    #toast.success { background: #238636; }
-    #toast.error { background: #da3633; }
-    #toast.info { background: #0284c7; }
+    #toast.success {
+      background: #238636;
+    }
+
+    #toast.error {
+      background: #da3633;
+    }
+
+    #toast.info {
+      background: #0284c7;
+    }
 
     /* ================= CONNECTION SPLASH / BANNER OVERLAY ================= */
     #connOverlay {
@@ -973,7 +1028,9 @@
       animation: radarPulse 1.8s infinite ease-out;
     }
 
-    .radar-ring:nth-child(2) { animation-delay: 0.6s; }
+    .radar-ring:nth-child(2) {
+      animation-delay: 0.6s;
+    }
 
     .radar-core {
       position: absolute;
@@ -987,8 +1044,15 @@
     }
 
     @keyframes radarPulse {
-      0% { transform: scale(0.3); opacity: 1; }
-      100% { transform: scale(1.6); opacity: 0; }
+      0% {
+        transform: scale(0.3);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
     }
 
     .conn-title {
@@ -1020,7 +1084,9 @@
       transition: transform 0.1s ease;
     }
 
-    .conn-btn:active { transform: scale(0.96); }
+    .conn-btn:active {
+      transform: scale(0.96);
+    }
   </style>
 </head>
 
@@ -1034,7 +1100,8 @@
       <div class="radar-core"></div>
     </div>
     <div class="conn-title">Connecting to Snap Racer...</div>
-    <div class="conn-desc" id="connSubText">Make sure your phone is connected to Wi-Fi: <b style="color:#00e5ff">SNAP-RACER</b></div>
+    <div class="conn-desc" id="connSubText">Make sure your phone is connected to Wi-Fi: <b
+        style="color:#00e5ff">SNAP-RACER</b></div>
     <button type="button" class="conn-btn" onclick="checkConnectionNow()">Retry Connection</button>
   </div>
 
@@ -1123,26 +1190,47 @@
       </div>
     </div>
 
-    <div class="switches-row">
-      <div class="switch-container"><label class="switch"><input type="checkbox"
-            onchange="toggleHeadlights(this.checked)"><span class="slider"></span></label><span id="headlightLabel"
-          class="switch-label">Lights: OFF</span></div>
-      <div class="switch-container"><label class="switch"><input type="checkbox" id="cockpitToggle"
-            onchange="toggleCockpitMode(this.checked)"><span class="slider"></span></label><span id="cockpitLabel"
-          class="switch-label">Cockpit Mode: OFF</span></div>
+    <!-- ROW 1: AUXILIARY SWITCHES -->
+    <div class="switches-row" id="rowAuxSwitches">
+      <div class="switch-container">
+        <label class="switch">
+          <input type="checkbox" id="lightsToggle" onchange="toggleHeadlights(this.checked)">
+          <span class="slider"></span>
+        </label>
+        <span id="headlightLabel" class="switch-label">💡 Lights</span>
+      </div>
+      <div class="switch-container">
+        <label class="switch">
+          <input type="checkbox" id="addOnToggle" onchange="toggleAddOns(this.checked)">
+          <span class="slider"></span>
+        </label>
+        <span id="addOnLabel" class="switch-label">🔌 Add-Ons</span>
+      </div>
     </div>
-    <div class="switches-row">
-      <div class="switch-container"><label class="switch"><input type="checkbox"
-            onchange="toggleAddOns(this.checked)"><span class="slider"></span></label><span id="addOnLabel"
-          class="switch-label">Add-Ons: OFF</span></div>
-      <div class="switch-container"><label class="switch"><input type="checkbox" id="camToggle"
-            onchange="toggleCamera(this.checked)"><span class="slider"></span></label><span id="camLabel"
-          class="switch-label">Camera: OFF</span></div>
-    </div>
-    <div class="switches-row">
-      <div class="switch-container"><label class="switch"><input type="checkbox" id="terminalToggle"
-            onchange="toggleTerminal(this.checked)"><span class="slider"></span></label><span id="terminalLabel"
-          class="switch-label">Blockly Studio: OFF</span></div>
+
+    <!-- ROW 2: MAIN SWITCHES -->
+    <div class="switches-row" id="rowMainSwitches">
+      <div class="switch-container">
+        <label class="switch">
+          <input type="checkbox" id="cockpitToggle" onchange="toggleCockpitMode(this.checked)">
+          <span class="slider"></span>
+        </label>
+        <span id="cockpitLabel" class="switch-label">🏎️ Cockpit</span>
+      </div>
+      <div class="switch-container">
+        <label class="switch">
+          <input type="checkbox" id="camToggle" onchange="toggleCamera(this.checked)">
+          <span class="slider"></span>
+        </label>
+        <span id="camLabel" class="switch-label">📷 Cam</span>
+      </div>
+      <div class="switch-container">
+        <label class="switch">
+          <input type="checkbox" id="terminalToggle" onchange="toggleTerminal(this.checked)">
+          <span class="slider"></span>
+        </label>
+        <span id="terminalLabel" class="switch-label">🧩 Blocks</span>
+      </div>
     </div>
   </div>
 
@@ -1240,10 +1328,13 @@
         </div>
       </div>
       <div class="rover-actions header-actions">
-        <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁 Code</button>
+        <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁
+          Code</button>
         <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">📋 Copy Python</button>
-        <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download XML</button>
-        <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload XML</button>
+        <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download
+          XML</button>
+        <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload
+          XML</button>
       </div>
     </div>
 
@@ -1256,7 +1347,8 @@
 
           <!-- Custom Floating HTML Workspace Controls -->
           <div class="workspace-floating-controls" id="workspaceControls">
-            <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
+            <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()"
+              title="Center Workspace">Center</button>
             <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
             <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
             <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDelete" onclick="deleteSelectedBlock()"
@@ -1267,10 +1359,12 @@
       </div>
     </div>
 
-    <!-- CAMERA BLOCK SECTION (<div> copy with only Camera & Motors, other sensors disabled) -->
+    <!-- CAMERA BLOCK SECTION (Camera & Motors, other sensors disabled) -->
     <div id="cameraBlocksSection" style="display: none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin: 4px 2px 8px; padding: 6px 10px; background: rgba(0, 229, 255, 0.08); border-left: 3px solid #00e5ff; border-radius: 4px;">
-        <span style="font-size: 11px; color: #00e5ff; font-weight: 600;">📷 Camera &amp; Motor Mode: Logic, Math, Text, Loops, Variables &amp; System enabled. Modular sensors disabled.</span>
+      <div
+        style="display:flex; justify-content:space-between; align-items:center; margin: 4px 2px 8px; padding: 6px 10px; background: rgba(0, 229, 255, 0.08); border-left: 3px solid #00e5ff; border-radius: 4px;">
+        <span style="font-size: 11px; color: #00e5ff; font-weight: 600;">📷 Camera &amp; Motor Mode: Logic, Math, Text,
+          Loops, Variables &amp; System enabled. Modular sensors disabled.</span>
       </div>
       <div id="main-container-camera">
         <div id="blocklyAreaCamera">
@@ -1279,7 +1373,8 @@
 
           <!-- Custom Floating HTML Workspace Controls for Camera Blocks -->
           <div class="workspace-floating-controls" id="workspaceControlsCamera">
-            <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()" title="Center Workspace">Center</button>
+            <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()"
+              title="Center Workspace">Center</button>
             <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
             <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
             <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDeleteCamera" onclick="deleteSelectedBlock()"
@@ -1312,7 +1407,8 @@
       </div>
       <div class="modal-footer">
         <button id="modalCopyBtn" class="btn-secondary" onclick="copyModalCode()">📋 Copy</button>
-        <button id="modalDownloadXmlBtn" class="btn-primary" style="display: none;" onclick="downloadXml()">💾 Download XML</button>
+        <button id="modalDownloadXmlBtn" class="btn-primary" style="display: none;" onclick="downloadXml()">💾 Download
+          XML</button>
         <button class="btn-secondary" onclick="closeCodeModal()">Close</button>
       </div>
     </div>
@@ -1538,6 +1634,7 @@
       <block type="lib_dht22_initialize"></block>
       <block type="lib_temperature_read"></block>
       <block type="lib_humidity_read"></block>
+    </category>
     <category name="System" colour="60">
       <block type="lib_neo_sleep">
         <value name="duration">
@@ -1770,7 +1867,7 @@
 
       if (!isOrientationLocked) {
         if (window.FlutterOrientation && window.FlutterOrientation.postMessage) {
-          window.FlutterOrientation.postMessage(targetMode); // <-- Sends portrait or landscape based on current screen
+          window.FlutterOrientation.postMessage(targetMode);
           isOrientationLocked = true;
           if (btn) { btn.innerText = '🔒'; btn.style.color = '#00e5ff'; btn.style.borderColor = '#00e5ff'; }
           showToast(`Locked in ${isLandscape ? 'Landscape' : 'Portrait'}`, 'info');
@@ -1868,21 +1965,28 @@
     window.addEventListener('pointercancel', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
     window.addEventListener('blur', () => { if (currentDriveDir !== 'stop') driveStop(); });
 
+    // ================= COMPACT TOGGLES =================
+    let isAddOnsActive = false;
+
     function toggleHeadlights(en) {
-      document.getElementById('headlightLabel').innerText = en ? "Lights: ON" : "Lights: OFF";
-      document.getElementById('headlightLabel').style.color = en ? "#007aff" : "#aaa";
+      const lbl = document.getElementById('headlightLabel');
+      if (lbl) lbl.style.color = en ? "#007aff" : "#aaa";
       fetchApi('/setFrontLed?state=' + (en ? 1 : 0));
     }
 
     function toggleAddOns(en) {
-      document.getElementById('addOnLabel').innerText = en ? "Add-Ons: ON" : "Add-Ons: OFF";
-      document.getElementById('addOnLabel').style.color = en ? "#007aff" : "#aaa";
-      document.getElementById('addOnsContainer').style.display = en ? "block" : "none";
+      isAddOnsActive = !!en;
+      const lbl = document.getElementById('addOnLabel');
+      if (lbl) lbl.style.color = en ? "#007aff" : "#aaa";
+      const container = document.getElementById('addOnsContainer');
+      if (!isCameraOn) {
+        if (container) container.style.display = en ? "block" : "none";
+      }
     }
 
     function toggleTerminal(en) {
-      document.getElementById('terminalLabel').innerText = en ? "Blockly Studio: ON" : "Blockly Studio: OFF";
-      document.getElementById('terminalLabel').style.color = en ? "#007aff" : "#aaa";
+      const lbl = document.getElementById('terminalLabel');
+      if (lbl) lbl.style.color = en ? "#007aff" : "#aaa";
       document.getElementById('terminalPanel').style.display = en ? "block" : "none";
       if (en && workspace) {
         setTimeout(() => {
@@ -1976,68 +2080,27 @@
       showToast('OLED Mode: ' + (names[mode] || mode), 'info');
     }
 
-    // ================= SPEED SLIDER & RESTRICTION =================
+    // ================= SPEED SLIDER & CAMERA FIXED-SPEED ENGINE =================
     const NORMAL_SPEED_MIN = 0;
     const NORMAL_SPEED_MAX = 255;
-    const CAM_SPEED_MIN = 35;
-    const CAM_SPEED_MAX = 45;
+    const CAM_FIXED_SPEED = 40;
 
     let isCameraOn = false;
     window.isCameraOn = false;
+    let savedSpeedBeforeCamera = 160;
     let isSliderActive = false, lastSliderInteractTime = 0, lastSliderSend = 0;
 
     function clampSpeedVal(val) {
       let num = parseInt(val, 10);
-      if (isNaN(num)) num = isCameraOn ? CAM_SPEED_MIN : 0;
-      if (isCameraOn) {
-        if (num < CAM_SPEED_MIN) return CAM_SPEED_MIN;
-        if (num > CAM_SPEED_MAX) return CAM_SPEED_MAX;
-        return num;
-      }
+      if (isNaN(num)) num = isCameraOn ? CAM_FIXED_SPEED : 0;
+      if (isCameraOn) return CAM_FIXED_SPEED;
       if (num < NORMAL_SPEED_MIN) return NORMAL_SPEED_MIN;
       if (num > NORMAL_SPEED_MAX) return NORMAL_SPEED_MAX;
       return num;
     }
 
-    function applyCameraSpeedRestriction(en) {
-      const slider = document.getElementById('speedSlider');
-      const speedLabel = document.getElementById('speedLabel');
-
-      if (en) {
-        const currentVal = slider ? (parseInt(slider.value, 10) || 0) : 0;
-        let clampedVal = currentVal;
-        if (clampedVal > CAM_SPEED_MAX) {
-          clampedVal = CAM_SPEED_MAX;
-        } else if (clampedVal < CAM_SPEED_MIN) {
-          clampedVal = CAM_SPEED_MIN;
-        }
-
-        if (slider) {
-          slider.min = CAM_SPEED_MIN;
-          slider.max = CAM_SPEED_MAX;
-          slider.value = clampedVal;
-        }
-        updateSpeedUI(clampedVal);
-        if (speedLabel) {
-          speedLabel.innerText = "PWM (35-45)";
-          speedLabel.style.color = "#00e5ff";
-        }
-        // Immediately trigger network call to update ESP32 speed endpoint
-        sendSpeed(clampedVal);
-      } else {
-        if (slider) {
-          slider.min = NORMAL_SPEED_MIN;
-          slider.max = NORMAL_SPEED_MAX;
-          updateSpeedUI(slider.value);
-        }
-        if (speedLabel) {
-          speedLabel.innerText = "PWM";
-          speedLabel.style.color = "#888";
-        }
-      }
-    }
-
     function onSliderInput(val) {
+      if (isCameraOn) return;
       isSliderActive = true;
       lastSliderInteractTime = Date.now();
       const clamped = clampSpeedVal(val);
@@ -2046,15 +2109,14 @@
         slider.value = clamped;
       }
       updateSpeedUI(clamped);
-      const minEdge = isCameraOn ? CAM_SPEED_MIN : NORMAL_SPEED_MIN;
-      const maxEdge = isCameraOn ? CAM_SPEED_MAX : NORMAL_SPEED_MAX;
-      if (Date.now() - lastSliderSend > 100 || clamped === minEdge || clamped === maxEdge) {
+      if (Date.now() - lastSliderSend > 100 || clamped === NORMAL_SPEED_MIN || clamped === NORMAL_SPEED_MAX) {
         lastSliderSend = Date.now();
         sendSpeed(clamped);
       }
     }
 
     function onSliderChange(val) {
+      if (isCameraOn) return;
       isSliderActive = false;
       lastSliderInteractTime = Date.now();
       const clamped = clampSpeedVal(val);
@@ -2085,11 +2147,14 @@
     function setCockpitUI(en) {
       document.getElementById('dpadContainer').style.display = en ? 'none' : 'block';
       document.getElementById('wheelContainer').style.display = en ? 'flex' : 'none';
-      document.getElementById('sliderContainer').style.display = en ? 'none' : 'flex';
+      const sliderCol = document.getElementById('sliderContainer');
+      if (sliderCol) {
+        sliderCol.style.display = (en || isCameraOn) ? 'none' : 'flex';
+      }
       document.getElementById('pedalContainer').style.display = en ? 'flex' : 'none';
       let slider = document.getElementById('speedSlider');
-      if (en && slider && (slider.value == 0 || (isCameraOn && slider.value < CAM_SPEED_MIN))) {
-        let defaultSpeed = isCameraOn ? 40 : 160;
+      if (en && slider && (slider.value == 0 || (isCameraOn && slider.value < CAM_FIXED_SPEED))) {
+        let defaultSpeed = isCameraOn ? CAM_FIXED_SPEED : 160;
         slider.value = defaultSpeed;
         updateSpeedUI(defaultSpeed);
         sendSpeed(defaultSpeed);
@@ -2098,8 +2163,8 @@
 
     function toggleCockpitMode(en) {
       cockpitActive = en;
-      document.getElementById('cockpitLabel').innerText = en ? "Cockpit Mode: ON" : "Cockpit Mode: OFF";
-      document.getElementById('cockpitLabel').style.color = en ? "#007aff" : "#aaa";
+      const lbl = document.getElementById('cockpitLabel');
+      if (lbl) lbl.style.color = en ? "#007aff" : "#aaa";
       setCockpitUI(en);
       if (!en) { stopGyro(); resetDriving(); }
     }
@@ -2258,7 +2323,7 @@
     window.addEventListener('mousemove', moveWheel);
     window.addEventListener('mouseup', resetWheel);
 
-    // ================= STREAMLINED CAMERA STREAM =================
+    // ================= STREAMLINED CAMERA STREAM & DYNAMIC PANEL RESIZING =================
     let camTimeout = null;
     function onCamLoad() {
       if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
@@ -2278,12 +2343,41 @@
       isCameraOn = !!en;
       window.isCameraOn = isCameraOn;
       isCamActive = isCameraOn;
-      document.getElementById('camLabel').innerText = en ? "Camera: ON" : "Camera: OFF";
-      document.getElementById('camLabel').style.color = en ? "#007aff" : "#aaa";
-      const s = document.getElementById('cameraSection'), f = document.getElementById('camFrame'), e = document.getElementById('camError');
-      if (s) s.style.display = en ? 'block' : 'none';
+
+      const camLbl = document.getElementById('camLabel');
+      if (camLbl) camLbl.style.color = en ? "#007aff" : "#aaa";
+
+      const s = document.getElementById('cameraSection');
+      const f = document.getElementById('camFrame');
+      const e = document.getElementById('camError');
+      const sliderCol = document.getElementById('sliderContainer');
+      const speedSlider = document.getElementById('speedSlider');
+      const rowAux = document.getElementById('rowAuxSwitches');
+      const addOnsPanel = document.getElementById('addOnsContainer');
+
       if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+
       if (en) {
+        // 1. Save current speed before switching to fixed camera speed
+        if (speedSlider) {
+          const curr = parseInt(speedSlider.value, 10);
+          if (!isNaN(curr) && curr > 0) savedSpeedBeforeCamera = curr;
+        }
+
+        // 2. Hide Row 1 (Lights & Add-Ons) and Modular panel
+        if (rowAux) rowAux.style.display = 'none';
+        if (addOnsPanel) addOnsPanel.style.display = 'none';
+
+        // 3. Completely hide slider column
+        if (sliderCol) sliderCol.style.display = 'none';
+
+        // 4. Set fixed 40 PWM speed and send immediately
+        if (speedSlider) speedSlider.value = CAM_FIXED_SPEED;
+        updateSpeedUI(CAM_FIXED_SPEED);
+        sendSpeed(CAM_FIXED_SPEED);
+
+        // 5. Open stream
+        if (s) s.style.display = 'block';
         if (e) e.style.display = 'none';
         if (f) {
           f.style.display = 'none';
@@ -2291,10 +2385,33 @@
           f.src = 'http://192.168.4.10:81/stream';
         }
       } else {
+        // 1. Stop video stream
         if (f) { f.src = ''; f.style.display = 'none'; }
         if (e) e.style.display = 'none';
+        if (s) s.style.display = 'none';
+
+        // 2. Restore Row 1
+        if (rowAux) rowAux.style.display = 'flex';
+
+        // 3. Restore Add-Ons panel if it was checked
+        if (addOnsPanel) {
+          addOnsPanel.style.display = isAddOnsActive ? 'block' : 'none';
+        }
+
+        // 4. Restore slider visibility (unless Cockpit mode is currently active)
+        if (sliderCol) {
+          sliderCol.style.display = cockpitActive ? 'none' : 'flex';
+        }
+
+        // 5. Restore full slider range and previous speed
+        if (speedSlider) {
+          speedSlider.min = NORMAL_SPEED_MIN;
+          speedSlider.max = NORMAL_SPEED_MAX;
+          speedSlider.value = savedSpeedBeforeCamera;
+          updateSpeedUI(savedSpeedBeforeCamera);
+          sendSpeed(savedSpeedBeforeCamera);
+        }
       }
-      applyCameraSpeedRestriction(isCameraOn);
     }
 
     function camReload(event) {
@@ -2342,13 +2459,10 @@
           }
 
           let slider = document.getElementById('speedSlider');
-          if (slider && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
-            let pwmVal = d.pwm;
-            if (isCameraOn) {
-              pwmVal = clampSpeedVal(pwmVal);
-            }
-            slider.value = pwmVal;
-            updateSpeedUI(pwmVal);
+          // When camera is on, keep speed strictly fixed at 40 PWM; do not overwrite from telemetry
+          if (slider && !isCameraOn && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
+            slider.value = d.pwm;
+            updateSpeedUI(d.pwm);
           }
         })
         .catch(() => { })
@@ -2772,14 +2886,12 @@
         return;
       }
 
-      // If running inside the Flutter mobile app, use the native channel
       if (window.FlutterFileSaver && window.FlutterFileSaver.postMessage) {
         window.FlutterFileSaver.postMessage(xmlText);
         showToast('Saving XML to device...', 'info');
         return;
       }
 
-      // Browser fallback
       try {
         const blob = new Blob([xmlText], { type: 'text/xml;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -2802,13 +2914,11 @@
 
     // ================= XML UPLOAD (WITH FLUTTER BRIDGE SUPPORT) =================
     function triggerXmlUpload() {
-      // If running inside Flutter app, invoke the native file picker
       if (window.FlutterFilePicker && window.FlutterFilePicker.postMessage) {
         window.FlutterFilePicker.postMessage('pick');
         return;
       }
 
-      // Browser fallback
       let input = document.getElementById('xmlFileInput');
       if (!input) {
         input = document.createElement('input');
@@ -2897,24 +3007,18 @@
 
         const xml = textToDom(xmlText);
 
-        // Resistance / Validation when in Camera Blocks mode:
-        // Prohibit modular sensors that are disabled in camera mode
         if (activeBlockMode === 'camera') {
           const forbiddenSensors = validateXmlForCameraMode(xml);
           if (forbiddenSensors.length > 0) {
             const listStr = forbiddenSensors.join(', ');
             showToast('Upload rejected: Disabled sensor blocks (' + listStr + ') not allowed in Camera mode. Switch to Main Blocks to use them.', 'error');
-            console.warn('Rejected XML upload in Camera mode due to disabled sensors:', forbiddenSensors);
             return;
           }
         } else {
-          // Resistance / Validation when in Main Blocks mode:
-          // Prohibit camera blocks in Main mode
           const forbiddenBlocks = validateXmlForMainMode(xml);
           if (forbiddenBlocks.length > 0) {
             const listStr = forbiddenBlocks.join(', ');
             showToast('Upload rejected: Camera blocks (' + listStr + ') not allowed in Main mode. Switch to Camera Blocks to use them.', 'error');
-            console.warn('Rejected XML upload in Main mode due to camera blocks:', forbiddenBlocks);
             return;
           }
         }
