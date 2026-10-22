@@ -349,13 +349,13 @@
 
         .ic-train-btn {
             flex: 1;
-            max-width: 72px;
-            height: 54px;
+            max-width: 64px;
+            height: 52px;
             border: 2px solid transparent;
             border-radius: 12px;
             background: #1f2937;
             color: white;
-            font-size: 20px;
+            font-size: 19px;
             font-weight: bold;
             touch-action: none;
             user-select: none;
@@ -395,13 +395,13 @@
 
         .ic-clear-btn {
             flex: 1;
-            max-width: 80px;
-            height: 54px;
+            max-width: 76px;
+            height: 52px;
             border: none;
             border-radius: 12px;
             background: #ef4444;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             touch-action: none;
             user-select: none;
@@ -593,6 +593,7 @@
                     <button class="gesture-action-btn gc-gestureBtn" data-label="3" style="background: #3b82f6;">3</button>
                     <button class="gesture-action-btn gc-gestureBtn" data-label="4" style="background: #8b5cf6;">4</button>
                     <button class="gesture-action-btn gc-gestureBtn" data-label="5" style="background: #f59e0b;">5</button>
+                    <button id="gc-autoTrainBtn" class="gesture-action-btn" style="width: auto; min-width: 58px; padding: 0 8px; font-size: 13px; background: #2563eb;" title="Train fixed 20 images">📸 20x</button>
                     <button id="gc-clearDataBtn" class="gesture-action-btn" style="background: #475569;">X</button>
                 </div>
             </div>
@@ -622,6 +623,7 @@
                 <button class="ic-train-btn" data-class="3" style="--theme: #eab308;">3<span class="badge">0</span></button>
                 <button class="ic-train-btn" data-class="4" style="--theme: #10b981;">4<span class="badge">0</span></button>
                 <button class="ic-train-btn" data-class="5" style="--theme: #3b82f6;">5<span class="badge">0</span></button>
+                <button class="ic-clear-btn" id="ic-autoTrainBtn" style="background: #2563eb; font-size: 13px; max-width: 72px;" title="Train fixed 20 images">📸 20x</button>
                 <button class="ic-clear-btn" id="ic-clear-btn">Clear</button>
             </div>
         </div>
@@ -1053,6 +1055,18 @@
                 return features;
             }
 
+            let fixedAutoTrainTarget = null;
+            let fixedAutoTrainCount = 0;
+            let lastSelectedLabel = 1;
+
+            function trainFixed(label, count = 20) {
+                recordingLabel = parseInt(label, 10) || 1;
+                lastSelectedLabel = recordingLabel;
+                fixedAutoTrainTarget = count;
+                fixedAutoTrainCount = 0;
+                recordingStatusDisplay.innerText = `Training Gesture ${recordingLabel}: 0/${count} samples...`;
+            }
+
             function onResults(results) {
                 if (!isRunning) return;
                 canvasCtx.save();
@@ -1064,6 +1078,16 @@
                         let features = extractFeatures(landmarks);
                         if (recordingLabel !== null) {
                             knn.addExample(features, recordingLabel);
+                            if (fixedAutoTrainTarget !== null) {
+                                fixedAutoTrainCount++;
+                                recordingStatusDisplay.innerText = `Training Gesture ${recordingLabel}: ${fixedAutoTrainCount}/${fixedAutoTrainTarget} samples...`;
+                                if (fixedAutoTrainCount >= fixedAutoTrainTarget) {
+                                    recordingStatusDisplay.innerText = `Finished! Gesture ${recordingLabel} trained (${fixedAutoTrainTarget} samples).`;
+                                    recordingLabel = null;
+                                    fixedAutoTrainTarget = null;
+                                    setTimeout(() => { if (!recordingLabel) recordingStatusDisplay.innerText = ''; }, 2500);
+                                }
+                            }
                         } else {
                             let pred = knn.predict(features);
                             if (pred !== null) {
@@ -1091,10 +1115,12 @@
                 document.querySelectorAll('.gc-gestureBtn').forEach(btn => {
                     btn.addEventListener('pointerdown', (e) => {
                         recordingLabel = parseInt(e.target.dataset.label);
+                        lastSelectedLabel = recordingLabel;
+                        fixedAutoTrainTarget = null;
                         recordingStatusDisplay.innerText = `Recording label ${recordingLabel}...`;
                     });
                     const stopRecording = (e) => {
-                        if (recordingLabel === parseInt(e.target.dataset.label)) {
+                        if (fixedAutoTrainTarget === null && recordingLabel === parseInt(e.target.dataset.label)) {
                             recordingLabel = null;
                             recordingStatusDisplay.innerText = '';
                         }
@@ -1102,6 +1128,13 @@
                     btn.addEventListener('pointerup', stopRecording);
                     btn.addEventListener('pointerleave', stopRecording);
                 });
+
+                const autoTrainBtn = document.getElementById('gc-autoTrainBtn');
+                if (autoTrainBtn) {
+                    autoTrainBtn.addEventListener('click', () => {
+                        trainFixed(lastSelectedLabel || 1, 20);
+                    });
+                }
 
                 document.getElementById('gc-clearDataBtn').addEventListener('click', () => {
                     knn.clear();
@@ -1162,7 +1195,8 @@
                         videoElement.srcObject = null;
                     }
                     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                }
+                },
+                trainFixed: (label, count = 20) => trainFixed(label, count)
             };
         })();
 
@@ -1230,6 +1264,24 @@
                 updateBadges();
             }
 
+            let lastSelectedClass = 1;
+            async function trainFixed(classId, count = 20) {
+                if (!net) return;
+                const targetClass = parseInt(classId, 10) || 1;
+                lastSelectedClass = targetClass;
+                const trainBtn = document.querySelector(`.ic-train-btn[data-class="${targetClass}"]`);
+                if (trainBtn) trainBtn.classList.add('holding');
+                statusEl.textContent = `Training Button ${targetClass}: 0/${count} images...`;
+                for (let i = 1; i <= count; i++) {
+                    await addExample(targetClass);
+                    statusEl.textContent = `Training Button ${targetClass}: ${i}/${count} images...`;
+                    await new Promise(r => setTimeout(r, 60));
+                }
+                if (trainBtn) trainBtn.classList.remove('holding');
+                const counts = classifier.getClassExampleCount();
+                statusEl.textContent = `Done! Button ${targetClass} trained (${count} images) • Total: ${JSON.stringify(counts)}`;
+            }
+
             function initEvents() {
                 document.getElementById('ic-switch-cam-btn').addEventListener('click', async () => {
                     currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
@@ -1245,6 +1297,7 @@
                         e.preventDefault();
                         isTraining = true;
                         currentTrainClass = classId;
+                        lastSelectedClass = classId;
                         btn.classList.add('holding');
                         statusEl.textContent = `Training class ${classId}...`;
                     };
@@ -1262,6 +1315,13 @@
                     btn.addEventListener('touchcancel', stop);
                     btn.addEventListener('mouseleave', stop);
                 });
+
+                const autoTrainBtn = document.getElementById('ic-autoTrainBtn');
+                if (autoTrainBtn) {
+                    autoTrainBtn.addEventListener('click', async () => {
+                        await trainFixed(lastSelectedClass || 1, 20);
+                    });
+                }
 
                 document.getElementById('ic-clear-btn').addEventListener('click', () => {
                     if (classifier.getNumClasses() > 0) {
@@ -1337,7 +1397,8 @@
                         video.srcObject.getTracks().forEach(t => t.stop());
                         video.srcObject = null;
                     }
-                }
+                },
+                trainFixed: async (classId, count = 20) => { await trainFixed(classId, count); }
             };
         })();
 
@@ -1842,6 +1903,48 @@
         window.addEventListener('load', () => {
             if (modules[currentActiveBlockId]) {
                 modules[currentActiveBlockId].start();
+            }
+        });
+
+        // Global trigger for gesture classifier & image classifier clear option
+        window.clearClassifiers = function () {
+            // Trigger gesture classifier clear
+            const gcBtn = document.getElementById('gc-clearDataBtn');
+            if (gcBtn) gcBtn.click();
+            // Trigger image classifier clear
+            const icBtn = document.getElementById('ic-clear-btn');
+            if (icBtn) icBtn.click();
+            // Trigger finger tracking clear
+            const ftBtn = document.getElementById('ft-clearDataBtn');
+            if (ftBtn) ftBtn.click();
+            console.log("Classifier memory cleared via clearClassifiers().");
+        };
+
+        // Global trigger to train 20 images for Image or Gesture Classifier
+        window.trainClassifier = async function (type, buttonId = 1, count = 20) {
+            const classNum = parseInt(buttonId, 10) || 1;
+            if (type === 'gesture') {
+                switchModule('block-gesture-classifier');
+                if (GestureClassifierModule && GestureClassifierModule.trainFixed) {
+                    GestureClassifierModule.trainFixed(classNum, count);
+                }
+            } else {
+                switchModule('block-image-classifier');
+                if (ImageClassifierModule && ImageClassifierModule.trainFixed) {
+                    await ImageClassifierModule.trainFixed(classNum, count);
+                }
+            }
+            console.log(`Auto-trained ${type} classifier for Button ${classNum} (${count} images).`);
+        };
+
+        window.addEventListener('message', (event) => {
+            if (event.data === 'clear_classifiers' || (event.data && event.data.action === 'clear_classifiers')) {
+                window.clearClassifiers();
+            } else if (event.data && (event.data.action === 'train_classifier' || event.data.type === 'train_classifier')) {
+                const target = event.data.classifier || 'image';
+                const button = event.data.button || event.data.classId || 1;
+                const count = event.data.count || 20;
+                window.trainClassifier(target, button, count);
             }
         });
     </script>

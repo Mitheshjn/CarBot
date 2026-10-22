@@ -331,3 +331,21 @@ registerPythonBlock('lib_camera_read_console_values', function (a) {
         var b = Blockly.Python.valueToCode(a, "camera_object", Blockly.Python.ORDER_MEMBER) || "camera";
         return [b + ".read_console_values()", Blockly.Python.ORDER_MEMBER];
 });
+
+registerPythonBlock('lib_camera_button', function (block) {
+        var num = block.getFieldValue('NUM') || '1';
+        return [num, Blockly.Python.ORDER_ATOMIC];
+});
+
+registerPythonBlock('lib_camera_train_classifier', function (block) {
+        Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var classifierType = block.getFieldValue('CLASSIFIER') || 'image';
+        var buttonVal = Blockly.Python.valueToCode(block, 'BUTTON', Blockly.Python.ORDER_ATOMIC) || '1';
+        return `camera.train_classifier("${classifierType}", ${buttonVal}, 20)\n`;
+});
+
+registerPythonBlock('lib_camera_clear', function (block) {
+        Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var b = Blockly.Python.valueToCode(block, "camera_object", Blockly.Python.ORDER_MEMBER) || "camera";
+        return b + ".clear()\n";
+});

@@ -1166,5 +1166,65 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 260,
     "tooltip": "Read console values output by the camera Vision AI suite.",
     "helpUrl": "https://schoolrobotics.com/docs/micropython/camera.html#camera"
+  },
+  {
+    "type": "lib_camera_button",
+    "message0": "Button %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "NUM",
+        "options": [
+          ["1", "1"],
+          ["2", "2"],
+          ["3", "3"],
+          ["4", "4"],
+          ["5", "5"]
+        ]
+      }
+    ],
+    "output": [
+      "Number",
+      "String"
+    ],
+    "colour": 260,
+    "tooltip": "Select classifier button 1-5.",
+    "helpUrl": ""
+  },
+  {
+    "type": "lib_camera_train_classifier",
+    "message0": "Train %1 for %2 (20 images)",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "CLASSIFIER",
+        "options": [
+          ["Image Classifier", "image"],
+          ["Gesture Classifier", "gesture"]
+        ]
+      },
+      {
+        "type": "input_value",
+        "name": "BUTTON",
+        "check": [
+          "Number",
+          "String"
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 260,
+    "tooltip": "Train Image or Gesture Classifier for the inserted Button (1-5) using 20 images.",
+    "helpUrl": ""
+  },
+  {
+    "type": "lib_camera_clear",
+    "message0": "Clear",
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 260,
+    "tooltip": "Trigger the clear option from gesture classifier and image classifier.",
+    "helpUrl": ""
   }
 ]);

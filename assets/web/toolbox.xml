@@ -186,6 +186,26 @@
 		<block type="lib_camera_take_picture"></block>
 		<block type="lib_camera_convert_to_grayscale"></block>
 		<block type="lib_camera_read_console_values"></block>
+		<block type="lib_camera_button">
+			<field name="NUM">1</field>
+		</block>
+		<block type="lib_camera_train_classifier">
+			<field name="CLASSIFIER">image</field>
+			<value name="BUTTON">
+				<shadow type="lib_camera_button">
+					<field name="NUM">1</field>
+				</shadow>
+			</value>
+		</block>
+		<block type="lib_camera_train_classifier">
+			<field name="CLASSIFIER">gesture</field>
+			<value name="BUTTON">
+				<shadow type="lib_camera_button">
+					<field name="NUM">1</field>
+				</shadow>
+			</value>
+		</block>
+		<block type="lib_camera_clear"></block>
 	</category>
 		<!-- System -->
 	<category name="System" colour="60">
