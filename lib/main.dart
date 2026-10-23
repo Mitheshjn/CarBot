@@ -42,6 +42,8 @@ class ControllerWebViewScreen extends StatefulWidget {
 
 class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
   late final WebViewController _controller;
+  HttpServer? _localServer;
+  int _serverPort = 8080;
 
   @override
   void initState() {
@@ -152,7 +154,74 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
       });
     }
 
-    _controller.loadFlutterAsset('assets/web/index.html');
+    _startLocalServer();
+  }
+
+  Future<void> _startLocalServer() async {
+    try {
+      try {
+        _localServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
+      } catch (_) {
+        _localServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      }
+      _serverPort = _localServer!.port;
+      debugPrint('Local asset server active at http://127.0.0.1:$_serverPort');
+
+      _localServer!.listen((HttpRequest request) async {
+        String path = request.uri.path;
+        if (path.startsWith('/')) path = path.substring(1);
+        if (path.isEmpty) path = 'assets/web/index.html';
+
+        try {
+          final ByteData data = await rootBundle.load(path);
+          final lower = path.toLowerCase();
+
+          if (lower.endsWith('.html')) {
+            request.response.headers.contentType = ContentType('text', 'html', charset: 'utf-8');
+          } else if (lower.endsWith('.js')) {
+            request.response.headers.contentType = ContentType('application', 'javascript', charset: 'utf-8');
+          } else if (lower.endsWith('.css')) {
+            request.response.headers.contentType = ContentType('text', 'css', charset: 'utf-8');
+          } else if (lower.endsWith('.json')) {
+            request.response.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+          } else if (lower.endsWith('.wasm')) {
+            request.response.headers.contentType = ContentType('application', 'wasm');
+          } else if (lower.endsWith('.png')) {
+            request.response.headers.contentType = ContentType('image', 'png');
+          } else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+            request.response.headers.contentType = ContentType('image', 'jpeg');
+          } else if (lower.endsWith('.svg')) {
+            request.response.headers.contentType = ContentType('image', 'svg+xml');
+          } else if (lower.endsWith('.bin') || lower.endsWith('.binarypb') || lower.endsWith('.tflite')) {
+            request.response.headers.contentType = ContentType('application', 'octet-stream');
+          } else {
+            request.response.headers.contentType = ContentType('application', 'octet-stream');
+          }
+
+          request.response.headers.add('Access-Control-Allow-Origin', '*');
+          request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+          request.response.headers.add('Access-Control-Allow-Headers', '*');
+
+          request.response.add(data.buffer.asUint8List());
+        } catch (e) {
+          debugPrint('Local server 404 for asset: $path');
+          request.response.statusCode = HttpStatus.notFound;
+          request.response.write('Asset not found: $path');
+        }
+        await request.response.close();
+      });
+
+      _controller.loadRequest(Uri.parse('http://127.0.0.1:$_serverPort/assets/web/index.html'));
+    } catch (e) {
+      debugPrint('Failed to start loopback server, fallback to asset loader: $e');
+      _controller.loadFlutterAsset('assets/web/index.html');
+    }
+  }
+
+  @override
+  void dispose() {
+    _localServer?.close(force: true);
+    super.dispose();
   }
 
   @override
