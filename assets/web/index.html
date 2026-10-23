@@ -1146,6 +1146,20 @@
     </div>
   </div>
 
+  <!-- VISION AI SUITE PREVIEW (Replaces Live FPV stream when Camera Blocks is active) -->
+  <div class="panel" id="cameraVisionPreviewCard" style="display:none;padding:10px;margin-top:0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0 0 8px 0;margin-bottom:6px;border-bottom:1px solid #2a2a2a;flex-wrap:wrap;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="panel-title" style="margin-bottom:0;">Vision AI Suite Preview</span>
+        <button type="button" class="rst-btn" onclick="toggleVisionPreview(event)" id="btnToggleVisionPreview" title="Toggle Preview" style="width: 32px; height: 32px; font-size: 14px; padding: 0;">👁</button>
+        <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite" style="width: 32px; height: 32px; font-size: 14px; padding: 0;">↻</button>
+      </div>
+    </div>
+    <div id="visionFrameWrapper" style="position: relative; width: 100%; height: 320px; border-radius: 8px; background: #000; overflow: hidden; transition: height 0.25s ease;">
+      <iframe id="visionAiFrame" src="../camera/index.html" style="width: 100%; height: 100%; border: none; display: block;" allow="camera *; microphone *; camera; microphone; autoplay; fullscreen" allowfullscreen></iframe>
+    </div>
+  </div>
+
   <!-- DRIVING CONTROLS & THROTTLE -->
   <div class="panel">
     <div class="panel-title">Driving Controls & Throttle</div>
@@ -1378,31 +1392,6 @@
         style="display:flex; justify-content:space-between; align-items:center; margin: 4px 2px 8px; padding: 6px 10px; background: rgba(0, 229, 255, 0.08); border-left: 3px solid #00e5ff; border-radius: 4px;">
         <span style="font-size: 11px; color: #00e5ff; font-weight: 600;">📷 Camera &amp; Motor Mode: Logic, Math, Text,
           Loops, Variables &amp; System enabled. Modular sensors disabled.</span>
-      </div>
-
-      <!-- Vision AI Camera Suite Preview (assets/camera/index.html) -->
-      <div id="cameraVisionPreviewCard" style="margin-bottom: 12px; background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.5);">
-        <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 12px; background: #1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap;">
-          <div style="display:flex; align-items:center; gap: 8px;">
-            <span style="font-size: 13px; font-weight: 700; color: #fff;">📷 Vision AI Suite Preview</span>
-            <span id="cameraPreviewModuleBadge" style="font-size: 11px; padding: 2px 8px; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; border-radius: 12px; color: #60a5fa; font-weight: 600;">🖐️ Finger Tracking</span>
-          </div>
-          <div style="display:flex; align-items:center; gap: 8px;">
-            <select id="cameraPreviewModuleSelect" onchange="switchCameraModule(this.value)" style="background: #2b2b2b; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 11px; padding: 4px 8px; cursor: pointer; outline: none;">
-              <option value="block-finger-tracking">🖐️ Finger Tracking</option>
-              <option value="block-gesture-classifier">✌️ Gesture Classifier</option>
-              <option value="block-image-classifier">📷 Image Classifier</option>
-              <option value="block-rgb-coords">🎯 RGB Coordinates</option>
-              <option value="block-rgb-colorpicker">🎨 RGB Color Picker</option>
-              <option value="block-rgb-grid">⊞ RGB 3x3 Grid</option>
-            </select>
-            <button type="button" class="rst-btn" onclick="toggleVisionPreview(event)" id="btnToggleVisionPreview" title="Toggle Preview" style="padding: 3px 8px; font-size: 12px;">👁 Minimize</button>
-            <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite" style="padding: 3px 8px; font-size: 12px;">↻</button>
-          </div>
-        </div>
-        <div id="visionFrameWrapper" style="position: relative; width: 100%; height: 360px; background: #000; overflow: hidden; transition: height 0.25s ease;">
-          <iframe id="visionAiFrame" src="../camera/index.html" style="width: 100%; height: 100%; border: none; display: block;" allow="camera;microphone"></iframe>
-        </div>
       </div>
 
       <div id="main-container-camera">
@@ -2053,6 +2042,20 @@
       const lbl = document.getElementById('terminalLabel');
       if (lbl) lbl.style.color = en ? "#007aff" : "#aaa";
       document.getElementById('terminalPanel').style.display = en ? "block" : "none";
+
+      const previewCard = document.getElementById('cameraVisionPreviewCard');
+      const liveCamSec = document.getElementById('cameraSection');
+
+      if (en) {
+        if (activeBlockMode === 'camera') {
+          if (liveCamSec) liveCamSec.style.display = 'none';
+          if (previewCard) previewCard.style.display = 'block';
+        }
+      } else {
+        if (previewCard) previewCard.style.display = 'none';
+        if (liveCamSec) liveCamSec.style.display = isCameraOn ? 'block' : 'none';
+      }
+
       if (en && workspace) {
         setTimeout(() => {
           Blockly.svgResize(workspace);
@@ -2597,7 +2600,9 @@
         sendSpeed(CAM_FIXED_SPEED);
 
         // 5. Open stream
-        if (s) s.style.display = 'block';
+        const terminalEl = document.getElementById('terminalPanel');
+        const isCameraBlocksActive = activeBlockMode === 'camera' && terminalEl && terminalEl.style.display !== 'none';
+        if (s) s.style.display = isCameraBlocksActive ? 'none' : 'block';
         if (e) {
           const title = e.querySelector('div:nth-child(2)');
           const sub = e.querySelector('div:last-child');
@@ -2833,10 +2838,10 @@
       isVisionPreviewMinimized = !isVisionPreviewMinimized;
       if (isVisionPreviewMinimized) {
         wrapper.style.height = '0px';
-        if (btn) btn.textContent = '👁 Show Preview';
+        if (btn) btn.title = 'Show Preview';
       } else {
-        wrapper.style.height = '360px';
-        if (btn) btn.textContent = '👁 Minimize';
+        wrapper.style.height = '320px';
+        if (btn) btn.title = 'Minimize Preview';
       }
       setTimeout(() => {
         if (workspaceCamera) Blockly.svgResize(workspaceCamera);
@@ -2895,12 +2900,18 @@
       const tabCam = document.getElementById('tabCameraBlocks');
       const secMain = document.getElementById('mainBlocksSection');
       const secCam = document.getElementById('cameraBlocksSection');
+      const previewCard = document.getElementById('cameraVisionPreviewCard');
+      const liveCamSec = document.getElementById('cameraSection');
 
       if (mode === 'camera') {
         if (tabMain) tabMain.classList.remove('active');
         if (tabCam) tabCam.classList.add('active');
         if (secMain) secMain.style.display = 'none';
         if (secCam) secCam.style.display = 'block';
+
+        // Replace Live FPV stream above controls with Vision AI Preview
+        if (liveCamSec) liveCamSec.style.display = 'none';
+        if (previewCard) previewCard.style.display = 'block';
 
         if (!workspaceCamera) {
           const toolboxCam = document.getElementById('toolbox_camera');
@@ -2930,6 +2941,10 @@
         if (tabMain) tabMain.classList.add('active');
         if (secCam) secCam.style.display = 'none';
         if (secMain) secMain.style.display = 'block';
+
+        // Hide Vision AI Preview and restore Live FPV stream if camera toggle is on
+        if (previewCard) previewCard.style.display = 'none';
+        if (liveCamSec) liveCamSec.style.display = isCameraOn ? 'block' : 'none';
 
         workspace = workspaceMain;
         setTimeout(() => {

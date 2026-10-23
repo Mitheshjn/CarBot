@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -143,11 +144,13 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
       );
 
     // Automatically grant WebRTC Camera permissions on the platform controller
-    _controller.platform.setOnPlatformPermissionRequest(
-      (request) {
+    if (_controller.platform is AndroidWebViewController) {
+      final androidController = _controller.platform as AndroidWebViewController;
+      androidController.setMediaPlaybackRequiresUserGesture(false);
+      androidController.setOnPlatformPermissionRequest((request) {
         request.grant();
-      },
-    );
+      });
+    }
 
     _controller.loadFlutterAsset('assets/web/index.html');
   }
