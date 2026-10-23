@@ -186,6 +186,12 @@
 		<block type="lib_camera_take_picture"></block>
 		<block type="lib_camera_convert_to_grayscale"></block>
 		<block type="lib_camera_read_console_values"></block>
+		<block type="lib_camera_switch_div">
+			<field name="DIV">block-finger-tracking</field>
+		</block>
+		<block type="lib_camera_div">
+			<field name="DIV">block-finger-tracking</field>
+		</block>
 		<block type="lib_camera_button">
 			<field name="NUM">1</field>
 		</block>

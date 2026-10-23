@@ -349,3 +349,20 @@ registerPythonBlock('lib_camera_clear', function (block) {
         var b = Blockly.Python.valueToCode(block, "camera_object", Blockly.Python.ORDER_MEMBER) || "camera";
         return b + ".clear()\n";
 });
+
+registerPythonBlock('lib_camera_switch_div', function (block) {
+        Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var divVal = block.getFieldValue('DIV') || 'block-finger-tracking';
+        return `camera.switch_div("${divVal}")\n`;
+});
+
+registerPythonBlock('lib_camera_switch_module', function (block) {
+        Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var modVal = block.getFieldValue('MODULE') || block.getFieldValue('DIV') || 'block-finger-tracking';
+        return `camera.switch_module("${modVal}")\n`;
+});
+
+registerPythonBlock('lib_camera_div', function (block) {
+        var divVal = block.getFieldValue('DIV') || block.getFieldValue('MODULE') || 'block-finger-tracking';
+        return [`"${divVal}"`, Blockly.Python.ORDER_ATOMIC];
+});

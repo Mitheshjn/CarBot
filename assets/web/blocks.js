@@ -1226,5 +1226,76 @@ Blockly.defineBlocksWithJsonArray([
     "colour": 260,
     "tooltip": "Trigger the clear option from gesture classifier and image classifier.",
     "helpUrl": ""
+  },
+  {
+    "type": "lib_camera_switch_div",
+    "message0": "Camera Switch to %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIV",
+        "options": [
+          ["Finger Tracking", "block-finger-tracking"],
+          ["Gesture Classifier", "block-gesture-classifier"],
+          ["Image Classifier", "block-image-classifier"],
+          ["RGB Coordinates", "block-rgb-coords"],
+          ["RGB Color Picker", "block-rgb-colorpicker"],
+          ["RGB 3x3 Grid", "block-rgb-grid"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 260,
+    "tooltip": "Switch active vision module div in the Vision AI camera suite.",
+    "helpUrl": ""
+  },
+  {
+    "type": "lib_camera_switch_module",
+    "message0": "Camera Switch Module %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "MODULE",
+        "options": [
+          ["Finger Tracking", "block-finger-tracking"],
+          ["Gesture Classifier", "block-gesture-classifier"],
+          ["Image Classifier", "block-image-classifier"],
+          ["RGB Coordinates", "block-rgb-coords"],
+          ["RGB Color Picker", "block-rgb-colorpicker"],
+          ["RGB 3x3 Grid", "block-rgb-grid"]
+        ]
+      }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 260,
+    "tooltip": "Switch active vision module div in the Vision AI camera suite.",
+    "helpUrl": ""
+  },
+  {
+    "type": "lib_camera_div",
+    "message0": "Camera Div %1",
+    "args0": [
+      {
+        "type": "field_dropdown",
+        "name": "DIV",
+        "options": [
+          ["Finger Tracking", "block-finger-tracking"],
+          ["Gesture Classifier", "block-gesture-classifier"],
+          ["Image Classifier", "block-image-classifier"],
+          ["RGB Coordinates", "block-rgb-coords"],
+          ["RGB Color Picker", "block-rgb-colorpicker"],
+          ["RGB 3x3 Grid", "block-rgb-grid"]
+        ]
+      }
+    ],
+    "output": [
+      "String",
+      "camera_div"
+    ],
+    "colour": 260,
+    "tooltip": "Select a camera div/module from the Vision AI camera suite.",
+    "helpUrl": ""
   }
 ]);

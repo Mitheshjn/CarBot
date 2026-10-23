@@ -26,6 +26,7 @@ flutter:
 
   assets:
     - assets/web/
+    - assets/camera/
 
 flutter_launcher_icons:
   image_path: "assets/icon.png"

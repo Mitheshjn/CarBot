@@ -1945,6 +1945,15 @@
                 const button = event.data.button || event.data.classId || 1;
                 const count = event.data.count || 20;
                 window.trainClassifier(target, button, count);
+            } else if (event.data && (event.data.action === 'switch_module' || event.data.action === 'switch_div' || event.data.type === 'switch_module')) {
+                const targetMod = event.data.module || event.data.div || event.data.targetBlockId || event.data.target;
+                if (targetMod && typeof switchModule === 'function') {
+                    switchModule(targetMod);
+                }
+            } else if (typeof event.data === 'string' && event.data.startsWith('block-')) {
+                if (typeof switchModule === 'function') {
+                    switchModule(event.data);
+                }
             }
         });
     </script>

@@ -1379,6 +1379,32 @@
         <span style="font-size: 11px; color: #00e5ff; font-weight: 600;">📷 Camera &amp; Motor Mode: Logic, Math, Text,
           Loops, Variables &amp; System enabled. Modular sensors disabled.</span>
       </div>
+
+      <!-- Vision AI Camera Suite Preview (assets/camera/index.html) -->
+      <div id="cameraVisionPreviewCard" style="margin-bottom: 12px; background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.5);">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 12px; background: #1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap;">
+          <div style="display:flex; align-items:center; gap: 8px;">
+            <span style="font-size: 13px; font-weight: 700; color: #fff;">📷 Vision AI Suite Preview</span>
+            <span id="cameraPreviewModuleBadge" style="font-size: 11px; padding: 2px 8px; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; border-radius: 12px; color: #60a5fa; font-weight: 600;">🖐️ Finger Tracking</span>
+          </div>
+          <div style="display:flex; align-items:center; gap: 8px;">
+            <select id="cameraPreviewModuleSelect" onchange="switchCameraModule(this.value)" style="background: #2b2b2b; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 11px; padding: 4px 8px; cursor: pointer; outline: none;">
+              <option value="block-finger-tracking">🖐️ Finger Tracking</option>
+              <option value="block-gesture-classifier">✌️ Gesture Classifier</option>
+              <option value="block-image-classifier">📷 Image Classifier</option>
+              <option value="block-rgb-coords">🎯 RGB Coordinates</option>
+              <option value="block-rgb-colorpicker">🎨 RGB Color Picker</option>
+              <option value="block-rgb-grid">⊞ RGB 3x3 Grid</option>
+            </select>
+            <button type="button" class="rst-btn" onclick="toggleVisionPreview(event)" id="btnToggleVisionPreview" title="Toggle Preview" style="padding: 3px 8px; font-size: 12px;">👁 Minimize</button>
+            <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite" style="padding: 3px 8px; font-size: 12px;">↻</button>
+          </div>
+        </div>
+        <div id="visionFrameWrapper" style="position: relative; width: 100%; height: 360px; background: #000; overflow: hidden; transition: height 0.25s ease;">
+          <iframe id="visionAiFrame" src="../camera/index.html" style="width: 100%; height: 100%; border: none; display: block;" allow="camera;microphone"></iframe>
+        </div>
+      </div>
+
       <div id="main-container-camera">
         <div id="blocklyAreaCamera">
           <div id="blocklyDivCamera"></div>
@@ -1790,6 +1816,12 @@
       <block type="lib_camera_take_picture"></block>
       <block type="lib_camera_convert_to_grayscale"></block>
       <block type="lib_camera_read_console_values"></block>
+      <block type="lib_camera_switch_div">
+        <field name="DIV">block-finger-tracking</field>
+      </block>
+      <block type="lib_camera_div">
+        <field name="DIV">block-finger-tracking</field>
+      </block>
       <block type="lib_camera_button">
         <field name="NUM">1</field>
       </block>
@@ -2748,6 +2780,110 @@
       setTimeout(patchBlocklyDialog, 300);
     })();
 
+    // ================= VISION AI SUITE & CAMERA MODULE CONTROLLER =================
+    let currentVisionModule = 'block-finger-tracking';
+
+    const VISION_MODULE_NAMES = {
+      'block-finger-tracking': '🖐️ Finger Tracking',
+      'block-gesture-classifier': '✌️ Gesture Classifier',
+      'block-image-classifier': '📷 Image Classifier',
+      'block-rgb-coords': '🎯 RGB Coordinates',
+      'block-rgb-colorpicker': '🎨 RGB Color Picker',
+      'block-rgb-grid': '⊞ RGB 3x3 Grid'
+    };
+
+    function switchCameraModule(targetBlockId) {
+      if (!targetBlockId) return;
+      currentVisionModule = targetBlockId;
+
+      const sel = document.getElementById('cameraPreviewModuleSelect');
+      if (sel && sel.value !== targetBlockId) {
+        sel.value = targetBlockId;
+      }
+
+      const badge = document.getElementById('cameraPreviewModuleBadge');
+      if (badge) {
+        badge.textContent = VISION_MODULE_NAMES[targetBlockId] || targetBlockId;
+      }
+
+      const frame = document.getElementById('visionAiFrame');
+      if (frame && frame.contentWindow) {
+        try {
+          if (typeof frame.contentWindow.switchModule === 'function') {
+            frame.contentWindow.switchModule(targetBlockId);
+          } else {
+            frame.contentWindow.postMessage({ action: 'switch_module', module: targetBlockId }, '*');
+          }
+        } catch (e) {
+          try {
+            frame.contentWindow.postMessage({ action: 'switch_module', module: targetBlockId }, '*');
+          } catch (err) {}
+        }
+      }
+    }
+    window.switchCameraModule = switchCameraModule;
+    window.switchCameraDiv = switchCameraModule;
+
+    let isVisionPreviewMinimized = false;
+    function toggleVisionPreview(event) {
+      if (event) event.preventDefault();
+      const wrapper = document.getElementById('visionFrameWrapper');
+      const btn = document.getElementById('btnToggleVisionPreview');
+      if (!wrapper) return;
+      isVisionPreviewMinimized = !isVisionPreviewMinimized;
+      if (isVisionPreviewMinimized) {
+        wrapper.style.height = '0px';
+        if (btn) btn.textContent = '👁 Show Preview';
+      } else {
+        wrapper.style.height = '360px';
+        if (btn) btn.textContent = '👁 Minimize';
+      }
+      setTimeout(() => {
+        if (workspaceCamera) Blockly.svgResize(workspaceCamera);
+      }, 300);
+    }
+    window.toggleVisionPreview = toggleVisionPreview;
+
+    function reloadVisionFrame(event) {
+      if (event) event.preventDefault();
+      const frame = document.getElementById('visionAiFrame');
+      if (frame) {
+        frame.src = '../camera/index.html';
+        showToast('Vision AI suite reloaded', 'info');
+      }
+    }
+    window.reloadVisionFrame = reloadVisionFrame;
+
+    function attachBlockCameraModuleListener(ws) {
+      if (!ws || ws._camModuleListenerAttached) return;
+      ws._camModuleListenerAttached = true;
+
+      ws.addChangeListener(function (e) {
+        if (e.type === Blockly.Events.BLOCK_CHANGE && (e.name === 'DIV' || e.name === 'MODULE')) {
+          const blk = ws.getBlockById(e.blockId);
+          if (blk && (blk.type === 'lib_camera_switch_div' || blk.type === 'lib_camera_switch_module' || blk.type === 'lib_camera_div')) {
+            const val = blk.getFieldValue('DIV') || blk.getFieldValue('MODULE');
+            if (val) switchCameraModule(val);
+          }
+        } else if (e.type === Blockly.Events.BLOCK_CREATE) {
+          const ids = e.ids || [e.blockId];
+          ids.forEach(id => {
+            const blk = ws.getBlockById(id);
+            if (blk && (blk.type === 'lib_camera_switch_div' || blk.type === 'lib_camera_switch_module' || blk.type === 'lib_camera_div')) {
+              const val = blk.getFieldValue('DIV') || blk.getFieldValue('MODULE');
+              if (val) switchCameraModule(val);
+            }
+          });
+        } else if (e.type === Blockly.Events.SELECTED && e.newElementId) {
+          const blk = ws.getBlockById(e.newElementId);
+          if (blk && (blk.type === 'lib_camera_switch_div' || blk.type === 'lib_camera_switch_module' || blk.type === 'lib_camera_div')) {
+            const val = blk.getFieldValue('DIV') || blk.getFieldValue('MODULE');
+            if (val) switchCameraModule(val);
+          }
+        }
+      });
+    }
+
     // ================= BLOCKLY STUDIO INITIALIZATION =================
     let workspaceMain = null;
     let workspaceCamera = null;
@@ -2779,6 +2915,7 @@
                 trashcan: false
               });
               attachWorkspaceDragToDelete(workspaceCamera, 'btnDeleteCamera');
+              attachBlockCameraModuleListener(workspaceCamera);
             } catch (err) {
               console.error('Failed to inject camera workspace:', err);
             }
