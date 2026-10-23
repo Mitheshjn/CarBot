@@ -957,8 +957,8 @@
             function isMobileDevice() { return window.innerWidth <= 430; }
 
             function setCanvasDimensions() {
-                canvasElement.width = 1080;
-                canvasElement.height = 720;
+                canvasElement.width = 480;
+                canvasElement.height = 360;
             }
 
             function countFingers(lmlist) {
@@ -1117,8 +1117,8 @@
                     hands = new Hands({ locateFile: (file) => `${file}` });
                     hands.setOptions({
                         maxNumHands: 1,
-                        modelComplexity: 1,
-                        minDetectionConfidence: 0.7,
+                        modelComplexity: 0,
+                        minDetectionConfidence: 0.6,
                         minTrackingConfidence: 0.5
                     });
                     hands.onResults(onResults);
@@ -1152,6 +1152,7 @@
                 };
             }
 
+            let isProcessing = false;
             function startCamera() {
                 if (camModeIndex === 2) {
                     startEsp32Feed();
@@ -1161,12 +1162,17 @@
                 setupHands();
                 camera = new Camera(videoElement, {
                     onFrame: async () => {
-                        if (isRunning && hands) {
+                        if (!isRunning || !hands || isProcessing) return;
+                        isProcessing = true;
+                        try {
                             await hands.send({ image: videoElement });
+                        } catch (err) {
+                        } finally {
+                            isProcessing = false;
                         }
                     },
-                    width: canvasElement.height,
-                    height: canvasElement.width,
+                    width: 480,
+                    height: 360,
                     facingMode: currentFacingMode,
                 });
                 camera.start().catch(err => {
@@ -1225,8 +1231,8 @@
             const switchCamBtn = document.getElementById('gc-switch-cam-btn');
 
             function setCanvasDimensions() {
-                canvasElement.width = 1080;
-                canvasElement.height = 720;
+                canvasElement.width = 480;
+                canvasElement.height = 360;
             }
 
             function extractFeatures(landmarks) {
@@ -1352,8 +1358,8 @@
                     hands = new Hands({ locateFile: (file) => `${file}` });
                     hands.setOptions({
                         maxNumHands: 1,
-                        modelComplexity: 1,
-                        minDetectionConfidence: 0.7,
+                        modelComplexity: 0,
+                        minDetectionConfidence: 0.6,
                         minTrackingConfidence: 0.5
                     });
                     hands.onResults(onResults);
@@ -1372,6 +1378,7 @@
                 updateEsp32Bar();
             }
 
+            let isProcessing = false;
             function startCamera() {
                 if (camModeIndex === 2) {
                     // ESP32 MJPEG mode
@@ -1383,7 +1390,10 @@
                     function gcEsp32Loop() {
                         if (!isRunning || camModeIndex !== 2) return;
                         if (esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) {
-                            if (hands) hands.send({ image: esp32Img }).catch(() => { });
+                            if (hands && !isProcessing) {
+                                isProcessing = true;
+                                hands.send({ image: esp32Img }).catch(() => { }).finally(() => { isProcessing = false; });
+                            }
                         }
                         esp32AnimId = requestAnimationFrame(gcEsp32Loop);
                     }
@@ -1399,12 +1409,17 @@
                 setupHands();
                 camera = new Camera(videoElement, {
                     onFrame: async () => {
-                        if (isRunning && hands) {
+                        if (!isRunning || !hands || isProcessing) return;
+                        isProcessing = true;
+                        try {
                             await hands.send({ image: videoElement });
+                        } catch (err) {
+                        } finally {
+                            isProcessing = false;
                         }
                     },
-                    width: canvasElement.height,
-                    height: canvasElement.width,
+                    width: 480,
+                    height: 360,
                     facingMode: currentFacingMode,
                 });
                 camera.start().catch(err => console.error('GC cam:', err));
@@ -1453,7 +1468,7 @@
 
             const STABLE_FRAMES = 2;
             const CONFIDENCE_THRESHOLD = 0.65;
-            const INTERVAL = 140;
+            const INTERVAL = 160;
 
             function logStable(value) {
                 if (value === lastLogged) sameCount++;
@@ -1503,7 +1518,11 @@
                 }
                 currentFacingMode = CAM_MODES[camModeIndex];
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: currentFacingMode } },
+                    video: {
+                        facingMode: { ideal: currentFacingMode },
+                        width: { ideal: 480 },
+                        height: { ideal: 360 }
+                    },
                     audio: false
                 });
                 video.srcObject = stream;
@@ -1597,6 +1616,7 @@
 
             async function runLoop() {
                 let lastRun = 0;
+                let isPredicting = false;
                 async function loop(ts) {
                     if (!isRunning) return;
                     // For ESP32 mode, use esp32Img instead of video readyState check
@@ -1604,7 +1624,7 @@
                         ? (esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0)
                         : (video.readyState >= 2);
                     const imgSource = camModeIndex === 2 ? esp32Img : video;
-                    if (ts - lastRun < INTERVAL || !sourceReady) {
+                    if (ts - lastRun < INTERVAL || !sourceReady || isPredicting) {
                         animId = requestAnimationFrame(loop);
                         return;
                     }
@@ -1612,18 +1632,22 @@
 
                     if (isTraining && currentTrainClass) {
                         if (!net || !imgSource) { animId = requestAnimationFrame(loop); return; }
+                        isPredicting = true;
                         try {
                             const tfImg = tf.browser.fromPixels(imgSource);
                             const activation = net.infer(tfImg, true);
                             classifier.addExample(activation, currentTrainClass);
                             tfImg.dispose(); activation.dispose();
                             updateBadges();
-                        } catch (e) { }
+                        } catch (e) { } finally {
+                            isPredicting = false;
+                        }
                         animId = requestAnimationFrame(loop);
                         return;
                     }
 
                     if (classifier.getNumClasses() > 0 && net && imgSource) {
+                        isPredicting = true;
                         try {
                             const tfImg = tf.browser.fromPixels(imgSource);
                             const activation = net.infer(tfImg, true);
@@ -1631,7 +1655,9 @@
                             tfImg.dispose(); activation.dispose();
                             const conf = result.confidences[result.label];
                             if (conf >= CONFIDENCE_THRESHOLD) { logStable(Number(result.label)); }
-                        } catch (e) { }
+                        } catch (e) { } finally {
+                            isPredicting = false;
+                        }
                     }
 
                     animId = requestAnimationFrame(loop);
