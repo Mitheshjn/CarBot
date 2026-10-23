@@ -1148,15 +1148,20 @@
 
   <!-- VISION AI SUITE PREVIEW (Replaces Live FPV stream when Camera Blocks is active) -->
   <div class="panel" id="cameraVisionPreviewCard" style="display:none;padding:10px;margin-top:0;">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:0 0 8px 0;margin-bottom:6px;border-bottom:1px solid #2a2a2a;flex-wrap:wrap;gap:8px;">
+    <div
+      style="display:flex;justify-content:space-between;align-items:center;padding:0 0 8px 0;margin-bottom:6px;border-bottom:1px solid #2a2a2a;flex-wrap:wrap;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="panel-title" style="margin-bottom:0;">Vision AI Suite Preview</span>
-        <button type="button" class="rst-btn" onclick="toggleVisionPreview(event)" id="btnToggleVisionPreview" title="Toggle Preview" style="width: 32px; height: 32px; font-size: 14px; padding: 0;">👁</button>
-        <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite" style="width: 32px; height: 32px; font-size: 14px; padding: 0;">↻</button>
+        <button type="button" class="rst-btn" onclick="toggleVisionPreview(event)" id="btnToggleVisionPreview"
+          title="Toggle Preview" style="width: 32px; height: 32px; font-size: 14px; padding: 0;">👁</button>
+        <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite"
+          style="width: 32px; height: 32px; font-size: 14px; padding: 0;">↻</button>
       </div>
     </div>
-    <div id="visionFrameWrapper" style="position: relative; width: 100%; height: 320px; border-radius: 8px; background: #000; overflow: hidden; transition: height 0.25s ease;">
-      <iframe id="visionAiFrame" src="../camera/index.html" style="width: 100%; height: 100%; border: none; display: block;" allow="camera *; microphone *; camera; microphone; autoplay; fullscreen" allowfullscreen></iframe>
+    <div id="visionFrameWrapper"
+      style="position: relative; width: 100%; height: 320px; border-radius: 8px; background: #000; overflow: hidden; transition: height 0.25s ease;">
+      <iframe id="visionAiFrame" src="about:blank" style="width: 100%; height: 100%; border: none; display: block;"
+        allow="camera *; microphone *; camera; microphone; autoplay; fullscreen" allowfullscreen></iframe>
     </div>
   </div>
 
@@ -2470,7 +2475,7 @@
             v.srcObject = stream;
             v.style.display = 'block';
             v.style.transform = phoneFacingMode === 'user' ? 'scaleX(-1)' : 'none';
-            v.play().catch(() => {});
+            v.play().catch(() => { });
           }
           if (e) e.style.display = 'none';
         })
@@ -2491,7 +2496,7 @@
       if (phoneMediaStream) {
         try {
           phoneMediaStream.getTracks().forEach(track => track.stop());
-        } catch (err) {}
+        } catch (err) { }
         phoneMediaStream = null;
       }
       const v = document.getElementById('phoneCamVideo');
@@ -2814,16 +2819,13 @@
       const frame = document.getElementById('visionAiFrame');
       if (frame && frame.contentWindow) {
         try {
+          frame.contentWindow.postMessage({ action: 'switch_module', module: targetBlockId }, '*');
+        } catch (err) { }
+        try {
           if (typeof frame.contentWindow.switchModule === 'function') {
             frame.contentWindow.switchModule(targetBlockId);
-          } else {
-            frame.contentWindow.postMessage({ action: 'switch_module', module: targetBlockId }, '*');
           }
-        } catch (e) {
-          try {
-            frame.contentWindow.postMessage({ action: 'switch_module', module: targetBlockId }, '*');
-          } catch (err) {}
-        }
+        } catch (e) { }
       }
     }
     window.switchCameraModule = switchCameraModule;
@@ -2834,14 +2836,21 @@
       if (event) event.preventDefault();
       const wrapper = document.getElementById('visionFrameWrapper');
       const btn = document.getElementById('btnToggleVisionPreview');
+      const frame = document.getElementById('visionAiFrame');
       if (!wrapper) return;
       isVisionPreviewMinimized = !isVisionPreviewMinimized;
       if (isVisionPreviewMinimized) {
         wrapper.style.height = '0px';
         if (btn) btn.title = 'Show Preview';
+        if (frame && frame.contentWindow) {
+          try { frame.contentWindow.postMessage({ action: 'pause' }, '*'); } catch (err) { }
+        }
       } else {
         wrapper.style.height = '320px';
         if (btn) btn.title = 'Minimize Preview';
+        if (frame && frame.contentWindow) {
+          try { frame.contentWindow.postMessage({ action: 'resume' }, '*'); } catch (err) { }
+        }
       }
       setTimeout(() => {
         if (workspaceCamera) Blockly.svgResize(workspaceCamera);
@@ -2913,6 +2922,16 @@
         if (liveCamSec) liveCamSec.style.display = 'none';
         if (previewCard) previewCard.style.display = 'block';
 
+        // Lazy load Vision AI Suite on first activation or resume running module
+        const frame = document.getElementById('visionAiFrame');
+        if (frame) {
+          if (!frame.src || frame.src === 'about:blank' || frame.src.endsWith('about:blank')) {
+            frame.src = '../camera/index.html';
+          } else {
+            try { frame.contentWindow.postMessage({ action: 'resume' }, '*'); } catch (err) { }
+          }
+        }
+
         if (!workspaceCamera) {
           const toolboxCam = document.getElementById('toolbox_camera');
           if (toolboxCam && typeof Blockly !== 'undefined') {
@@ -2941,6 +2960,12 @@
         if (tabMain) tabMain.classList.add('active');
         if (secCam) secCam.style.display = 'none';
         if (secMain) secMain.style.display = 'block';
+
+        // Suspend Vision AI Suite to drop CPU/GPU usage to 0% when using main blocks or driving
+        const frame = document.getElementById('visionAiFrame');
+        if (frame && frame.contentWindow && frame.src && !frame.src.endsWith('about:blank')) {
+          try { frame.contentWindow.postMessage({ action: 'pause' }, '*'); } catch (err) { }
+        }
 
         // Hide Vision AI Preview and restore Live FPV stream if camera toggle is on
         if (previewCard) previewCard.style.display = 'none';
