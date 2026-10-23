@@ -119,7 +119,6 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
         'FlutterFileSaver',
         onMessageReceived: (JavaScriptMessage message) async {
           try {
-            // Target the public Download directory directly
             final downloadDir = Directory('/storage/emulated/0/Download');
             final dirPath = downloadDir.existsSync()
                 ? downloadDir.path
@@ -141,8 +140,16 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
             debugPrint('Save file error: $e');
           }
         },
-      )
-      ..loadFlutterAsset('assets/web/index.html');
+      );
+
+    // Automatically grant WebRTC Camera permissions on the platform controller
+    _controller.platform.setOnPlatformPermissionRequest(
+      (request) {
+        request.grant();
+      },
+    );
+
+    _controller.loadFlutterAsset('assets/web/index.html');
   }
 
   @override

@@ -364,6 +364,16 @@
       object-fit: cover;
     }
 
+    #phoneCamVideo {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #000;
+      display: none;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
     #camError {
       width: 100%;
       height: 100%;
@@ -1111,6 +1121,8 @@
     </div>
     <h2>CAR BOT</h2>
     <div class="header-actions-right">
+      <button type="button" class="rst-btn" id="camSourceSwitchBtn" onclick="toggleCameraSource()"
+        title="Switch Camera Source" style="display:none;">📷</button>
       <button type="button" class="rst-btn" id="lockOrientBtn" onclick="toggleScreenLock()"
         title="Lock Screen Rotation">🔓</button>
     </div>
@@ -1124,7 +1136,8 @@
         title="Reload Stream">&#8635;</button>
     </div>
     <div class="cam-wrapper">
-      <img id="camFrame" src="" alt="Stream" onload="onCamLoad()" onerror="onCamError()">
+      <img id="camFrame" src="" alt="Stream" onerror="onCamError()">
+      <video id="phoneCamVideo" playsinline autoplay muted style="display:none;"></video>
       <div id="camError">
         <div style="font-size:30px;margin-bottom:8px;">📷</div>
         <div style="font-size:14px;font-weight:700;color:#fff;">Camera Offline</div>
@@ -2345,19 +2358,172 @@
 
     // ================= STREAMLINED CAMERA STREAM & DYNAMIC PANEL RESIZING =================
     let camTimeout = null;
-    function onCamLoad() {
+    let camLoadedOnce = false;
+    let currentCamSource = 'esp32'; // 'esp32' | 'phone'
+    let phoneFacingMode = 'user'; // 'user' | 'environment'
+    let phoneMediaStream = null;
+
+    function updateCamSourceButtonUI() {
+      const btn = document.getElementById('camSourceSwitchBtn');
+      if (!btn) return;
+      if (!isCameraOn) {
+        btn.style.display = 'none';
+        return;
+      }
+      btn.style.display = 'inline-flex';
+      btn.textContent = currentCamSource === 'phone' ? '📱' : '📷';
+      btn.title = currentCamSource === 'phone' ? 'Switch to Car Camera' : 'Switch to Phone Camera';
+    }
+
+    function onCamLoadOnce() {
+      if (camLoadedOnce) return;
+      camLoadedOnce = true;
       if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
       const f = document.getElementById('camFrame'), e = document.getElementById('camError');
       if (e) e.style.display = 'none';
-      if (f) f.style.display = 'block';
+      if (f && currentCamSource === 'esp32') f.style.display = 'block';
+    }
+
+    function onCamLoad() {
+      onCamLoadOnce();
     }
 
     function onCamError() {
       if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
       const f = document.getElementById('camFrame'), e = document.getElementById('camError');
-      if (f) { f.style.display = 'none'; f.src = ''; }
-      if (e) e.style.display = 'flex';
+      if (f) {
+        f.style.display = 'none';
+        f.removeAttribute('src');
+        f.src = '';
+      }
+      if (e && currentCamSource === 'esp32') {
+        const title = e.querySelector('div:nth-child(2)');
+        const sub = e.querySelector('div:last-child');
+        if (title) title.innerText = 'Camera Offline';
+        if (sub) sub.innerText = 'Check ESP32-CAM (192.168.4.10)';
+        e.style.display = 'flex';
+      }
     }
+
+    function startPhoneCamera() {
+      const v = document.getElementById('phoneCamVideo');
+      const e = document.getElementById('camError');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        if (e) {
+          e.style.display = 'flex';
+          const title = e.querySelector('div:nth-child(2)');
+          const sub = e.querySelector('div:last-child');
+          if (title) title.innerText = 'Camera Error';
+          if (sub) sub.innerText = 'Phone camera not supported';
+        }
+        return Promise.reject(new Error('getUserMedia not supported'));
+      }
+
+      stopPhoneCamera();
+
+      const constraints = {
+        video: {
+          facingMode: phoneFacingMode
+        },
+        audio: false
+      };
+
+      return navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          phoneMediaStream = stream;
+          if (v) {
+            v.srcObject = stream;
+            v.style.display = 'block';
+            v.style.transform = phoneFacingMode === 'user' ? 'scaleX(-1)' : 'none';
+            v.play().catch(() => {});
+          }
+          if (e) e.style.display = 'none';
+        })
+        .catch(err => {
+          console.error('Phone camera error:', err);
+          if (v) v.style.display = 'none';
+          if (e) {
+            e.style.display = 'flex';
+            const title = e.querySelector('div:nth-child(2)');
+            const sub = e.querySelector('div:last-child');
+            if (title) title.innerText = 'Camera Error';
+            if (sub) sub.innerText = 'Camera access denied or unavailable';
+          }
+        });
+    }
+
+    function stopPhoneCamera() {
+      if (phoneMediaStream) {
+        try {
+          phoneMediaStream.getTracks().forEach(track => track.stop());
+        } catch (err) {}
+        phoneMediaStream = null;
+      }
+      const v = document.getElementById('phoneCamVideo');
+      if (v) {
+        v.srcObject = null;
+        v.style.display = 'none';
+      }
+    }
+
+    function setPhoneCameraFacingMode(mode) {
+      phoneFacingMode = mode === 'environment' ? 'environment' : 'user';
+      if (currentCamSource === 'phone' && isCameraOn) {
+        startPhoneCamera();
+      }
+    }
+
+    function togglePhoneFacingMode() {
+      setPhoneCameraFacingMode(phoneFacingMode === 'user' ? 'environment' : 'user');
+    }
+
+    function toggleCameraSource() {
+      if (!isCameraOn) return;
+      const f = document.getElementById('camFrame');
+      const e = document.getElementById('camError');
+
+      if (currentCamSource === 'esp32') {
+        currentCamSource = 'phone';
+        updateCamSourceButtonUI();
+
+        if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+        if (f) {
+          f.onload = null;
+          f.removeAttribute('src');
+          f.src = '';
+          f.style.display = 'none';
+        }
+        if (e) e.style.display = 'none';
+
+        startPhoneCamera();
+      } else {
+        currentCamSource = 'esp32';
+        updateCamSourceButtonUI();
+
+        stopPhoneCamera();
+
+        if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+        if (e) {
+          const title = e.querySelector('div:nth-child(2)');
+          const sub = e.querySelector('div:last-child');
+          if (title) title.innerText = 'Camera Offline';
+          if (sub) sub.innerText = 'Check ESP32-CAM (192.168.4.10)';
+          e.style.display = 'none';
+        }
+        if (f) {
+          f.style.display = 'none';
+          camLoadedOnce = false;
+          f.onload = onCamLoadOnce;
+          f.onerror = onCamError;
+          camTimeout = setTimeout(onCamError, 3500);
+          f.src = 'http://192.168.4.10:81/stream';
+        }
+      }
+    }
+
+    window.toggleCameraSource = toggleCameraSource;
+    window.setPhoneCameraFacingMode = setPhoneCameraFacingMode;
+    window.togglePhoneFacingMode = togglePhoneFacingMode;
 
     function toggleCamera(en) {
       isCameraOn = !!en;
@@ -2376,6 +2542,8 @@
       const addOnsPanel = document.getElementById('addOnsContainer');
 
       if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
+
+      updateCamSourceButtonUI();
 
       if (en) {
         // 1. Save current speed before switching to fixed camera speed
@@ -2398,15 +2566,41 @@
 
         // 5. Open stream
         if (s) s.style.display = 'block';
-        if (e) e.style.display = 'none';
-        if (f) {
-          f.style.display = 'none';
-          camTimeout = setTimeout(onCamError, 3500);
-          f.src = 'http://192.168.4.10:81/stream';
+        if (e) {
+          const title = e.querySelector('div:nth-child(2)');
+          const sub = e.querySelector('div:last-child');
+          if (title) title.innerText = 'Camera Offline';
+          if (sub) sub.innerText = 'Check ESP32-CAM (192.168.4.10)';
+          e.style.display = 'none';
+        }
+
+        if (currentCamSource === 'phone') {
+          if (f) {
+            f.removeAttribute('src');
+            f.src = '';
+            f.style.display = 'none';
+          }
+          startPhoneCamera();
+        } else {
+          stopPhoneCamera();
+          if (f) {
+            f.style.display = 'none';
+            camLoadedOnce = false;
+            f.onload = onCamLoadOnce;
+            f.onerror = onCamError;
+            camTimeout = setTimeout(onCamError, 3500);
+            f.src = 'http://192.168.4.10:81/stream';
+          }
         }
       } else {
         // 1. Stop video stream
-        if (f) { f.src = ''; f.style.display = 'none'; }
+        stopPhoneCamera();
+        if (f) {
+          f.onload = null;
+          f.removeAttribute('src');
+          f.src = '';
+          f.style.display = 'none';
+        }
         if (e) e.style.display = 'none';
         if (s) s.style.display = 'none';
 
@@ -2436,13 +2630,22 @@
 
     function camReload(event) {
       if (event) { if (event.preventDefault) event.preventDefault(); if (event.stopPropagation) event.stopPropagation(); }
+      if (currentCamSource === 'phone') {
+        startPhoneCamera();
+        return false;
+      }
       const f = document.getElementById('camFrame'), errBox = document.getElementById('camError');
       if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
       if (!f) return false;
-      f.onerror = null; f.src = '';
+      f.onerror = null;
+      f.onload = null;
+      f.removeAttribute('src');
+      f.src = '';
       setTimeout(() => {
         if (errBox) errBox.style.display = 'none';
-        f.onerror = onCamError; f.onload = onCamLoad;
+        camLoadedOnce = false;
+        f.onerror = onCamError;
+        f.onload = onCamLoadOnce;
         camTimeout = setTimeout(onCamError, 4000);
         f.src = 'http://192.168.4.10:81/stream?t=' + Date.now();
       }, 60);
@@ -2453,7 +2656,7 @@
     let isPolling = false;
     function updateTelemetry() {
       if (isPolling || isSliderActive || currentDriveDir !== 'stop') {
-        setTimeout(updateTelemetry, 800);
+        setTimeout(updateTelemetry, isCameraOn ? 1500 : 800);
         return;
       }
       isPolling = true;
@@ -2488,7 +2691,7 @@
         .catch(() => { })
         .finally(() => {
           isPolling = false;
-          setTimeout(updateTelemetry, isCamActive ? 1200 : 800);
+          setTimeout(updateTelemetry, isCameraOn ? 1500 : 800);
         });
     }
     updateTelemetry();
