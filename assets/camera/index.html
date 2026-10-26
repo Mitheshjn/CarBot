@@ -43,7 +43,7 @@
             flex-direction: column;
         }
 
-        /* --- Global Header & Tab Bar --- */
+        /* --- Global Header --- */
         #global-header {
             flex-shrink: 0;
             background: var(--bg-nav);
@@ -79,47 +79,6 @@
             display: inline-block;
         }
 
-        #nav-tabs-wrapper {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding: 2px 0;
-        }
-
-        #nav-tabs-wrapper::-webkit-scrollbar {
-            display: none;
-        }
-
-        .nav-tab-btn {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid var(--border-color);
-            color: var(--text-sub);
-            padding: 6px 13px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .nav-tab-btn:hover {
-            background: rgba(255, 255, 255, 0.14);
-            color: #fff;
-        }
-
-        .nav-tab-btn.active {
-            background: var(--primary-accent);
-            border-color: #60a5fa;
-            color: #fff;
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
-        }
-
         /* --- Workspace Blocks --- */
         #workspace-container {
             flex: 1;
@@ -143,29 +102,30 @@
             display: flex;
         }
 
-        /* Common Camera Flip Button */
+        /* Common Camera Flip Button (Now in Header) */
         .cam-switch-floating {
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            z-index: 100;
-            width: 44px;
-            height: 44px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.85);
             border: none;
-            font-size: 22px;
+            font-size: 18px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
             transition: transform 0.2s ease, background 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .cam-switch-floating:active {
             transform: scale(0.92);
             background: rgba(255, 255, 255, 1);
+        }
+
+        .cam-switch-floating.esp32-mode {
+            background: rgba(59, 130, 246, 0.9);
+            color: #fff;
         }
 
         /* ESP32 URL Bar */
@@ -212,11 +172,6 @@
             background: #2563eb;
         }
 
-        /* ESP32 badge on cam button */
-        .cam-switch-floating.esp32-mode {
-            background: rgba(59, 130, 246, 0.9);
-            color: #fff;
-        }
 
         /* ========================================================= */
         /* BLOCK 1: FINGER TRACKING                                  */
@@ -584,20 +539,14 @@
 
 <body>
 
-    <!-- Global App Header with Module Switcher -->
+    <!-- Global App Header with Global Camera Switcher -->
     <header id="global-header">
         <div class="header-brand">
             <span class="dot"></span>
             <span>Vision Suite</span>
         </div>
-        <nav id="nav-tabs-wrapper" aria-label="Modules">
-            <button class="nav-tab-btn active" data-target="block-finger-tracking">🖐️ Finger Tracking</button>
-            <button class="nav-tab-btn" data-target="block-gesture-classifier">✌️ Gesture Classifier</button>
-            <button class="nav-tab-btn" data-target="block-image-classifier">📷 Image Classifier</button>
-            <button class="nav-tab-btn" data-target="block-rgb-coords">🎯 RGB Coordinates</button>
-            <button class="nav-tab-btn" data-target="block-rgb-colorpicker">🎨 RGB Color Picker</button>
-            <button class="nav-tab-btn" data-target="block-rgb-grid">⊞ RGB 3x3 Grid</button>
-        </nav>
+        <!-- Unified Camera Flip Switch placed in Header -->
+        <button id="global-switch-cam-btn" class="cam-switch-floating" title="Switch Camera">📷</button>
     </header>
 
     <!-- ESP32 URL Bar (shown when any module is in ESP32 mode) -->
@@ -643,7 +592,6 @@
 
             <div
                 style="position:relative; width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
-                <button class="cam-switch-floating" id="ft-switch-cam-btn" title="Switch Camera">📷</button>
                 <div style="display: none;">
                     <video id="ft-video" playsinline></video>
                 </div>
@@ -683,7 +631,6 @@
 
             <div
                 style="position:relative; width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
-                <button class="cam-switch-floating" id="gc-switch-cam-btn" title="Switch Camera">📷</button>
                 <div style="display: none;">
                     <video id="gc-video" playsinline></video>
                 </div>
@@ -696,7 +643,6 @@
         <!-- ================================================================= -->
         <div id="block-image-classifier" class="app-block">
             <div class="ic-video-container">
-                <button class="cam-switch-floating" id="ic-switch-cam-btn" title="Switch Camera">📷</button>
                 <video id="ic-webcam" autoplay playsinline muted></video>
                 <div id="ic-status">Loading model...</div>
             </div>
@@ -725,7 +671,6 @@
         <div id="block-rgb-coords" class="app-block rgb-block-wrapper">
             <div class="rgb-cam-area">
                 <div class="rgb-status-tag" id="rgb-coord-status">STANDBY</div>
-                <button class="cam-switch-floating" id="rgb-coord-switch-cam-btn" title="Switch Camera">📷</button>
                 <video id="rgb-coord-video" playsinline autoplay style="display:none;"></video>
                 <canvas id="rgb-coord-output" class="rgb-out-canvas"></canvas>
                 <canvas id="rgb-coord-proc" style="display:none;"></canvas>
@@ -750,7 +695,6 @@
         <div id="block-rgb-colorpicker" class="app-block rgb-block-wrapper">
             <div class="rgb-cam-area">
                 <div class="rgb-status-tag" id="rgb-color-status">STANDBY</div>
-                <button class="cam-switch-floating" id="rgb-color-switch-cam-btn" title="Switch Camera">📷</button>
                 <video id="rgb-color-video" playsinline autoplay style="display:none;"></video>
                 <canvas id="rgb-color-output" class="rgb-out-canvas"></canvas>
                 <canvas id="rgb-color-proc" style="display:none;"></canvas>
@@ -775,7 +719,6 @@
         <div id="block-rgb-grid" class="app-block rgb-block-wrapper">
             <div class="rgb-cam-area">
                 <div class="rgb-status-tag" id="rgb-grid-status">STANDBY</div>
-                <button class="cam-switch-floating" id="rgb-grid-switch-cam-btn" title="Switch Camera">📷</button>
                 <video id="rgb-grid-video" playsinline autoplay style="display:none;"></video>
                 <canvas id="rgb-grid-output" class="rgb-out-canvas"></canvas>
                 <canvas id="rgb-grid-proc" style="display:none;"></canvas>
@@ -889,17 +832,38 @@
         }
 
         // =================================================================
-        // GLOBAL ESP32 STATE
+        // GLOBAL CAMERA & ESP32 STATE
         // =================================================================
         let globalEsp32Url = 'http://192.168.4.10:81/stream';
         let globalEsp32ActiveModules = new Set();
+
+        // 0=front, 1=back, 2=esp32
+        window.globalCamModeIndex = 0;
+        const CAM_MODES = ['user', 'environment', 'esp32'];
+        const CAM_ICONS = ['📷', '🔄', '📡'];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const globalCamBtn = document.getElementById('global-switch-cam-btn');
+            if (globalCamBtn) {
+                globalCamBtn.addEventListener('click', () => {
+                    window.globalCamModeIndex = (window.globalCamModeIndex + 1) % 3;
+                    globalCamBtn.textContent = CAM_ICONS[window.globalCamModeIndex];
+                    globalCamBtn.classList.toggle('esp32-mode', window.globalCamModeIndex === 2);
+
+                    if (window._activeVisionModule && window._activeVisionModule.restartCamera) {
+                        window._activeVisionModule.restartCamera();
+                    } else if (window._activeVisionModule && window._activeVisionModule.restartEsp32) {
+                        window._activeVisionModule.restartEsp32();
+                    }
+                });
+            }
+        });
 
         function applyEsp32Url() {
             const input = document.getElementById('esp32-url-input');
             if (input && input.value.trim()) {
                 globalEsp32Url = input.value.trim();
             }
-            // Restart current active module if it's in esp32 mode
             if (window._activeVisionModule && window._activeVisionModule.isEsp32Mode && window._activeVisionModule.isEsp32Mode()) {
                 window._activeVisionModule.restartEsp32();
             }
@@ -916,7 +880,6 @@
             }
         }
 
-        // Helper: create an ESP32 MJPEG img element that can be used as a video source
         function createEsp32ImgSource(url) {
             const img = document.createElement('img');
             img.crossOrigin = 'anonymous';
@@ -924,10 +887,6 @@
             img.src = url;
             return img;
         }
-
-        // CAM SOURCE MODES: 0=front, 1=back, 2=esp32
-        const CAM_MODES = ['user', 'environment', 'esp32'];
-        const CAM_ICONS = ['📷', '🔄', '📡'];
 
         // =================================================================
         // MODULE 1: FINGER TRACKING CONTROLLER
@@ -938,7 +897,6 @@
             let recordingLabel = null;
             let camera = null;
             let hands = null;
-            let camModeIndex = 0; // 0=front, 1=back, 2=esp32
             let currentFacingMode = 'user';
             let isRunning = false;
             let esp32Img = null;
@@ -952,9 +910,6 @@
             const videoElement = document.getElementById('ft-video');
             const canvasElement = document.getElementById('ft-output_canvas');
             const canvasCtx = canvasElement.getContext('2d');
-            const switchCamBtn = document.getElementById('ft-switch-cam-btn');
-
-            function isMobileDevice() { return window.innerWidth <= 430; }
 
             function setCanvasDimensions() {
                 canvasElement.width = 480;
@@ -1084,20 +1039,6 @@
                     knn.clear();
                     gesturePredictionDisplay.innerText = `Prediction: None`;
                 });
-
-                switchCamBtn.addEventListener('click', () => {
-                    camModeIndex = (camModeIndex + 1) % 3;
-                    switchCamBtn.textContent = CAM_ICONS[camModeIndex];
-                    if (camModeIndex === 2) {
-                        switchCamBtn.classList.add('esp32-mode');
-                    } else {
-                        switchCamBtn.classList.remove('esp32-mode');
-                    }
-                    if (isRunning) {
-                        stopCameraStreams();
-                        startCamera();
-                    }
-                });
             }
 
             function stopCameraStreams() {
@@ -1126,13 +1067,14 @@
             }
 
             function startEsp32Feed() {
+                if (!isRunning || window.globalCamModeIndex !== 2) return;
                 globalEsp32ActiveModules.add('ft');
                 updateEsp32Bar();
                 esp32Img = createEsp32ImgSource(globalEsp32Url);
                 document.body.appendChild(esp32Img);
                 setupHands();
                 function esp32Loop() {
-                    if (!isRunning || camModeIndex !== 2) return;
+                    if (!isRunning || window.globalCamModeIndex !== 2) return;
                     if (esp32Img.complete && esp32Img.naturalWidth > 0) {
                         if (hands) hands.send({ image: esp32Img }).catch(() => { });
                     }
@@ -1154,11 +1096,11 @@
 
             let isProcessing = false;
             function startCamera() {
-                if (camModeIndex === 2) {
+                if (window.globalCamModeIndex === 2) {
                     startEsp32Feed();
                     return;
                 }
-                currentFacingMode = CAM_MODES[camModeIndex];
+                currentFacingMode = CAM_MODES[window.globalCamModeIndex];
                 setupHands();
                 camera = new Camera(videoElement, {
                     onFrame: async () => {
@@ -1195,8 +1137,9 @@
                 start: () => {
                     isRunning = true;
                     window._activeVisionModule = {
-                        isEsp32Mode: () => camModeIndex === 2,
-                        restartEsp32: () => { stopCameraStreams(); startCamera(); }
+                        isEsp32Mode: () => window.globalCamModeIndex === 2,
+                        restartEsp32: () => { stopCameraStreams(); startCamera(); },
+                        restartCamera: () => { stopCameraStreams(); startCamera(); }
                     };
                     setCanvasDimensions();
                     startCamera();
@@ -1217,7 +1160,6 @@
             let recordingLabel = null;
             let camera = null;
             let hands = null;
-            let camModeIndex = 0;
             let currentFacingMode = 'user';
             let isRunning = false;
             let esp32Img = null;
@@ -1228,7 +1170,6 @@
             const videoElement = document.getElementById('gc-video');
             const canvasElement = document.getElementById('gc-output_canvas');
             const canvasCtx = canvasElement.getContext('2d');
-            const switchCamBtn = document.getElementById('gc-switch-cam-btn');
 
             function setCanvasDimensions() {
                 canvasElement.width = 480;
@@ -1344,13 +1285,6 @@
                     knn.clear();
                     gesturePredictionDisplay.innerText = `Prediction: None`;
                 });
-
-                switchCamBtn.addEventListener('click', () => {
-                    camModeIndex = (camModeIndex + 1) % 3;
-                    switchCamBtn.textContent = CAM_ICONS[camModeIndex];
-                    switchCamBtn.classList.toggle('esp32-mode', camModeIndex === 2);
-                    if (isRunning) { stopGcCameraStreams(); startCamera(); }
-                });
             }
 
             function setupHands() {
@@ -1380,7 +1314,7 @@
 
             let isProcessing = false;
             function startCamera() {
-                if (camModeIndex === 2) {
+                if (window.globalCamModeIndex === 2) {
                     // ESP32 MJPEG mode
                     globalEsp32ActiveModules.add('gc');
                     updateEsp32Bar();
@@ -1388,7 +1322,7 @@
                     document.body.appendChild(esp32Img);
                     setupHands();
                     function gcEsp32Loop() {
-                        if (!isRunning || camModeIndex !== 2) return;
+                        if (!isRunning || window.globalCamModeIndex !== 2) return;
                         if (esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) {
                             if (hands && !isProcessing) {
                                 isProcessing = true;
@@ -1405,7 +1339,7 @@
                     };
                     return;
                 }
-                currentFacingMode = CAM_MODES[camModeIndex];
+                currentFacingMode = CAM_MODES[window.globalCamModeIndex];
                 setupHands();
                 camera = new Camera(videoElement, {
                     onFrame: async () => {
@@ -1431,8 +1365,9 @@
                 start: () => {
                     isRunning = true;
                     window._activeVisionModule = {
-                        isEsp32Mode: () => camModeIndex === 2,
-                        restartEsp32: () => { stopGcCameraStreams(); startCamera(); }
+                        isEsp32Mode: () => window.globalCamModeIndex === 2,
+                        restartEsp32: () => { stopGcCameraStreams(); startCamera(); },
+                        restartCamera: () => { stopGcCameraStreams(); startCamera(); }
                     };
                     setCanvasDimensions();
                     startCamera();
@@ -1461,7 +1396,6 @@
             let sameCount = 0;
             let isRunning = false;
             let animId = null;
-            let camModeIndex = 0;
             let currentFacingMode = 'user';
             let esp32Img = null;
             let modelLoaded = false;
@@ -1494,7 +1428,7 @@
             }
 
             async function setupWebcam() {
-                if (camModeIndex === 2) {
+                if (window.globalCamModeIndex === 2) {
                     // ESP32 mode: use img element as source
                     if (video.srcObject) {
                         video.srcObject.getTracks().forEach(t => t.stop());
@@ -1516,7 +1450,7 @@
                     globalEsp32ActiveModules.delete('ic');
                     updateEsp32Bar();
                 }
-                currentFacingMode = CAM_MODES[camModeIndex];
+                currentFacingMode = CAM_MODES[window.globalCamModeIndex];
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: { ideal: currentFacingMode },
@@ -1558,18 +1492,6 @@
             }
 
             function initEvents() {
-                const icSwitchBtn = document.getElementById('ic-switch-cam-btn');
-                icSwitchBtn.addEventListener('click', async () => {
-                    camModeIndex = (camModeIndex + 1) % 3;
-                    icSwitchBtn.textContent = CAM_ICONS[camModeIndex];
-                    icSwitchBtn.classList.toggle('esp32-mode', camModeIndex === 2);
-                    if (video.srcObject) {
-                        video.srcObject.getTracks().forEach(t => t.stop());
-                        video.srcObject = null;
-                    }
-                    if (isRunning) await setupWebcam();
-                });
-
                 document.querySelectorAll('.ic-train-btn').forEach(btn => {
                     const classId = Number(btn.dataset.class);
                     const start = (e) => {
@@ -1620,10 +1542,10 @@
                 async function loop(ts) {
                     if (!isRunning) return;
                     // For ESP32 mode, use esp32Img instead of video readyState check
-                    const sourceReady = camModeIndex === 2
+                    const sourceReady = window.globalCamModeIndex === 2
                         ? (esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0)
                         : (video.readyState >= 2);
-                    const imgSource = camModeIndex === 2 ? esp32Img : video;
+                    const imgSource = window.globalCamModeIndex === 2 ? esp32Img : video;
                     if (ts - lastRun < INTERVAL || !sourceReady || isPredicting) {
                         animId = requestAnimationFrame(loop);
                         return;
@@ -1669,8 +1591,14 @@
                 start: async () => {
                     isRunning = true;
                     window._activeVisionModule = {
-                        isEsp32Mode: () => camModeIndex === 2,
+                        isEsp32Mode: () => window.globalCamModeIndex === 2,
                         restartEsp32: () => {
+                            if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
+                            globalEsp32ActiveModules.delete('ic');
+                            updateEsp32Bar();
+                            if (isRunning) setupWebcam();
+                        },
+                        restartCamera: () => {
                             if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
                             globalEsp32ActiveModules.delete('ic');
                             updateEsp32Bar();
@@ -1726,7 +1654,6 @@
             const uiPosY = document.getElementById(cfg.posYId);
             const uiBlobSize = document.getElementById(cfg.blobSizeId);
             const colorPreview = document.getElementById(cfg.previewId);
-            const switchCamBtn = document.getElementById(cfg.switchCamId);
 
             const PROC_WIDTH = 160;
             const PROC_HEIGHT = 120;
@@ -1735,11 +1662,11 @@
 
             let appState = 0; // 0=Init, 1=Select, 2=Track
             let currentFacingMode = 'user';
-            let camModeIndex = 0;
             let isRunning = false;
             let animId = null;
             let esp32Img = null;
-            const moduleKey = cfg.switchCamId.split('-')[0] + cfg.switchCamId.split('-')[1];
+            // A pseudo-unique key for the module to track its ESP32 stream status
+            const moduleKey = cfg.videoId;
 
             const THRESH_HUE = 15;
             const THRESH_SAT = 0.35;
@@ -1769,7 +1696,7 @@
             }
 
             async function startCamera() {
-                if (camModeIndex === 2) {
+                if (window.globalCamModeIndex === 2) {
                     // ESP32 MJPEG mode
                     globalEsp32ActiveModules.add(moduleKey);
                     updateEsp32Bar();
@@ -1793,7 +1720,7 @@
                     };
                     return;
                 }
-                currentFacingMode = CAM_MODES[camModeIndex];
+                currentFacingMode = CAM_MODES[window.globalCamModeIndex];
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({
                         video: { facingMode: currentFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
@@ -1842,7 +1769,7 @@
             }
 
             function captureTargetProfile() {
-                const src = (camModeIndex === 2 && esp32Img && esp32Img.complete) ? esp32Img : video;
+                const src = (window.globalCamModeIndex === 2 && esp32Img && esp32Img.complete) ? esp32Img : video;
                 ctxOutput.drawImage(src, 0, 0, outputCanvas.width, outputCanvas.height);
                 const cx = outputCanvas.width / 2, cy = outputCanvas.height / 2, box = 40;
                 const imgData = ctxOutput.getImageData(cx - box / 2, cy - box / 2, box, box).data;
@@ -1949,7 +1876,7 @@
             function executeTracker() {
                 let minX = tracker.roi[0], minY = tracker.roi[1];
                 let maxX = tracker.roi[2], maxY = tracker.roi[3];
-                const src = (camModeIndex === 2 && esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) ? esp32Img : video;
+                const src = (window.globalCamModeIndex === 2 && esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) ? esp32Img : video;
                 ctxProc.drawImage(src, 0, 0, PROC_WIDTH, PROC_HEIGHT);
                 const data = ctxProc.getImageData(0, 0, PROC_WIDTH, PROC_HEIGHT).data;
                 const mask = new Uint8Array(PROC_WIDTH * PROC_HEIGHT);
@@ -2025,8 +1952,8 @@
             function renderLoop() {
                 if (!isRunning) return;
                 // Use esp32Img as source if in ESP32 mode
-                const src = (camModeIndex === 2 && esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) ? esp32Img : video;
-                if (camModeIndex === 2 && (!esp32Img || !esp32Img.complete || !esp32Img.naturalWidth)) {
+                const src = (window.globalCamModeIndex === 2 && esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) ? esp32Img : video;
+                if (window.globalCamModeIndex === 2 && (!esp32Img || !esp32Img.complete || !esp32Img.naturalWidth)) {
                     animId = requestAnimationFrame(renderLoop);
                     return;
                 }
@@ -2049,7 +1976,7 @@
 
                 if (appState === 2) {
                     // When in ESP32 mode, draw from esp32Img into proc canvas
-                    if (camModeIndex === 2 && esp32Img) {
+                    if (window.globalCamModeIndex === 2 && esp32Img) {
                         try { ctxProc.drawImage(esp32Img, 0, 0, PROC_WIDTH, PROC_HEIGHT); } catch (e) { }
                     }
                     const res = executeTracker();
@@ -2118,22 +2045,18 @@
 
             btnAction.addEventListener('click', handleAction);
 
-            switchCamBtn.addEventListener('click', () => {
-                camModeIndex = (camModeIndex + 1) % 3;
-                switchCamBtn.textContent = CAM_ICONS[camModeIndex];
-                switchCamBtn.classList.toggle('esp32-mode', camModeIndex === 2);
-                if (animId) { cancelAnimationFrame(animId); animId = null; }
-                stopRgbCameraStreams();
-                appState = 0;
-                if (isRunning) startCamera();
-            });
-
             return {
                 start: () => {
                     isRunning = true;
                     window._activeVisionModule = {
-                        isEsp32Mode: () => camModeIndex === 2,
+                        isEsp32Mode: () => window.globalCamModeIndex === 2,
                         restartEsp32: () => {
+                            if (animId) { cancelAnimationFrame(animId); animId = null; }
+                            stopRgbCameraStreams();
+                            appState = 0;
+                            startCamera();
+                        },
+                        restartCamera: () => {
                             if (animId) { cancelAnimationFrame(animId); animId = null; }
                             stopRgbCameraStreams();
                             appState = 0;
@@ -2163,7 +2086,6 @@
             posYId: 'rgb-coord-pos-y',
             blobSizeId: 'rgb-coord-blob-size',
             previewId: 'rgb-coord-preview',
-            switchCamId: 'rgb-coord-switch-cam-btn',
             logCoords: true,
             hasGrid: false
         });
@@ -2179,7 +2101,6 @@
             posYId: 'rgb-color-pos-y',
             blobSizeId: 'rgb-color-blob-size',
             previewId: 'rgb-color-preview',
-            switchCamId: 'rgb-color-switch-cam-btn',
             logCoords: false,
             hasGrid: false
         });
@@ -2195,7 +2116,6 @@
             posYId: 'rgb-grid-pos-y',
             blobSizeId: 'rgb-grid-blob-size',
             previewId: 'rgb-grid-preview',
-            switchCamId: 'rgb-grid-switch-cam-btn',
             logCoords: false,
             hasGrid: true
         });
@@ -2228,19 +2148,12 @@
                 }
             }
 
-            // 2. Hide all block divs & deactivate nav buttons
+            // 2. Hide all block divs
             document.querySelectorAll('.app-block').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
 
-            // 3. Show target block div & activate button
+            // 3. Show target block div
             const targetBlock = document.getElementById(targetBlockId);
-            const targetBtn = document.querySelector(`.nav-tab-btn[data-target="${targetBlockId}"]`);
-
             if (targetBlock) targetBlock.classList.add('active');
-            if (targetBtn) {
-                targetBtn.classList.add('active');
-                targetBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-            }
 
             currentActiveBlockId = targetBlockId;
 
@@ -2253,14 +2166,6 @@
                 }
             }
         }
-
-        // Attach click handlers to navigation tabs
-        document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const target = btn.dataset.target;
-                if (target) switchModule(target);
-            });
-        });
 
         // Start initial module on page load
         window.addEventListener('load', () => {

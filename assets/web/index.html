@@ -336,6 +336,10 @@
       transform: translateX(14px);
     }
 
+    input:disabled+.slider {
+      cursor: not-allowed;
+    }
+
     .switch-label {
       font-size: 11px;
       color: #aaa;
@@ -1249,7 +1253,7 @@
         </label>
         <span id="cockpitLabel" class="switch-label">🏎️ Cockpit</span>
       </div>
-      <div class="switch-container">
+      <div class="switch-container" id="camToggleContainer">
         <label class="switch">
           <input type="checkbox" id="camToggle" onchange="toggleCamera(this.checked)">
           <span class="slider"></span>
@@ -2050,15 +2054,32 @@
 
       const previewCard = document.getElementById('cameraVisionPreviewCard');
       const liveCamSec = document.getElementById('cameraSection');
+      const mainCamToggle = document.getElementById('camToggle');
 
       if (en) {
         if (activeBlockMode === 'camera') {
           if (liveCamSec) liveCamSec.style.display = 'none';
           if (previewCard) previewCard.style.display = 'block';
+
+          if (mainCamToggle) {
+            if (mainCamToggle.checked) {
+              mainCamToggle.checked = false;
+              toggleCamera(false);
+            }
+            mainCamToggle.disabled = true;
+            mainCamToggle.parentElement.style.opacity = '0.4';
+            mainCamToggle.parentElement.style.cursor = 'not-allowed';
+          }
         }
       } else {
         if (previewCard) previewCard.style.display = 'none';
         if (liveCamSec) liveCamSec.style.display = isCameraOn ? 'block' : 'none';
+
+        if (mainCamToggle) {
+          mainCamToggle.disabled = false;
+          mainCamToggle.parentElement.style.opacity = '1';
+          mainCamToggle.parentElement.style.cursor = 'pointer';
+        }
       }
 
       if (en && workspace) {
@@ -2912,6 +2933,10 @@
       const previewCard = document.getElementById('cameraVisionPreviewCard');
       const liveCamSec = document.getElementById('cameraSection');
 
+      const mainCamToggle = document.getElementById('camToggle');
+      const terminalEl = document.getElementById('terminalPanel');
+      const isBlocksVisible = terminalEl && terminalEl.style.display !== 'none';
+
       if (mode === 'camera') {
         if (tabMain) tabMain.classList.remove('active');
         if (tabCam) tabCam.classList.add('active');
@@ -2930,6 +2955,17 @@
           } else {
             try { frame.contentWindow.postMessage({ action: 'resume' }, '*'); } catch (err) { }
           }
+        }
+
+        // DISABLE MAIN CAM TOGGLE WHEN CAMERA BLOCKS ARE ACTIVE
+        if (isBlocksVisible && mainCamToggle) {
+          if (mainCamToggle.checked) {
+            mainCamToggle.checked = false;
+            toggleCamera(false);
+          }
+          mainCamToggle.disabled = true;
+          mainCamToggle.parentElement.style.opacity = '0.4';
+          mainCamToggle.parentElement.style.cursor = 'not-allowed';
         }
 
         if (!workspaceCamera) {
@@ -2970,6 +3006,13 @@
         // Hide Vision AI Preview and restore Live FPV stream if camera toggle is on
         if (previewCard) previewCard.style.display = 'none';
         if (liveCamSec) liveCamSec.style.display = isCameraOn ? 'block' : 'none';
+
+        // ENABLE MAIN CAM TOGGLE AGAIN
+        if (mainCamToggle) {
+          mainCamToggle.disabled = false;
+          mainCamToggle.parentElement.style.opacity = '1';
+          mainCamToggle.parentElement.style.cursor = 'pointer';
+        }
 
         workspace = workspaceMain;
         setTimeout(() => {
