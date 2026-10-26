@@ -89,7 +89,6 @@
 
         .app-block {
             display: none;
-            /* Managed by JS switcher */
             position: absolute;
             top: 0;
             left: 0;
@@ -178,95 +177,44 @@
         /* ========================================================= */
         #block-finger-tracking {
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            height: 100%;
             background: #000;
         }
 
-        #block-finger-tracking .ft-canvas {
-            width: 100vw;
-            height: calc(100vh - 120px);
+        .ft-video-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .ft-canvas {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
             transform: scaleX(-1);
         }
 
-        #block-finger-tracking #ft-fingerCount {
-            position: absolute;
-            bottom: 35px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            font-size: 22px;
+        @media (orientation: landscape) {
+            .ft-canvas {
+                object-fit: contain;
+            }
+        }
+
+        #ft-fingerCount {
+            padding: 14px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            background: #111827;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 11px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             font-weight: bold;
             color: #fff;
-            text-shadow: 1px 1px 4px black, 0 0 8px rgba(0, 0, 0, 0.9);
-            text-align: center;
-            background: rgba(0, 0, 0, 0.45);
-            padding: 6px 16px;
-            border-radius: 20px;
-        }
-
-        #block-finger-tracking #ft-modeSwitchContainer {
-            position: absolute;
-            top: 14px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-        }
-
-        #block-finger-tracking #ft-modeToggleBtn {
-            padding: 7px 16px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 20px;
-            border: 1px solid #ccc;
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #111;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        #block-finger-tracking #ft-gestureUI {
-            display: none;
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            text-align: center;
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .gesture-btn-row {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .gesture-action-btn {
-            width: 48px;
-            height: 48px;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            touch-action: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: transform 0.1s ease;
-        }
-
-        .gesture-action-btn:active {
-            transform: scale(0.92);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* ========================================================= */
@@ -274,30 +222,54 @@
         /* ========================================================= */
         #block-gesture-classifier {
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            height: 100%;
             background: #000;
         }
 
-        #block-gesture-classifier .gc-canvas {
-            width: 100vw;
-            height: calc(100vh - 120px);
+        .gc-video-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .gc-canvas {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
             transform: scaleX(-1);
         }
 
-        #block-gesture-classifier #gc-gestureUI {
-            display: block;
+        @media (orientation: landscape) {
+            .gc-canvas {
+                object-fit: contain;
+            }
+        }
+
+        #gc-status {
             position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
+            top: 14px;
+            left: 0;
+            right: 0;
             text-align: center;
-            width: 100%;
-            max-width: 420px;
+            color: #00ff66;
+            font-size: 15px;
+            font-weight: 600;
+            pointer-events: none;
+            text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+        }
+
+        /* Reusing Image Classifier Buttons CSS for Gesture Classifier */
+        #gc-controls {
+            display: flex;
+            gap: 10px;
+            padding: 14px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            background: #111827;
+            border-top: 1px solid var(--border-color);
+            justify-content: center;
         }
 
         /* ========================================================= */
@@ -564,77 +536,36 @@
         <!-- 1. FINGER TRACKING BLOCK                                          -->
         <!-- ================================================================= -->
         <div id="block-finger-tracking" class="app-block active">
-            <div id="ft-modeSwitchContainer">
-                <button id="ft-modeToggleBtn">Gesture Mode</button>
-            </div>
-
-            <div id="ft-gestureUI">
-                <div id="ft-gesturePrediction"
-                    style="margin-bottom:6px; font-weight:bold; font-size:20px; color:white; text-shadow: 1px 1px 3px black;">
-                    Prediction: None</div>
-                <div id="ft-recordingStatus"
-                    style="margin-bottom:6px; font-weight:bold; color:#ef4444; min-height: 20px; font-size:16px; text-shadow: 1px 1px 2px white;">
-                </div>
-                <div class="gesture-btn-row">
-                    <button class="gesture-action-btn ft-gestureBtn" data-label="1"
-                        style="background: #ef4444;">1</button>
-                    <button class="gesture-action-btn ft-gestureBtn" data-label="2"
-                        style="background: #10b981;">2</button>
-                    <button class="gesture-action-btn ft-gestureBtn" data-label="3"
-                        style="background: #3b82f6;">3</button>
-                    <button class="gesture-action-btn ft-gestureBtn" data-label="4"
-                        style="background: #8b5cf6;">4</button>
-                    <button class="gesture-action-btn ft-gestureBtn" data-label="5"
-                        style="background: #f59e0b;">5</button>
-                    <button id="ft-clearDataBtn" class="gesture-action-btn" style="background: #475569;">X</button>
-                </div>
-            </div>
-
-            <div
-                style="position:relative; width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
-                <div style="display: none;">
-                    <video id="ft-video" playsinline></video>
-                </div>
+            <div class="ft-video-container">
+                <div style="display: none;"><video id="ft-video" playsinline></video></div>
                 <canvas id="ft-output_canvas" class="ft-canvas"></canvas>
-                <div id="ft-fingerCount">Fingers Raised: 0</div>
             </div>
+            <!-- Fingers raised text moved out of canvas and styled cleanly -->
+            <div id="ft-fingerCount">Fingers Raised: 0</div>
         </div>
 
         <!-- ================================================================= -->
         <!-- 2. GESTURE CLASSIFIER BLOCK                                       -->
         <!-- ================================================================= -->
         <div id="block-gesture-classifier" class="app-block">
-            <div id="gc-gestureUI">
-                <div id="gc-gesturePrediction"
-                    style="margin-bottom:6px; font-weight:bold; font-size:20px; color:white; text-shadow: 1px 1px 3px black;">
-                    Prediction: None</div>
-                <div id="gc-recordingStatus"
-                    style="margin-bottom:6px; font-weight:bold; color:#ef4444; min-height: 20px; font-size:16px; text-shadow: 1px 1px 2px white;">
-                </div>
-                <div class="gesture-btn-row">
-                    <button class="gesture-action-btn gc-gestureBtn" data-label="1"
-                        style="background: #ef4444;">1</button>
-                    <button class="gesture-action-btn gc-gestureBtn" data-label="2"
-                        style="background: #10b981;">2</button>
-                    <button class="gesture-action-btn gc-gestureBtn" data-label="3"
-                        style="background: #3b82f6;">3</button>
-                    <button class="gesture-action-btn gc-gestureBtn" data-label="4"
-                        style="background: #8b5cf6;">4</button>
-                    <button class="gesture-action-btn gc-gestureBtn" data-label="5"
-                        style="background: #f59e0b;">5</button>
-                    <button id="gc-autoTrainBtn" class="gesture-action-btn"
-                        style="width: auto; min-width: 58px; padding: 0 8px; font-size: 13px; background: #2563eb;"
-                        title="Train fixed 20 images">📸 20x</button>
-                    <button id="gc-clearDataBtn" class="gesture-action-btn" style="background: #475569;">X</button>
-                </div>
+            <div class="gc-video-container">
+                <div style="display: none;"><video id="gc-video" playsinline></video></div>
+                <canvas id="gc-output_canvas" class="gc-canvas"></canvas>
+                <!-- Central status overlay specific to gesture prediction -->
+                <div id="gc-status">Prediction: None</div>
             </div>
 
-            <div
-                style="position:relative; width:100%; height:100%; display:flex; justify-content:center; align-items:center;">
-                <div style="display: none;">
-                    <video id="gc-video" playsinline></video>
-                </div>
-                <canvas id="gc-output_canvas" class="gc-canvas"></canvas>
+            <!-- Identical control bar format as Image Classifier -->
+            <div id="gc-controls">
+                <button class="ic-train-btn gc-gestureBtn" data-label="1" style="--theme: #ef4444;">1</button>
+                <button class="ic-train-btn gc-gestureBtn" data-label="2" style="--theme: #f97316;">2</button>
+                <button class="ic-train-btn gc-gestureBtn" data-label="3" style="--theme: #eab308;">3</button>
+                <button class="ic-train-btn gc-gestureBtn" data-label="4" style="--theme: #10b981;">4</button>
+                <button class="ic-train-btn gc-gestureBtn" data-label="5" style="--theme: #3b82f6;">5</button>
+                <button id="gc-autoTrainBtn" class="ic-clear-btn"
+                    style="background: #2563eb; font-size: 13px; max-width: 72px;" title="Train fixed 20 images">📸
+                    20x</button>
+                <button id="gc-clearDataBtn" class="ic-clear-btn">X</button>
             </div>
         </div>
 
@@ -892,9 +823,6 @@
         // MODULE 1: FINGER TRACKING CONTROLLER
         // =================================================================
         const FingerTrackingModule = (() => {
-            const knn = new LandmarkKNNClassifier(5);
-            let currentMode = 'count';
-            let recordingLabel = null;
             let camera = null;
             let hands = null;
             let currentFacingMode = 'user';
@@ -902,11 +830,7 @@
             let esp32Img = null;
             let esp32AnimId = null;
 
-            const modeToggleBtn = document.getElementById('ft-modeToggleBtn');
-            const gestureUI = document.getElementById('ft-gestureUI');
             const fingerCountDisplay = document.getElementById('ft-fingerCount');
-            const recordingStatusDisplay = document.getElementById('ft-recordingStatus');
-            const gesturePredictionDisplay = document.getElementById('ft-gesturePrediction');
             const videoElement = document.getElementById('ft-video');
             const canvasElement = document.getElementById('ft-output_canvas');
             const canvasCtx = canvasElement.getContext('2d');
@@ -931,30 +855,6 @@
                 return fingerCount;
             }
 
-            function extractFeatures(landmarks) {
-                let wrist = landmarks[0];
-                let features = [];
-                let maxDist = 0;
-                for (let i = 1; i < landmarks.length; i++) {
-                    let dx = landmarks[i].x - wrist.x;
-                    let dy = landmarks[i].y - wrist.y;
-                    let dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist > maxDist) maxDist = dist;
-                }
-                for (let i = 0; i < landmarks.length; i++) {
-                    let dx = landmarks[i].x - wrist.x;
-                    let dy = landmarks[i].y - wrist.y;
-                    if (maxDist > 0) {
-                        features.push(dx / maxDist);
-                        features.push(dy / maxDist);
-                    } else {
-                        features.push(dx);
-                        features.push(dy);
-                    }
-                }
-                return features;
-            }
-
             function onResults(results) {
                 if (!isRunning) return;
                 canvasCtx.save();
@@ -971,74 +871,16 @@
                             lmlist.push([id, Math.round(x), Math.round(y)]);
                         }
 
-                        if (currentMode === 'count') {
-                            if (lmlist.length === 21) {
-                                const fingerCount = countFingers(lmlist);
-                                console.log(fingerCount);
-                                fingerCountDisplay.innerText = `Fingers Raised: ${fingerCount}`;
-                            }
-                        } else if (currentMode === 'gesture') {
-                            let features = extractFeatures(landmarks);
-                            if (recordingLabel !== null) {
-                                knn.addExample(features, recordingLabel);
-                            } else {
-                                let pred = knn.predict(features);
-                                if (pred !== null) {
-                                    console.log(pred);
-                                    gesturePredictionDisplay.innerText = `Prediction: ${pred}`;
-                                } else {
-                                    gesturePredictionDisplay.innerText = `Prediction: None`;
-                                }
-                            }
+                        if (lmlist.length === 21) {
+                            const fingerCount = countFingers(lmlist);
+                            fingerCountDisplay.innerText = `Fingers Raised: ${fingerCount}`;
                         }
 
                         drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
                         drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 2 });
                     }
-                } else {
-                    if (currentMode === 'gesture' && knn.data.length > 0) {
-                        gesturePredictionDisplay.innerText = `Prediction: None`;
-                    }
                 }
                 canvasCtx.restore();
-            }
-
-            function initEvents() {
-                setCanvasDimensions();
-
-                modeToggleBtn.addEventListener('click', () => {
-                    if (currentMode === 'count') {
-                        currentMode = 'gesture';
-                        modeToggleBtn.innerText = 'Count Mode';
-                        gestureUI.style.display = 'block';
-                        fingerCountDisplay.style.display = 'none';
-                    } else {
-                        currentMode = 'count';
-                        modeToggleBtn.innerText = 'Gesture Mode';
-                        gestureUI.style.display = 'none';
-                        fingerCountDisplay.style.display = 'block';
-                    }
-                });
-
-                document.querySelectorAll('.ft-gestureBtn').forEach(btn => {
-                    btn.addEventListener('pointerdown', (e) => {
-                        recordingLabel = parseInt(e.target.dataset.label);
-                        recordingStatusDisplay.innerText = `Recording label ${recordingLabel}...`;
-                    });
-                    const stopRecording = (e) => {
-                        if (recordingLabel === parseInt(e.target.dataset.label)) {
-                            recordingLabel = null;
-                            recordingStatusDisplay.innerText = '';
-                        }
-                    };
-                    btn.addEventListener('pointerup', stopRecording);
-                    btn.addEventListener('pointerleave', stopRecording);
-                });
-
-                document.getElementById('ft-clearDataBtn').addEventListener('click', () => {
-                    knn.clear();
-                    gesturePredictionDisplay.innerText = `Prediction: None`;
-                });
             }
 
             function stopCameraStreams() {
@@ -1131,8 +973,6 @@
                 });
             }
 
-            initEvents();
-
             return {
                 start: () => {
                     isRunning = true;
@@ -1165,8 +1005,7 @@
             let esp32Img = null;
             let esp32AnimId = null;
 
-            const recordingStatusDisplay = document.getElementById('gc-recordingStatus');
-            const gesturePredictionDisplay = document.getElementById('gc-gesturePrediction');
+            const gcStatusDisplay = document.getElementById('gc-status');
             const videoElement = document.getElementById('gc-video');
             const canvasElement = document.getElementById('gc-output_canvas');
             const canvasCtx = canvasElement.getContext('2d');
@@ -1209,7 +1048,8 @@
                 lastSelectedLabel = recordingLabel;
                 fixedAutoTrainTarget = count;
                 fixedAutoTrainCount = 0;
-                recordingStatusDisplay.innerText = `Training Gesture ${recordingLabel}: 0/${count} samples...`;
+                gcStatusDisplay.innerText = `Training Gesture ${recordingLabel}: 0/${count} samples...`;
+                gcStatusDisplay.style.color = "#eab308";
             }
 
             function onResults(results) {
@@ -1225,21 +1065,25 @@
                             knn.addExample(features, recordingLabel);
                             if (fixedAutoTrainTarget !== null) {
                                 fixedAutoTrainCount++;
-                                recordingStatusDisplay.innerText = `Training Gesture ${recordingLabel}: ${fixedAutoTrainCount}/${fixedAutoTrainTarget} samples...`;
+                                gcStatusDisplay.innerText = `Training Gesture ${recordingLabel}: ${fixedAutoTrainCount}/${fixedAutoTrainTarget} samples...`;
+                                gcStatusDisplay.style.color = "#eab308";
+
                                 if (fixedAutoTrainCount >= fixedAutoTrainTarget) {
-                                    recordingStatusDisplay.innerText = `Finished! Gesture ${recordingLabel} trained (${fixedAutoTrainTarget} samples).`;
+                                    gcStatusDisplay.innerText = `Finished! Gesture ${recordingLabel} trained (${fixedAutoTrainTarget} samples).`;
+                                    gcStatusDisplay.style.color = "#00ff66";
                                     recordingLabel = null;
                                     fixedAutoTrainTarget = null;
-                                    setTimeout(() => { if (!recordingLabel) recordingStatusDisplay.innerText = ''; }, 2500);
+                                    setTimeout(() => { if (!recordingLabel && knn.data.length > 0) gcStatusDisplay.innerText = 'Prediction: Ready'; }, 2500);
                                 }
                             }
                         } else {
                             let pred = knn.predict(features);
                             if (pred !== null) {
-                                console.log(pred);
-                                gesturePredictionDisplay.innerText = `Prediction: ${pred}`;
+                                gcStatusDisplay.innerText = `Prediction: ${pred}`;
+                                gcStatusDisplay.style.color = "#00ff66";
                             } else {
-                                gesturePredictionDisplay.innerText = `Prediction: None`;
+                                gcStatusDisplay.innerText = `Prediction: None`;
+                                gcStatusDisplay.style.color = "#00ff66";
                             }
                         }
 
@@ -1248,7 +1092,11 @@
                     }
                 } else {
                     if (knn.data.length > 0) {
-                        gesturePredictionDisplay.innerText = `Prediction: None`;
+                        gcStatusDisplay.innerText = `Prediction: None`;
+                        gcStatusDisplay.style.color = "#00ff66";
+                    } else {
+                        gcStatusDisplay.innerText = 'Hold a number to train';
+                        gcStatusDisplay.style.color = "#00ff66";
                     }
                 }
                 canvasCtx.restore();
@@ -1262,12 +1110,14 @@
                         recordingLabel = parseInt(e.target.dataset.label);
                         lastSelectedLabel = recordingLabel;
                         fixedAutoTrainTarget = null;
-                        recordingStatusDisplay.innerText = `Recording label ${recordingLabel}...`;
+                        gcStatusDisplay.innerText = `Recording label ${recordingLabel}...`;
+                        gcStatusDisplay.style.color = "#ef4444";
                     });
                     const stopRecording = (e) => {
                         if (fixedAutoTrainTarget === null && recordingLabel === parseInt(e.target.dataset.label)) {
                             recordingLabel = null;
-                            recordingStatusDisplay.innerText = '';
+                            gcStatusDisplay.innerText = 'Ready';
+                            gcStatusDisplay.style.color = "#00ff66";
                         }
                     };
                     btn.addEventListener('pointerup', stopRecording);
@@ -1283,7 +1133,7 @@
 
                 document.getElementById('gc-clearDataBtn').addEventListener('click', () => {
                     knn.clear();
-                    gesturePredictionDisplay.innerText = `Prediction: None`;
+                    gcStatusDisplay.innerText = `Prediction: None`;
                 });
             }
 
@@ -1421,9 +1271,11 @@
                     const cId = btn.dataset.class;
                     const count = counts[cId] || 0;
                     const badge = btn.querySelector('.badge');
-                    badge.textContent = count;
-                    if (count > 0) btn.classList.add('has-data');
-                    else btn.classList.remove('has-data');
+                    if (badge) {
+                        badge.textContent = count;
+                        if (count > 0) btn.classList.add('has-data');
+                        else btn.classList.remove('has-data');
+                    }
                 });
             }
 
@@ -1494,6 +1346,8 @@
             function initEvents() {
                 document.querySelectorAll('.ic-train-btn').forEach(btn => {
                     const classId = Number(btn.dataset.class);
+                    if (isNaN(classId)) return; // Exclude non-numbered buttons
+
                     const start = (e) => {
                         e.preventDefault();
                         isTraining = true;
@@ -1541,15 +1395,22 @@
                 let isPredicting = false;
                 async function loop(ts) {
                     if (!isRunning) return;
-                    // For ESP32 mode, use esp32Img instead of video readyState check
-                    const sourceReady = window.globalCamModeIndex === 2
-                        ? (esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0)
-                        : (video.readyState >= 2);
+
+                    // Prevent Float32Array error by strictly checking video/img dimensions before passing to TensorFlow
+                    let isSourceReady = false;
                     const imgSource = window.globalCamModeIndex === 2 ? esp32Img : video;
-                    if (ts - lastRun < INTERVAL || !sourceReady || isPredicting) {
+
+                    if (window.globalCamModeIndex === 2) {
+                        isSourceReady = esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0 && esp32Img.naturalHeight > 0;
+                    } else {
+                        isSourceReady = video && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0;
+                    }
+
+                    if (ts - lastRun < INTERVAL || !isSourceReady || isPredicting) {
                         animId = requestAnimationFrame(loop);
                         return;
                     }
+
                     lastRun = ts;
 
                     if (isTraining && currentTrainClass) {
@@ -1561,7 +1422,14 @@
                             classifier.addExample(activation, currentTrainClass);
                             tfImg.dispose(); activation.dispose();
                             updateBadges();
-                        } catch (e) { } finally {
+
+                            // Self-correct error text if recovered
+                            if (statusEl.textContent.startsWith('Error:')) {
+                                statusEl.textContent = `Ready • Examples: ${JSON.stringify(classifier.getClassExampleCount())}`;
+                            }
+                        } catch (e) {
+                            // Silently ignore transient dimension errors during flip
+                        } finally {
                             isPredicting = false;
                         }
                         animId = requestAnimationFrame(loop);
@@ -1577,7 +1445,14 @@
                             tfImg.dispose(); activation.dispose();
                             const conf = result.confidences[result.label];
                             if (conf >= CONFIDENCE_THRESHOLD) { logStable(Number(result.label)); }
-                        } catch (e) { } finally {
+
+                            // Self-correct error text if recovered
+                            if (statusEl.textContent.startsWith('Error:')) {
+                                statusEl.textContent = `Ready • Examples: ${JSON.stringify(classifier.getClassExampleCount())}`;
+                            }
+                        } catch (e) {
+                            // Silently ignore transient dimension errors during flip
+                        } finally {
                             isPredicting = false;
                         }
                     }
@@ -2182,9 +2057,6 @@
             // Trigger image classifier clear
             const icBtn = document.getElementById('ic-clear-btn');
             if (icBtn) icBtn.click();
-            // Trigger finger tracking clear
-            const ftBtn = document.getElementById('ft-clearDataBtn');
-            if (ftBtn) ftBtn.click();
             console.log("Classifier memory cleared via clearClassifiers().");
         };
 
