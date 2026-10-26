@@ -171,6 +171,28 @@
             background: #2563eb;
         }
 
+        /* ========================================================= */
+        /* UNIFIED VIDEO & CANVAS CONTAINER STYLING                  */
+        /* Forces all modes to exactly the same size & stretch fill  */
+        /* ========================================================= */
+        .vision-video-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #09090b;
+        }
+
+        .vision-canvas-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: fill !important;
+            /* Stretches to fill container exactly */
+            transform: scaleX(-1);
+            display: block;
+        }
 
         /* ========================================================= */
         /* BLOCK 1: FINGER TRACKING                                  */
@@ -179,28 +201,6 @@
             flex-direction: column;
             height: 100%;
             background: #000;
-        }
-
-        .ft-video-container {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        .ft-canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
-        }
-
-        @media (orientation: landscape) {
-            .ft-canvas {
-                object-fit: contain;
-            }
         }
 
         #ft-fingerCount {
@@ -224,28 +224,6 @@
             flex-direction: column;
             height: 100%;
             background: #000;
-        }
-
-        .gc-video-container {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        .gc-canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
-        }
-
-        @media (orientation: landscape) {
-            .gc-canvas {
-                object-fit: contain;
-            }
         }
 
         #gc-status {
@@ -279,28 +257,6 @@
             flex-direction: column;
             height: 100%;
             background: #000;
-        }
-
-        #block-image-classifier .ic-video-container {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
-
-        #block-image-classifier video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transform: scaleX(-1);
-        }
-
-        @media (orientation: landscape) {
-            #block-image-classifier video {
-                object-fit: contain;
-            }
         }
 
         #block-image-classifier #ic-status {
@@ -404,63 +360,6 @@
             background: #000;
         }
 
-        .rgb-cam-area {
-            flex: 1;
-            position: relative;
-            background: #09090b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .rgb-cam-area canvas.rgb-out-canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            transform: scaleX(-1);
-        }
-
-        .rgb-cam-area .target-crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            border: 2px solid #00ff66;
-            display: none;
-            pointer-events: none;
-            box-shadow: 0 0 10px rgba(0, 255, 102, 0.4);
-        }
-
-        .rgb-cam-area .target-crosshair::after {
-            content: '+';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: #00ff66;
-            font-size: 22px;
-            font-weight: 300;
-        }
-
-        .rgb-status-tag {
-            position: absolute;
-            top: 14px;
-            left: 14px;
-            padding: 5px 10px;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            border-radius: 6px;
-            font-size: 12px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-weight: bold;
-            z-index: 10;
-            letter-spacing: 0.5px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
         .rgb-bottom-bar {
             display: flex;
             justify-content: space-between;
@@ -536,11 +435,11 @@
         <!-- 1. FINGER TRACKING BLOCK                                          -->
         <!-- ================================================================= -->
         <div id="block-finger-tracking" class="app-block active">
-            <div class="ft-video-container">
+            <div class="vision-video-container">
                 <div style="display: none;"><video id="ft-video" playsinline></video></div>
-                <canvas id="ft-output_canvas" class="ft-canvas"></canvas>
+                <canvas id="ft-output_canvas" class="vision-canvas-feed"></canvas>
             </div>
-            <!-- Fingers raised text moved out of canvas and styled cleanly -->
+            <!-- Fingers raised text moved out of canvas and sized small -->
             <div id="ft-fingerCount">Fingers Raised: 0</div>
         </div>
 
@@ -548,14 +447,13 @@
         <!-- 2. GESTURE CLASSIFIER BLOCK                                       -->
         <!-- ================================================================= -->
         <div id="block-gesture-classifier" class="app-block">
-            <div class="gc-video-container">
+            <div class="vision-video-container">
                 <div style="display: none;"><video id="gc-video" playsinline></video></div>
-                <canvas id="gc-output_canvas" class="gc-canvas"></canvas>
-                <!-- Central status overlay specific to gesture prediction -->
+                <canvas id="gc-output_canvas" class="vision-canvas-feed"></canvas>
                 <div id="gc-status">Prediction: None</div>
             </div>
 
-            <!-- Identical control bar format as Image Classifier -->
+            <!-- Control bar matching Image Classifier -->
             <div id="gc-controls">
                 <button class="ic-train-btn gc-gestureBtn" data-label="1" style="--theme: #ef4444;">1</button>
                 <button class="ic-train-btn gc-gestureBtn" data-label="2" style="--theme: #f97316;">2</button>
@@ -573,8 +471,8 @@
         <!-- 3. IMAGE CLASSIFIER (TEACHABLE WEBCAM) BLOCK                      -->
         <!-- ================================================================= -->
         <div id="block-image-classifier" class="app-block">
-            <div class="ic-video-container">
-                <video id="ic-webcam" autoplay playsinline muted></video>
+            <div class="vision-video-container">
+                <video id="ic-webcam" class="vision-canvas-feed" autoplay playsinline muted></video>
                 <div id="ic-status">Loading model...</div>
             </div>
 
@@ -600,12 +498,10 @@
         <!-- 4. RGB COORDINATES TRACKER BLOCK                                  -->
         <!-- ================================================================= -->
         <div id="block-rgb-coords" class="app-block rgb-block-wrapper">
-            <div class="rgb-cam-area">
-                <div class="rgb-status-tag" id="rgb-coord-status">STANDBY</div>
+            <div class="vision-video-container">
                 <video id="rgb-coord-video" playsinline autoplay style="display:none;"></video>
-                <canvas id="rgb-coord-output" class="rgb-out-canvas"></canvas>
+                <canvas id="rgb-coord-output" class="vision-canvas-feed"></canvas>
                 <canvas id="rgb-coord-proc" style="display:none;"></canvas>
-                <div class="target-crosshair" id="rgb-coord-box"></div>
             </div>
             <div class="rgb-bottom-bar">
                 <div>
@@ -624,12 +520,10 @@
         <!-- 5. RGB COLOR PICKER TRACKER BLOCK                                 -->
         <!-- ================================================================= -->
         <div id="block-rgb-colorpicker" class="app-block rgb-block-wrapper">
-            <div class="rgb-cam-area">
-                <div class="rgb-status-tag" id="rgb-color-status">STANDBY</div>
+            <div class="vision-video-container">
                 <video id="rgb-color-video" playsinline autoplay style="display:none;"></video>
-                <canvas id="rgb-color-output" class="rgb-out-canvas"></canvas>
+                <canvas id="rgb-color-output" class="vision-canvas-feed"></canvas>
                 <canvas id="rgb-color-proc" style="display:none;"></canvas>
-                <div class="target-crosshair" id="rgb-color-box"></div>
             </div>
             <div class="rgb-bottom-bar">
                 <div>
@@ -648,12 +542,10 @@
         <!-- 6. RGB 3x3 GRID TRACKER BLOCK                                     -->
         <!-- ================================================================= -->
         <div id="block-rgb-grid" class="app-block rgb-block-wrapper">
-            <div class="rgb-cam-area">
-                <div class="rgb-status-tag" id="rgb-grid-status">STANDBY</div>
+            <div class="vision-video-container">
                 <video id="rgb-grid-video" playsinline autoplay style="display:none;"></video>
-                <canvas id="rgb-grid-output" class="rgb-out-canvas"></canvas>
+                <canvas id="rgb-grid-output" class="vision-canvas-feed"></canvas>
                 <canvas id="rgb-grid-proc" style="display:none;"></canvas>
-                <div class="target-crosshair" id="rgb-grid-box"></div>
             </div>
             <div class="rgb-bottom-bar">
                 <div>
@@ -1522,9 +1414,7 @@
             const procCanvas = document.getElementById(cfg.procCanvasId);
             const ctxProc = procCanvas.getContext('2d', { willReadFrequently: true });
 
-            const targetBox = document.getElementById(cfg.boxId);
             const btnAction = document.getElementById(cfg.btnActionId);
-            const statusInd = document.getElementById(cfg.statusId);
             const uiPosX = document.getElementById(cfg.posXId);
             const uiPosY = document.getElementById(cfg.posYId);
             const uiBlobSize = document.getElementById(cfg.blobSizeId);
@@ -1583,16 +1473,9 @@
                         outputCanvas.height = esp32Img.naturalHeight || 480;
                         btnAction.style.display = 'block';
                         appState = 1;
-                        targetBox.style.display = 'block';
-                        statusInd.innerText = 'SELECT TARGET';
-                        statusInd.style.background = 'rgba(0,0,0,0.6)';
                         if (isRunning && !animId) renderLoop();
                     };
                     esp32Img.onload = onEsp32Ready;
-                    esp32Img.onerror = () => {
-                        statusInd.innerText = '📡 ESP32 OFFLINE';
-                        statusInd.style.background = 'rgba(239,68,68,0.8)';
-                    };
                     return;
                 }
                 currentFacingMode = CAM_MODES[window.globalCamModeIndex];
@@ -1609,15 +1492,10 @@
 
                         btnAction.style.display = 'block';
                         appState = 1;
-                        targetBox.style.display = 'block';
-                        statusInd.innerText = 'SELECT TARGET';
-                        statusInd.style.background = 'rgba(0,0,0,0.6)';
 
                         if (isRunning && !animId) renderLoop();
                     };
                 } catch (err) {
-                    statusInd.innerText = '📷 Camera Error';
-                    statusInd.style.background = 'rgba(239,68,68,0.8)';
                     console.error('RGB cam error:', err);
                 }
             }
@@ -1626,19 +1504,15 @@
                 if (appState === 1) {
                     captureTargetProfile();
                     appState = 2; // Track
-                    targetBox.style.display = 'none';
                     btnAction.innerText = 'Reset target';
                     btnAction.style.background = '#475569';
                 } else if (appState === 2) {
                     appState = 1; // Select
-                    targetBox.style.display = 'block';
                     btnAction.innerText = 'Capture target';
                     btnAction.style.background = '#10b981';
 
                     uiPosX.innerText = '-'; uiPosY.innerText = '-'; uiBlobSize.innerText = '-';
                     colorPreview.style.background = '#000';
-                    statusInd.innerText = "SELECT TARGET";
-                    statusInd.style.background = "rgba(0,0,0,0.6)";
                     lastGridNum = null;
                 }
             }
@@ -1676,7 +1550,6 @@
 
                 const rgb = hsvToRgb(targetProfile.h, targetProfile.s, targetProfile.v);
                 colorPreview.style.backgroundColor = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
-                statusInd.innerText = "INITIALIZING TRACKER...";
             }
 
             function findAllBlobs(binaryMask, minX, minY, maxX, maxY) {
@@ -1798,8 +1671,6 @@
                 }
 
                 if (tracker.isLocked) {
-                    statusInd.innerText = "LOCKED";
-                    statusInd.style.background = "rgba(16, 185, 129, 0.8)";
                     let padding = 30;
                     tracker.roi[0] = Math.max(0, Math.floor(tracker.x - padding));
                     tracker.roi[1] = Math.max(0, Math.floor(tracker.y - padding));
@@ -1807,16 +1678,12 @@
                     tracker.roi[3] = Math.min(PROC_HEIGHT, Math.ceil(tracker.y + padding));
                 } else {
                     if (tracker.framesLost < 20) {
-                        statusInd.innerText = "RECOVERING...";
-                        statusInd.style.background = "rgba(245, 158, 11, 0.8)";
                         let padding = 50 + (tracker.framesLost * 2);
                         tracker.roi[0] = Math.max(0, Math.floor(tracker.x - padding));
                         tracker.roi[1] = Math.max(0, Math.floor(tracker.y - padding));
                         tracker.roi[2] = Math.min(PROC_WIDTH, Math.ceil(tracker.x + padding));
                         tracker.roi[3] = Math.min(PROC_HEIGHT, Math.ceil(tracker.y + padding));
                     } else {
-                        statusInd.innerText = "LOST";
-                        statusInd.style.background = "rgba(239, 68, 68, 0.8)";
                         tracker.roi = [0, 0, PROC_WIDTH, PROC_HEIGHT];
                     }
                 }
@@ -1846,6 +1713,20 @@
                     ctxOutput.moveTo(cellW * 2, 0); ctxOutput.lineTo(cellW * 2, outputCanvas.height);
                     ctxOutput.moveTo(0, cellH); ctxOutput.lineTo(outputCanvas.width, cellH);
                     ctxOutput.moveTo(0, cellH * 2); ctxOutput.lineTo(outputCanvas.width, cellH * 2);
+                    ctxOutput.stroke();
+                }
+
+                // Draw capture bounding box during Select mode
+                if (appState === 1) {
+                    const cx = outputCanvas.width / 2, cy = outputCanvas.height / 2, box = 40;
+                    ctxOutput.strokeStyle = '#00ff66';
+                    ctxOutput.lineWidth = 2;
+                    ctxOutput.setLineDash([5, 5]);
+                    ctxOutput.strokeRect(cx - box / 2, cy - box / 2, box, box);
+                    ctxOutput.setLineDash([]);
+                    ctxOutput.beginPath();
+                    ctxOutput.moveTo(cx - 10, cy); ctxOutput.lineTo(cx + 10, cy);
+                    ctxOutput.moveTo(cx, cy - 10); ctxOutput.lineTo(cx, cy + 10);
                     ctxOutput.stroke();
                 }
 
@@ -1949,14 +1830,12 @@
             };
         }
 
-        // Initialize RGB Modules
+        // Initialize RGB Modules (statusId & boxId properties are safely ignored now)
         const RGBCoordinatesModule = createRGBTrackerModule({
             videoId: 'rgb-coord-video',
             outputCanvasId: 'rgb-coord-output',
             procCanvasId: 'rgb-coord-proc',
-            boxId: 'rgb-coord-box',
             btnActionId: 'rgb-coord-action-btn',
-            statusId: 'rgb-coord-status',
             posXId: 'rgb-coord-pos-x',
             posYId: 'rgb-coord-pos-y',
             blobSizeId: 'rgb-coord-blob-size',
@@ -1969,9 +1848,7 @@
             videoId: 'rgb-color-video',
             outputCanvasId: 'rgb-color-output',
             procCanvasId: 'rgb-color-proc',
-            boxId: 'rgb-color-box',
             btnActionId: 'rgb-color-action-btn',
-            statusId: 'rgb-color-status',
             posXId: 'rgb-color-pos-x',
             posYId: 'rgb-color-pos-y',
             blobSizeId: 'rgb-color-blob-size',
@@ -1984,9 +1861,7 @@
             videoId: 'rgb-grid-video',
             outputCanvasId: 'rgb-grid-output',
             procCanvasId: 'rgb-grid-proc',
-            boxId: 'rgb-grid-box',
             btnActionId: 'rgb-grid-action-btn',
-            statusId: 'rgb-grid-status',
             posXId: 'rgb-grid-pos-x',
             posYId: 'rgb-grid-pos-y',
             blobSizeId: 'rgb-grid-blob-size',
@@ -2057,6 +1932,9 @@
             // Trigger image classifier clear
             const icBtn = document.getElementById('ic-clear-btn');
             if (icBtn) icBtn.click();
+            // Trigger finger tracking clear
+            const ftBtn = document.getElementById('ft-clearDataBtn');
+            if (ftBtn) ftBtn.click();
             console.log("Classifier memory cleared via clearClassifiers().");
         };
 
