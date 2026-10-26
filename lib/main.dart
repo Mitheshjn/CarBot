@@ -43,15 +43,15 @@ class ControllerWebViewScreen extends StatefulWidget {
 
 class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
   InAppWebViewController? _webViewController;
-  final Map<String, Uint8List> _assetCache = {};
-
-  static const String _assetHost = 'appassets.androidplatform.net';
-  static const String _initialUrl = 'https://$_assetHost/assets/flutter_assets/assets/web/index.html';
+  HttpServer? _localServer;
+  int _serverPort = 8080;
+  bool _serverReady = false;
 
   @override
   void initState() {
     super.initState();
     _requestAppPermissions();
+    _startLocalServer();
   }
 
   Future<void> _requestAppPermissions() async {
@@ -59,99 +59,86 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
     await Permission.microphone.request();
   }
 
-  String _getMimeType(String path) {
-    final lower = path.toLowerCase();
-    if (lower.endsWith('.html')) return 'text/html';
-    if (lower.endsWith('.js')) return 'application/javascript';
-    if (lower.endsWith('.css')) return 'text/css';
-    if (lower.endsWith('.json')) return 'application/json';
-    if (lower.endsWith('.wasm')) return 'application/wasm';
-    if (lower.endsWith('.png')) return 'image/png';
-    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
-    if (lower.endsWith('.svg')) return 'image/svg+xml';
-    if (lower.endsWith('.bin') ||
-        lower.endsWith('.binarypb') ||
-        lower.endsWith('.tflite') ||
-        lower.endsWith('.data')) {
-      return 'application/octet-stream';
-    }
-    return 'application/octet-stream';
-  }
-
-  Future<WebResourceResponse?> _handleAssetInterception(WebResourceRequest request) async {
-    final url = request.url;
-    if (url.host != _assetHost) {
-      // Allow external network traffic (e.g. ESP32-CAM stream, car control commands) to proceed naturally
-      return null;
-    }
-
-    if (request.method == 'OPTIONS') {
-      return WebResourceResponse(
-        contentType: 'text/plain',
-        statusCode: 200,
-        reasonPhrase: 'OK',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': '*',
-        },
-        data: Uint8List(0),
-      );
-    }
-
-    String path = url.path;
-    if (path.startsWith('/')) {
-      path = path.substring(1);
-    }
-
-    if (path.startsWith('assets/flutter_assets/')) {
-      path = path.substring('assets/flutter_assets/'.length);
-    } else if (path.startsWith('flutter_assets/')) {
-      path = path.substring('flutter_assets/'.length);
-    }
-
-    if (path.isEmpty) {
-      path = 'assets/web/index.html';
-    }
-
-    final cached = _assetCache[path];
-    Uint8List bytes;
-    if (cached != null) {
-      bytes = cached;
-    } else {
+  Future<void> _startLocalServer() async {
+    try {
       try {
-        final ByteData data = await rootBundle.load(path);
-        bytes = data.buffer.asUint8List();
-        _assetCache[path] = bytes;
-      } catch (e) {
-        debugPrint('WebView asset loader 404: $path ($e)');
-        return WebResourceResponse(
-          contentType: 'text/plain',
-          statusCode: 404,
-          reasonPhrase: 'Not Found',
-          data: Uint8List.fromList('Asset not found: $path'.codeUnits),
-        );
+        _localServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
+      } catch (_) {
+        _localServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
       }
+      _serverPort = _localServer!.port;
+      debugPrint('Local asset server active at http://127.0.0.1:$_serverPort');
+
+      _localServer!.listen((HttpRequest request) async {
+        if (request.method == 'OPTIONS') {
+          request.response.headers.add('Access-Control-Allow-Origin', '*');
+          request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+          request.response.headers.add('Access-Control-Allow-Headers', '*');
+          request.response.statusCode = HttpStatus.ok;
+          await request.response.close();
+          return;
+        }
+
+        String path = request.uri.path;
+        if (path.startsWith('/')) path = path.substring(1);
+        if (path.startsWith('flutter_assets/')) {
+          path = path.substring('flutter_assets/'.length);
+        }
+        if (path.isEmpty) path = 'assets/web/index.html';
+
+        try {
+          final ByteData data = await rootBundle.load(path);
+          final lower = path.toLowerCase();
+
+          if (lower.endsWith('.html')) {
+            request.response.headers.contentType = ContentType('text', 'html', charset: 'utf-8');
+          } else if (lower.endsWith('.js')) {
+            request.response.headers.contentType = ContentType('application', 'javascript', charset: 'utf-8');
+          } else if (lower.endsWith('.css')) {
+            request.response.headers.contentType = ContentType('text', 'css', charset: 'utf-8');
+          } else if (lower.endsWith('.json')) {
+            request.response.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
+          } else if (lower.endsWith('.wasm')) {
+            request.response.headers.contentType = ContentType('application', 'wasm');
+          } else if (lower.endsWith('.png')) {
+            request.response.headers.contentType = ContentType('image', 'png');
+          } else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
+            request.response.headers.contentType = ContentType('image', 'jpeg');
+          } else if (lower.endsWith('.svg')) {
+            request.response.headers.contentType = ContentType('image', 'svg+xml');
+          } else if (lower.endsWith('.bin') ||
+              lower.endsWith('.binarypb') ||
+              lower.endsWith('.tflite') ||
+              lower.endsWith('.data')) {
+            request.response.headers.contentType = ContentType('application', 'octet-stream');
+          } else {
+            request.response.headers.contentType = ContentType('application', 'octet-stream');
+          }
+
+          request.response.headers.add('Access-Control-Allow-Origin', '*');
+          request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+          request.response.headers.add('Access-Control-Allow-Headers', '*');
+          request.response.headers.add('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+          request.response.headers.add('Pragma', 'no-cache');
+          request.response.headers.add('Expires', '0');
+
+          request.response.add(data.buffer.asUint8List());
+        } catch (e) {
+          debugPrint('Local server 404 for asset: $path ($e)');
+          request.response.statusCode = HttpStatus.notFound;
+          request.response.write('Asset not found: $path');
+        }
+        await request.response.close();
+      });
+
+      if (mounted) {
+        setState(() {
+          _serverReady = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Failed to start local server: $e');
     }
-
-    final mimeType = _getMimeType(path);
-    final isText = mimeType.startsWith('text/') ||
-        mimeType == 'application/javascript' ||
-        mimeType == 'application/json';
-
-    return WebResourceResponse(
-      contentType: mimeType,
-      contentEncoding: isText ? 'utf-8' : null,
-      statusCode: 200,
-      reasonPhrase: 'OK',
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': '*',
-        'Cache-Control': 'public, max-age=86400',
-      },
-      data: bytes,
-    );
   }
 
   void _registerJsHandlers(InAppWebViewController controller) {
@@ -249,7 +236,25 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
   }
 
   @override
+  void dispose() {
+    _localServer?.close(force: true);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (!_serverReady) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0d0d0d),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF007aff)),
+        ),
+      );
+    }
+
+    final cacheBuster = DateTime.now().millisecondsSinceEpoch;
+    final initialUri = 'http://127.0.0.1:$_serverPort/assets/web/index.html?v=$cacheBuster';
+
     return Scaffold(
       body: PopScope(
         canPop: false,
@@ -264,7 +269,7 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
         },
         child: SafeArea(
           child: InAppWebView(
-            initialUrlRequest: URLRequest(url: WebUri(_initialUrl)),
+            initialUrlRequest: URLRequest(url: WebUri(initialUri)),
             initialSettings: InAppWebViewSettings(
               mixedContentMode: MixedContentMode.MIXED_CONTENT_ALWAYS_ALLOW,
               allowsInlineMediaPlayback: true,
@@ -276,7 +281,6 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
               allowContentAccess: true,
               allowFileAccessFromFileURLs: true,
               allowUniversalAccessFromFileURLs: true,
-              useShouldInterceptRequest: true,
               cacheEnabled: true,
             ),
             initialUserScripts: UnmodifiableListView<UserScript>([
@@ -315,9 +319,6 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
                 resources: request.resources,
                 action: PermissionResponseAction.GRANT,
               );
-            },
-            shouldInterceptRequest: (controller, request) async {
-              return await _handleAssetInterception(request);
             },
             onConsoleMessage: (controller, consoleMessage) {
               debugPrint('[WebView] ${consoleMessage.messageLevel}: ${consoleMessage.message}');

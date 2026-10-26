@@ -7,7 +7,7 @@
   <title>CAR BOT</title>
   <link rel="icon" href="data:,">
 
-  <!-- External Stylesheet without query params for asset stability -->
+  <!-- External Stylesheet -->
   <link rel="stylesheet" href="style.css">
 
   <!-- Blockly Core & Python Engine -->
@@ -338,6 +338,7 @@
 
     input:disabled+.slider {
       cursor: not-allowed;
+      opacity: 0.5;
     }
 
     .switch-label {
@@ -883,7 +884,6 @@
       border-top: 1px solid #333;
     }
 
-    /* Custom Variable Dialog */
     #varDialogBackdrop {
       display: none;
       position: fixed;
@@ -1001,7 +1001,6 @@
       background: #0284c7;
     }
 
-    /* ================= CONNECTION SPLASH / BANNER OVERLAY ================= */
     #connOverlay {
       position: fixed;
       top: 0;
@@ -1150,12 +1149,15 @@
     </div>
   </div>
 
-  <!-- VISION AI SUITE PREVIEW (Replaces Live FPV stream when Camera Blocks is active) -->
+  <!-- VISION AI SUITE PREVIEW CARD -->
   <div class="panel" id="cameraVisionPreviewCard" style="display:none;padding:10px;margin-top:0;">
     <div
       style="display:flex;justify-content:space-between;align-items:center;padding:0 0 8px 0;margin-bottom:6px;border-bottom:1px solid #2a2a2a;flex-wrap:wrap;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="panel-title" style="margin-bottom:0;">Vision AI Suite Preview</span>
+        <button type="button" class="rst-btn" onclick="switchVisionPreviewCam(event)" id="btnVisionCamCycle"
+          title="Switch Camera (Front / Back / ESP32)"
+          style="width: 32px; height: 32px; font-size: 14px; padding: 0;">📷</button>
         <button type="button" class="rst-btn" onclick="toggleVisionPreview(event)" id="btnToggleVisionPreview"
           title="Toggle Preview" style="width: 32px; height: 32px; font-size: 14px; padding: 0;">👁</button>
         <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite"
@@ -1351,7 +1353,7 @@
     </div>
   </div>
 
-  <!-- ================= ROVERBLOCKS STUDIO PANEL ================= -->
+  <!-- ROVERBLOCKS STUDIO PANEL -->
   <div class="panel panel-wide" id="terminalPanel" style="display:none;">
     <div class="rover-header" style="flex-wrap: wrap; gap: 8px; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -1374,14 +1376,13 @@
       </div>
     </div>
 
-    <!-- MAIN BLOCK SECTION (Everything is available) -->
+    <!-- MAIN BLOCK SECTION -->
     <div id="mainBlocksSection">
       <div id="main-container">
         <div id="blocklyArea">
           <div id="blocklyDiv"></div>
           <div id="dragOverlay">Drop XML file here</div>
 
-          <!-- Custom Floating HTML Workspace Controls -->
           <div class="workspace-floating-controls" id="workspaceControls">
             <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()"
               title="Center Workspace">Center</button>
@@ -1395,7 +1396,7 @@
       </div>
     </div>
 
-    <!-- CAMERA BLOCK SECTION (Camera & Motors, other sensors disabled) -->
+    <!-- CAMERA BLOCK SECTION -->
     <div id="cameraBlocksSection" style="display: none;">
       <div
         style="display:flex; justify-content:space-between; align-items:center; margin: 4px 2px 8px; padding: 6px 10px; background: rgba(0, 229, 255, 0.08); border-left: 3px solid #00e5ff; border-radius: 4px;">
@@ -1408,7 +1409,6 @@
           <div id="blocklyDivCamera"></div>
           <div id="dragOverlayCamera" style="display:none;">Drop XML file here</div>
 
-          <!-- Custom Floating HTML Workspace Controls for Camera Blocks -->
           <div class="workspace-floating-controls" id="workspaceControlsCamera">
             <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()"
               title="Center Workspace">Center</button>
@@ -1467,7 +1467,6 @@
     </div>
   </div>
 
-  <!-- Toast Notification -->
   <div id="toast"></div>
 
   <!-- INLINE TOOLBOX XML -->
@@ -1690,7 +1689,7 @@
     </category>
   </xml>
 
-  <!-- CAMERA BLOCK TOOLBOX XML (Camera & Motors, other sensors disabled) -->
+  <!-- CAMERA BLOCK TOOLBOX XML -->
   <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox_camera" style="display: none;">
     <category name="Logic" colour="#ffb400">
       <block type="controls_if"></block>
@@ -1886,7 +1885,6 @@
       e.preventDefault();
     });
 
-    // ================= AUTO CONNECTION CHECK & SPLASH SCREEN =================
     let isCarConnected = false;
 
     async function checkConnectionNow() {
@@ -1921,7 +1919,6 @@
       }, 4000);
     });
 
-    // ================= SCREEN ORIENTATION LOCK =================
     let isOrientationLocked = false;
     async function toggleScreenLock() {
       const btn = document.getElementById('lockOrientBtn');
@@ -1972,7 +1969,6 @@
       }
     }
 
-    // ================= INSTANT-RESPONSE DRIVE ENGINE =================
     let activePointerId = null, currentDriveDir = 'stop', driveHeartbeat = null;
 
     function driveStart(dir, e) {
@@ -2028,7 +2024,6 @@
     window.addEventListener('pointercancel', e => { if (activePointerId !== null && activePointerId === e.pointerId) driveStop(e); });
     window.addEventListener('blur', () => { if (currentDriveDir !== 'stop') driveStop(); });
 
-    // ================= COMPACT TOGGLES =================
     let isAddOnsActive = false;
 
     function toggleHeadlights(en) {
@@ -2055,6 +2050,7 @@
       const previewCard = document.getElementById('cameraVisionPreviewCard');
       const liveCamSec = document.getElementById('cameraSection');
       const mainCamToggle = document.getElementById('camToggle');
+      const camContainer = document.getElementById('camToggleContainer');
 
       if (en) {
         if (activeBlockMode === 'camera') {
@@ -2067,8 +2063,10 @@
               toggleCamera(false);
             }
             mainCamToggle.disabled = true;
-            mainCamToggle.parentElement.style.opacity = '0.4';
-            mainCamToggle.parentElement.style.cursor = 'not-allowed';
+            if (camContainer) {
+              camContainer.style.opacity = '0.4';
+              camContainer.style.cursor = 'not-allowed';
+            }
           }
         }
       } else {
@@ -2077,8 +2075,10 @@
 
         if (mainCamToggle) {
           mainCamToggle.disabled = false;
-          mainCamToggle.parentElement.style.opacity = '1';
-          mainCamToggle.parentElement.style.cursor = 'pointer';
+          if (camContainer) {
+            camContainer.style.opacity = '1';
+            camContainer.style.cursor = 'pointer';
+          }
         }
       }
 
@@ -2110,7 +2110,6 @@
       switchMode('idle');
     }
 
-    // ================= SERVO PRESETS =================
     function sendServoAngle(deg) {
       const ms = document.getElementById('modSelect');
       if (ms && ms.value !== 'servo') {
@@ -2123,7 +2122,6 @@
       showToast("Servo set to " + deg + "°", "info");
     }
 
-    // ================= RGB RING CONTROLS =================
     function setRgbMode(mode) {
       const ms = document.getElementById('modSelect');
       if (ms && ms.value !== 'rgb') {
@@ -2156,7 +2154,6 @@
       }, 60);
     }
 
-    // ================= OLED SCREEN MODES =================
     function setOledMode(mode) {
       const ms = document.getElementById('modSelect');
       if (ms && ms.value !== 'oled') {
@@ -2174,7 +2171,6 @@
       showToast('OLED Mode: ' + (names[mode] || mode), 'info');
     }
 
-    // ================= SPEED SLIDER & CAMERA FIXED-SPEED ENGINE =================
     const NORMAL_SPEED_MIN = 0;
     const NORMAL_SPEED_MAX = 255;
     const CAM_FIXED_SPEED = 40;
@@ -2232,7 +2228,6 @@
       fetchApi('/setSpeed?pwm=' + clamped, 500);
     }
 
-    // ================= COCKPIT & GYRO =================
     let cockpitActive = false;
     window.gyroModeActive = false;
     let cockpitDriveCmd = 'stop', steerDirection = 0, gasHeld = false, brakeHeld = false, wheelAngle = 0, isDraggingWheel = false, wheelTouchId = null, wheelStartX = 0, cockpitHeartbeat = null;
@@ -2243,7 +2238,7 @@
       document.getElementById('wheelContainer').style.display = en ? 'flex' : 'none';
       const sliderCol = document.getElementById('sliderContainer');
       if (sliderCol) {
-        sliderCol.style.display = (en || isCameraOn) ? 'none' : 'flex';
+        sliderCol.style.display = (en || isCameraOn || activeBlockMode === 'camera') ? 'none' : 'flex';
       }
       document.getElementById('pedalContainer').style.display = en ? 'flex' : 'none';
       let slider = document.getElementById('speedSlider');
@@ -2417,11 +2412,10 @@
     window.addEventListener('mousemove', moveWheel);
     window.addEventListener('mouseup', resetWheel);
 
-    // ================= STREAMLINED CAMERA STREAM & DYNAMIC PANEL RESIZING =================
     let camTimeout = null;
     let camLoadedOnce = false;
-    let currentCamSource = 'esp32'; // 'esp32' | 'phone'
-    let phoneFacingMode = 'user'; // 'user' | 'environment'
+    let currentCamSource = 'esp32';
+    let phoneFacingMode = 'user';
     let phoneMediaStream = null;
 
     function updateCamSourceButtonUI() {
@@ -2591,6 +2585,11 @@
       window.isCameraOn = isCameraOn;
       isCamActive = isCameraOn;
 
+      const camToggleEl = document.getElementById('camToggle');
+      if (camToggleEl && camToggleEl.checked !== isCameraOn) {
+        camToggleEl.checked = isCameraOn;
+      }
+
       const camLbl = document.getElementById('camLabel');
       if (camLbl) camLbl.style.color = en ? "#007aff" : "#aaa";
 
@@ -2607,25 +2606,19 @@
       updateCamSourceButtonUI();
 
       if (en) {
-        // 1. Save current speed before switching to fixed camera speed
         if (speedSlider) {
           const curr = parseInt(speedSlider.value, 10);
           if (!isNaN(curr) && curr > 0) savedSpeedBeforeCamera = curr;
         }
 
-        // 2. Hide Row 1 (Lights & Add-Ons) and Modular panel
         if (rowAux) rowAux.style.display = 'none';
         if (addOnsPanel) addOnsPanel.style.display = 'none';
-
-        // 3. Completely hide slider column
         if (sliderCol) sliderCol.style.display = 'none';
 
-        // 4. Set fixed 40 PWM speed and send immediately
         if (speedSlider) speedSlider.value = CAM_FIXED_SPEED;
         updateSpeedUI(CAM_FIXED_SPEED);
         sendSpeed(CAM_FIXED_SPEED);
 
-        // 5. Open stream
         const terminalEl = document.getElementById('terminalPanel');
         const isCameraBlocksActive = activeBlockMode === 'camera' && terminalEl && terminalEl.style.display !== 'none';
         if (s) s.style.display = isCameraBlocksActive ? 'none' : 'block';
@@ -2656,7 +2649,6 @@
           }
         }
       } else {
-        // 1. Stop video stream
         stopPhoneCamera();
         if (f) {
           f.onload = null;
@@ -2667,20 +2659,16 @@
         if (e) e.style.display = 'none';
         if (s) s.style.display = 'none';
 
-        // 2. Restore Row 1
         if (rowAux) rowAux.style.display = 'flex';
 
-        // 3. Restore Add-Ons panel if it was checked
         if (addOnsPanel) {
           addOnsPanel.style.display = isAddOnsActive ? 'block' : 'none';
         }
 
-        // 4. Restore slider visibility (unless Cockpit mode is currently active)
         if (sliderCol) {
-          sliderCol.style.display = cockpitActive ? 'none' : 'flex';
+          sliderCol.style.display = (cockpitActive || activeBlockMode === 'camera') ? 'none' : 'flex';
         }
 
-        // 5. Restore full slider range and previous speed
         if (speedSlider) {
           speedSlider.min = NORMAL_SPEED_MIN;
           speedSlider.max = NORMAL_SPEED_MAX;
@@ -2715,7 +2703,6 @@
       return false;
     }
 
-    // ================= STABLE TELEMETRY POLLING =================
     let isPolling = false;
     function updateTelemetry() {
       if (isPolling || isSliderActive || currentDriveDir !== 'stop') {
@@ -2745,7 +2732,6 @@
           }
 
           let slider = document.getElementById('speedSlider');
-          // When camera is on, keep speed strictly fixed at 40 PWM; do not overwrite from telemetry
           if (slider && !isCameraOn && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
             slider.value = d.pwm;
             updateSpeedUI(d.pwm);
@@ -2759,7 +2745,6 @@
     }
     updateTelemetry();
 
-    // ================= VARIABLE DIALOG HELPER =================
     (function () {
       const backdrop = document.getElementById('varDialogBackdrop');
       const input = document.getElementById('varDialogInput');
@@ -2811,7 +2796,6 @@
       setTimeout(patchBlocklyDialog, 300);
     })();
 
-    // ================= VISION AI SUITE & CAMERA MODULE CONTROLLER =================
     let currentVisionModule = 'block-finger-tracking';
 
     const VISION_MODULE_NAMES = {
@@ -2823,30 +2807,26 @@
       'block-rgb-grid': '⊞ RGB 3x3 Grid'
     };
 
+    function switchVisionPreviewCam(event) {
+      if (event) event.preventDefault();
+      const frame = document.getElementById('visionAiFrame');
+      if (frame && frame.contentWindow) {
+        try {
+          frame.contentWindow.postMessage({ action: 'switch_cam' }, '*');
+        } catch (err) { }
+      }
+    }
+    window.switchVisionPreviewCam = switchVisionPreviewCam;
+
     function switchCameraModule(targetBlockId) {
       if (!targetBlockId) return;
       currentVisionModule = targetBlockId;
-
-      const sel = document.getElementById('cameraPreviewModuleSelect');
-      if (sel && sel.value !== targetBlockId) {
-        sel.value = targetBlockId;
-      }
-
-      const badge = document.getElementById('cameraPreviewModuleBadge');
-      if (badge) {
-        badge.textContent = VISION_MODULE_NAMES[targetBlockId] || targetBlockId;
-      }
 
       const frame = document.getElementById('visionAiFrame');
       if (frame && frame.contentWindow) {
         try {
           frame.contentWindow.postMessage({ action: 'switch_module', module: targetBlockId }, '*');
         } catch (err) { }
-        try {
-          if (typeof frame.contentWindow.switchModule === 'function') {
-            frame.contentWindow.switchModule(targetBlockId);
-          }
-        } catch (e) { }
       }
     }
     window.switchCameraModule = switchCameraModule;
@@ -2919,7 +2899,6 @@
       });
     }
 
-    // ================= BLOCKLY STUDIO INITIALIZATION =================
     let workspaceMain = null;
     let workspaceCamera = null;
     let activeBlockMode = 'main';
@@ -2933,21 +2912,33 @@
       const previewCard = document.getElementById('cameraVisionPreviewCard');
       const liveCamSec = document.getElementById('cameraSection');
 
-      const mainCamToggle = document.getElementById('camToggle');
-      const terminalEl = document.getElementById('terminalPanel');
-      const isBlocksVisible = terminalEl && terminalEl.style.display !== 'none';
+      const camToggleEl = document.getElementById('camToggle');
+      const camContainer = document.getElementById('camToggleContainer');
+      const sliderCol = document.getElementById('sliderContainer');
 
       if (mode === 'camera') {
+        // Disconnect direct live FPV socket to free bandwidth for MediaPipe processing
+        if (isCameraOn) {
+          toggleCamera(false);
+        }
+
+        if (camToggleEl) {
+          camToggleEl.disabled = true;
+          if (camContainer) {
+            camContainer.style.opacity = '0.4';
+            camContainer.style.cursor = 'not-allowed';
+          }
+        }
+        if (sliderCol) sliderCol.style.display = 'none';
+
         if (tabMain) tabMain.classList.remove('active');
         if (tabCam) tabCam.classList.add('active');
         if (secMain) secMain.style.display = 'none';
         if (secCam) secCam.style.display = 'block';
 
-        // Replace Live FPV stream above controls with Vision AI Preview
         if (liveCamSec) liveCamSec.style.display = 'none';
         if (previewCard) previewCard.style.display = 'block';
 
-        // Lazy load Vision AI Suite on first activation or resume running module
         const frame = document.getElementById('visionAiFrame');
         if (frame) {
           if (!frame.src || frame.src === 'about:blank' || frame.src.endsWith('about:blank')) {
@@ -2955,17 +2946,6 @@
           } else {
             try { frame.contentWindow.postMessage({ action: 'resume' }, '*'); } catch (err) { }
           }
-        }
-
-        // DISABLE MAIN CAM TOGGLE WHEN CAMERA BLOCKS ARE ACTIVE
-        if (isBlocksVisible && mainCamToggle) {
-          if (mainCamToggle.checked) {
-            mainCamToggle.checked = false;
-            toggleCamera(false);
-          }
-          mainCamToggle.disabled = true;
-          mainCamToggle.parentElement.style.opacity = '0.4';
-          mainCamToggle.parentElement.style.cursor = 'not-allowed';
         }
 
         if (!workspaceCamera) {
@@ -2992,27 +2972,27 @@
           if (workspaceCamera) Blockly.svgResize(workspaceCamera);
         }, 80);
       } else {
+        if (camToggleEl) {
+          camToggleEl.disabled = false;
+          if (camContainer) {
+            camContainer.style.opacity = '1.0';
+            camContainer.style.cursor = 'pointer';
+          }
+        }
+        if (sliderCol) sliderCol.style.display = cockpitActive ? 'none' : 'flex';
+
         if (tabCam) tabCam.classList.remove('active');
         if (tabMain) tabMain.classList.add('active');
         if (secCam) secCam.style.display = 'none';
         if (secMain) secMain.style.display = 'block';
 
-        // Suspend Vision AI Suite to drop CPU/GPU usage to 0% when using main blocks or driving
         const frame = document.getElementById('visionAiFrame');
         if (frame && frame.contentWindow && frame.src && !frame.src.endsWith('about:blank')) {
           try { frame.contentWindow.postMessage({ action: 'pause' }, '*'); } catch (err) { }
         }
 
-        // Hide Vision AI Preview and restore Live FPV stream if camera toggle is on
         if (previewCard) previewCard.style.display = 'none';
         if (liveCamSec) liveCamSec.style.display = isCameraOn ? 'block' : 'none';
-
-        // ENABLE MAIN CAM TOGGLE AGAIN
-        if (mainCamToggle) {
-          mainCamToggle.disabled = false;
-          mainCamToggle.parentElement.style.opacity = '1';
-          mainCamToggle.parentElement.style.cursor = 'pointer';
-        }
 
         workspace = workspaceMain;
         setTimeout(() => {
@@ -3275,7 +3255,6 @@
       });
     }
 
-    // --- Code Generation & Modal ---
     function generatePythonCode() {
       if (!workspace) return '';
       try {
@@ -3320,7 +3299,6 @@
       });
     }
 
-    // ================= XML DOWNLOAD (WITH FLUTTER BRIDGE SUPPORT) =================
     function downloadXml() {
       if (!workspace) return;
       const xmlText = generateXmlCode();
@@ -3355,7 +3333,6 @@
       }
     }
 
-    // ================= XML UPLOAD (WITH FLUTTER BRIDGE SUPPORT) =================
     function triggerXmlUpload() {
       if (window.FlutterFilePicker && window.FlutterFilePicker.postMessage) {
         window.FlutterFilePicker.postMessage('pick');
@@ -3553,7 +3530,6 @@
       }, 2500);
     }
 
-    // ================= INSTANT UPLOAD & CLEAN STOP ACTIONS =================
     function uploadRoverCode() {
       const code = generatePythonCode().trim();
       if (!code || code.startsWith('# Error')) {

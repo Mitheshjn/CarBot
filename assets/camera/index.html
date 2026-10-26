@@ -19,7 +19,6 @@
         :root {
             --primary-accent: #3b82f6;
             --bg-base: #0f172a;
-            --bg-nav: rgba(15, 23, 42, 0.92);
             --border-color: rgba(255, 255, 255, 0.12);
             --text-main: #f8fafc;
             --text-sub: #94a3b8;
@@ -43,48 +42,13 @@
             flex-direction: column;
         }
 
-        /* --- Global Header --- */
-        #global-header {
-            flex-shrink: 0;
-            background: var(--bg-nav);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 16px;
-            gap: 12px;
-            z-index: 1000;
-            user-select: none;
-        }
-
-        .header-brand {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 15px;
-            color: #fff;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-        }
-
-        .header-brand .dot {
-            width: 9px;
-            height: 9px;
-            background: #10b981;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #10b981;
-            display: inline-block;
-        }
-
-        /* --- Workspace Blocks --- */
         #workspace-container {
             flex: 1;
             position: relative;
             overflow: hidden;
             background: #000;
+            width: 100%;
+            height: 100%;
         }
 
         .app-block {
@@ -101,80 +65,6 @@
             display: flex;
         }
 
-        /* Common Camera Flip Button (Now in Header) */
-        .cam-switch-floating {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.85);
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s ease, background 0.2s ease;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .cam-switch-floating:active {
-            transform: scale(0.92);
-            background: rgba(255, 255, 255, 1);
-        }
-
-        .cam-switch-floating.esp32-mode {
-            background: rgba(59, 130, 246, 0.9);
-            color: #fff;
-        }
-
-        /* ESP32 URL Bar */
-        #esp32-url-bar {
-            flex-shrink: 0;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            background: #0f172a;
-            border-top: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        #esp32-url-bar label {
-            color: #60a5fa;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        #esp32-url-input {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(59, 130, 246, 0.4);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 12px;
-            padding: 5px 10px;
-            outline: none;
-        }
-
-        #esp32-url-apply {
-            background: #3b82f6;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            padding: 5px 12px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        #esp32-url-apply:active {
-            background: #2563eb;
-        }
-
-        /* ========================================================= */
-        /* UNIFIED VIDEO & CANVAS CONTAINER STYLING                  */
-        /* Forces all modes to exactly the same size & stretch fill  */
-        /* ========================================================= */
         .vision-video-container {
             flex: 1;
             position: relative;
@@ -189,14 +79,14 @@
             width: 100%;
             height: 100%;
             object-fit: fill !important;
-            /* Stretches to fill container exactly */
             transform: scaleX(-1);
             display: block;
         }
 
-        /* ========================================================= */
-        /* BLOCK 1: FINGER TRACKING                                  */
-        /* ========================================================= */
+        .vision-canvas-feed.unflipped {
+            transform: none !important;
+        }
+
         #block-finger-tracking {
             flex-direction: column;
             height: 100%;
@@ -204,8 +94,8 @@
         }
 
         #ft-fingerCount {
-            padding: 14px;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            padding: 12px;
+            padding-bottom: calc(14px + env(safe-area-inset-bottom));
             background: #111827;
             border-top: 1px solid var(--border-color);
             text-align: center;
@@ -217,9 +107,6 @@
             letter-spacing: 1px;
         }
 
-        /* ========================================================= */
-        /* BLOCK 2: GESTURE CLASSIFIER                              */
-        /* ========================================================= */
         #block-gesture-classifier {
             flex-direction: column;
             height: 100%;
@@ -228,31 +115,27 @@
 
         #gc-status {
             position: absolute;
-            top: 14px;
+            top: 12px;
             left: 0;
             right: 0;
             text-align: center;
             color: #00ff66;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             pointer-events: none;
             text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
         }
 
-        /* Reusing Image Classifier Buttons CSS for Gesture Classifier */
         #gc-controls {
             display: flex;
             gap: 10px;
-            padding: 14px;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            padding: 12px 14px;
+            padding-bottom: calc(14px + env(safe-area-inset-bottom));
             background: #111827;
             border-top: 1px solid var(--border-color);
             justify-content: center;
         }
 
-        /* ========================================================= */
-        /* BLOCK 3: IMAGE CLASSIFIER (TEACHABLE WEBCAM)             */
-        /* ========================================================= */
         #block-image-classifier {
             flex-direction: column;
             height: 100%;
@@ -261,12 +144,12 @@
 
         #block-image-classifier #ic-status {
             position: absolute;
-            top: 14px;
+            top: 12px;
             left: 0;
             right: 0;
             text-align: center;
             color: #00ff66;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             pointer-events: none;
             text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
@@ -275,8 +158,8 @@
         #block-image-classifier #ic-controls {
             display: flex;
             gap: 10px;
-            padding: 14px;
-            padding-bottom: calc(16px + env(safe-area-inset-bottom));
+            padding: 12px 14px;
+            padding-bottom: calc(14px + env(safe-area-inset-bottom));
             background: #111827;
             border-top: 1px solid var(--border-color);
             justify-content: center;
@@ -285,12 +168,12 @@
         .ic-train-btn {
             flex: 1;
             max-width: 64px;
-            height: 52px;
+            height: 48px;
             border: 2px solid transparent;
-            border-radius: 12px;
+            border-radius: 10px;
             background: #1f2937;
             color: white;
-            font-size: 19px;
+            font-size: 18px;
             font-weight: bold;
             touch-action: none;
             user-select: none;
@@ -314,12 +197,12 @@
         .ic-train-btn .badge {
             display: none;
             position: absolute;
-            top: -8px;
-            right: -8px;
+            top: -7px;
+            right: -7px;
             background: white;
             color: black;
-            font-size: 12px;
-            padding: 2px 7px;
+            font-size: 11px;
+            padding: 2px 6px;
             border-radius: 10px;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
@@ -331,13 +214,13 @@
 
         .ic-clear-btn {
             flex: 1;
-            max-width: 76px;
-            height: 52px;
+            max-width: 72px;
+            height: 48px;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             background: #ef4444;
             color: white;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             touch-action: none;
             user-select: none;
@@ -350,9 +233,6 @@
             transform: scale(0.95);
         }
 
-        /* ========================================================= */
-        /* BLOCKS 4, 5, 6: RGB TRACKERS (Coords, ColorPicker, Grid)  */
-        /* ========================================================= */
         .rgb-block-wrapper {
             flex-direction: column;
             width: 100%;
@@ -372,12 +252,12 @@
         }
 
         .rgb-action-btn {
-            padding: 9px 18px;
+            padding: 8px 16px;
             background: #10b981;
             color: #fff;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -392,14 +272,14 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            font-size: 13px;
+            font-size: 12px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             color: #e2e8f0;
         }
 
         .rgb-preview-chip {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             border: 2px solid #fff;
             border-radius: 4px;
             background: #000;
@@ -410,42 +290,18 @@
 
 <body>
 
-    <!-- Global App Header with Global Camera Switcher -->
-    <header id="global-header">
-        <div class="header-brand">
-            <span class="dot"></span>
-            <span>Vision Suite</span>
-        </div>
-        <!-- Unified Camera Flip Switch placed in Header -->
-        <button id="global-switch-cam-btn" class="cam-switch-floating" title="Switch Camera">📷</button>
-    </header>
-
-    <!-- ESP32 URL Bar (shown when any module is in ESP32 mode) -->
-    <div id="esp32-url-bar">
-        <label>📡 ESP32:</label>
-        <input id="esp32-url-input" type="text" value="http://192.168.4.10:81/stream"
-            placeholder="http://192.168.4.10:81/stream" />
-        <button id="esp32-url-apply" onclick="applyEsp32Url()">Apply</button>
-    </div>
-
-    <!-- Main Workspace Container -->
     <main id="workspace-container">
 
-        <!-- ================================================================= -->
-        <!-- 1. FINGER TRACKING BLOCK                                          -->
-        <!-- ================================================================= -->
+        <!-- 1. FINGER TRACKING BLOCK -->
         <div id="block-finger-tracking" class="app-block active">
             <div class="vision-video-container">
                 <div style="display: none;"><video id="ft-video" playsinline></video></div>
                 <canvas id="ft-output_canvas" class="vision-canvas-feed"></canvas>
             </div>
-            <!-- Fingers raised text moved out of canvas and sized small -->
             <div id="ft-fingerCount">Fingers Raised: 0</div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- 2. GESTURE CLASSIFIER BLOCK                                       -->
-        <!-- ================================================================= -->
+        <!-- 2. GESTURE CLASSIFIER BLOCK -->
         <div id="block-gesture-classifier" class="app-block">
             <div class="vision-video-container">
                 <div style="display: none;"><video id="gc-video" playsinline></video></div>
@@ -453,7 +309,6 @@
                 <div id="gc-status">Prediction: None</div>
             </div>
 
-            <!-- Control bar matching Image Classifier -->
             <div id="gc-controls">
                 <button class="ic-train-btn gc-gestureBtn" data-label="1" style="--theme: #ef4444;">1</button>
                 <button class="ic-train-btn gc-gestureBtn" data-label="2" style="--theme: #f97316;">2</button>
@@ -467,9 +322,7 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- 3. IMAGE CLASSIFIER (TEACHABLE WEBCAM) BLOCK                      -->
-        <!-- ================================================================= -->
+        <!-- 3. IMAGE CLASSIFIER BLOCK -->
         <div id="block-image-classifier" class="app-block">
             <div class="vision-video-container">
                 <video id="ic-webcam" class="vision-canvas-feed" autoplay playsinline muted></video>
@@ -487,16 +340,14 @@
                         class="badge">0</span></button>
                 <button class="ic-train-btn" data-class="5" style="--theme: #3b82f6;">5<span
                         class="badge">0</span></button>
-                <button class="ic-clear-btn" id="ic-autoTrainBtn"
+                <button id="ic-autoTrainBtn" class="ic-clear-btn"
                     style="background: #2563eb; font-size: 13px; max-width: 72px;" title="Train fixed 20 images">📸
                     20x</button>
-                <button class="ic-clear-btn" id="ic-clear-btn">Clear</button>
+                <button id="ic-clear-btn" class="ic-clear-btn">Clear</button>
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- 4. RGB COORDINATES TRACKER BLOCK                                  -->
-        <!-- ================================================================= -->
+        <!-- 4. RGB COORDINATES TRACKER BLOCK -->
         <div id="block-rgb-coords" class="app-block rgb-block-wrapper">
             <div class="vision-video-container">
                 <video id="rgb-coord-video" playsinline autoplay style="display:none;"></video>
@@ -516,9 +367,7 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- 5. RGB COLOR PICKER TRACKER BLOCK                                 -->
-        <!-- ================================================================= -->
+        <!-- 5. RGB COLOR PICKER TRACKER BLOCK -->
         <div id="block-rgb-colorpicker" class="app-block rgb-block-wrapper">
             <div class="vision-video-container">
                 <video id="rgb-color-video" playsinline autoplay style="display:none;"></video>
@@ -538,9 +387,7 @@
             </div>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- 6. RGB 3x3 GRID TRACKER BLOCK                                     -->
-        <!-- ================================================================= -->
+        <!-- 6. RGB 3x3 GRID TRACKER BLOCK -->
         <div id="block-rgb-grid" class="app-block rgb-block-wrapper">
             <div class="vision-video-container">
                 <video id="rgb-grid-video" playsinline autoplay style="display:none;"></video>
@@ -562,9 +409,7 @@
 
     </main>
 
-    <!-- Core Combined Scripts & Lifecycle Controller -->
     <script>
-        // Suppress Mediapipe glog noise
         function isMediapipeLog(msg) {
             if (typeof msg !== 'string') return false;
             return msg.startsWith('I0000') || msg.startsWith('W0000') || msg.startsWith('E0000') || msg.includes('gl_context');
@@ -576,7 +421,6 @@
         const _err = console.error;
         console.error = function (...args) { if (isMediapipeLog(args[0])) return; _err.apply(console, args); };
 
-        // Offline KNN Classifier class for Landmark Gestures
         class LandmarkKNNClassifier {
             constructor(k = 5) {
                 this.k = k;
@@ -616,7 +460,6 @@
             }
         }
 
-        // Shared Color Math Utilities for RGB Tracker Modules
         function rgbToHsv(r, g, b) {
             r /= 255; g /= 255; b /= 255;
             const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -654,66 +497,54 @@
             return Math.min(d, 360 - d);
         }
 
-        // =================================================================
-        // GLOBAL CAMERA & ESP32 STATE
-        // =================================================================
-        let globalEsp32Url = 'http://192.168.4.10:81/stream';
-        let globalEsp32ActiveModules = new Set();
+        const globalEsp32Url = 'http://192.168.4.10:81/stream';
 
-        // 0=front, 1=back, 2=esp32
         window.globalCamModeIndex = 0;
         const CAM_MODES = ['user', 'environment', 'esp32'];
         const CAM_ICONS = ['📷', '🔄', '📡'];
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const globalCamBtn = document.getElementById('global-switch-cam-btn');
-            if (globalCamBtn) {
-                globalCamBtn.addEventListener('click', () => {
-                    window.globalCamModeIndex = (window.globalCamModeIndex + 1) % 3;
-                    globalCamBtn.textContent = CAM_ICONS[window.globalCamModeIndex];
-                    globalCamBtn.classList.toggle('esp32-mode', window.globalCamModeIndex === 2);
-
-                    if (window._activeVisionModule && window._activeVisionModule.restartCamera) {
-                        window._activeVisionModule.restartCamera();
-                    } else if (window._activeVisionModule && window._activeVisionModule.restartEsp32) {
-                        window._activeVisionModule.restartEsp32();
-                    }
-                });
+        function updateCanvasTransform(element) {
+            if (!element) return;
+            if (window.globalCamModeIndex === 0) {
+                element.classList.remove('unflipped');
+            } else {
+                element.classList.add('unflipped');
             }
-        });
+        }
 
-        function applyEsp32Url() {
-            const input = document.getElementById('esp32-url-input');
-            if (input && input.value.trim()) {
-                globalEsp32Url = input.value.trim();
-            }
-            if (window._activeVisionModule && window._activeVisionModule.isEsp32Mode && window._activeVisionModule.isEsp32Mode()) {
+        function cycleCameraMode() {
+            window.globalCamModeIndex = (window.globalCamModeIndex + 1) % 3;
+            if (window._activeVisionModule && window._activeVisionModule.restartCamera) {
+                window._activeVisionModule.restartCamera();
+            } else if (window._activeVisionModule && window._activeVisionModule.restartEsp32) {
                 window._activeVisionModule.restartEsp32();
             }
+            try {
+                window.parent.postMessage({
+                    action: 'cam_mode_changed',
+                    modeIndex: window.globalCamModeIndex,
+                    icon: CAM_ICONS[window.globalCamModeIndex],
+                    mode: CAM_MODES[window.globalCamModeIndex]
+                }, '*');
+            } catch (e) { }
         }
-        window.applyEsp32Url = applyEsp32Url;
-
-        function updateEsp32Bar() {
-            const bar = document.getElementById('esp32-url-bar');
-            if (!bar) return;
-            if (globalEsp32ActiveModules.size > 0) {
-                bar.style.display = 'flex';
-            } else {
-                bar.style.display = 'none';
-            }
-        }
+        window.cycleCameraMode = cycleCameraMode;
 
         function createEsp32ImgSource(url) {
             const img = document.createElement('img');
-            img.crossOrigin = 'anonymous';
             img.style.display = 'none';
+            img.crossOrigin = "anonymous";
             img.src = url;
             return img;
         }
 
-        // =================================================================
+        // Shared Offscreen Canvas for MediaPipe ESP32 frame extraction
+        const offscreenCanvas = document.createElement('canvas');
+        offscreenCanvas.width = 480;
+        offscreenCanvas.height = 360;
+        const offscreenCtx = offscreenCanvas.getContext('2d');
+
         // MODULE 1: FINGER TRACKING CONTROLLER
-        // =================================================================
         const FingerTrackingModule = (() => {
             let camera = null;
             let hands = null;
@@ -721,6 +552,7 @@
             let isRunning = false;
             let esp32Img = null;
             let esp32AnimId = null;
+            let isProcessing = false;
 
             const fingerCountDisplay = document.getElementById('ft-fingerCount');
             const videoElement = document.getElementById('ft-video');
@@ -730,6 +562,7 @@
             function setCanvasDimensions() {
                 canvasElement.width = 480;
                 canvasElement.height = 360;
+                updateCanvasTransform(canvasElement);
             }
 
             function countFingers(lmlist) {
@@ -783,8 +616,7 @@
                 }
                 if (esp32AnimId) { cancelAnimationFrame(esp32AnimId); esp32AnimId = null; }
                 if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
-                globalEsp32ActiveModules.delete('ft');
-                updateEsp32Bar();
+                isProcessing = false;
             }
 
             function setupHands() {
@@ -802,34 +634,27 @@
 
             function startEsp32Feed() {
                 if (!isRunning || window.globalCamModeIndex !== 2) return;
-                globalEsp32ActiveModules.add('ft');
-                updateEsp32Bar();
                 esp32Img = createEsp32ImgSource(globalEsp32Url);
                 document.body.appendChild(esp32Img);
                 setupHands();
+
                 function esp32Loop() {
                     if (!isRunning || window.globalCamModeIndex !== 2) return;
-                    if (esp32Img.complete && esp32Img.naturalWidth > 0) {
-                        if (hands) hands.send({ image: esp32Img }).catch(() => { });
+                    if (esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) {
+                        if (hands && !isProcessing) {
+                            isProcessing = true;
+                            offscreenCtx.drawImage(esp32Img, 0, 0, 480, 360);
+                            hands.send({ image: offscreenCanvas }).catch(() => { }).finally(() => { isProcessing = false; });
+                        }
                     }
                     esp32AnimId = requestAnimationFrame(esp32Loop);
                 }
-                esp32Img.onload = () => { esp32AnimId = requestAnimationFrame(esp32Loop); };
-                esp32Img.onerror = () => {
-                    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-                    canvasCtx.fillStyle = '#1e293b';
-                    canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-                    canvasCtx.fillStyle = '#64748b';
-                    canvasCtx.font = 'bold 24px sans-serif';
-                    canvasCtx.textAlign = 'center';
-                    canvasCtx.fillText('📡 ESP32 Offline', canvasElement.width / 2, canvasElement.height / 2);
-                    canvasCtx.font = '16px sans-serif';
-                    canvasCtx.fillText(globalEsp32Url, canvasElement.width / 2, canvasElement.height / 2 + 36);
-                };
+                esp32AnimId = requestAnimationFrame(esp32Loop);
             }
 
-            let isProcessing = false;
             function startCamera() {
+                stopCameraStreams();
+                setCanvasDimensions();
                 if (window.globalCamModeIndex === 2) {
                     startEsp32Feed();
                     return;
@@ -851,18 +676,7 @@
                     height: 360,
                     facingMode: currentFacingMode,
                 });
-                camera.start().catch(err => {
-                    console.error('FT camera error:', err);
-                    canvasCtx.fillStyle = '#1e293b';
-                    canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-                    canvasCtx.fillStyle = '#ef4444';
-                    canvasCtx.font = 'bold 22px sans-serif';
-                    canvasCtx.textAlign = 'center';
-                    canvasCtx.fillText('📷 Camera Error', canvasElement.width / 2, canvasElement.height / 2);
-                    canvasCtx.font = '14px sans-serif';
-                    canvasCtx.fillStyle = '#94a3b8';
-                    canvasCtx.fillText(err.message, canvasElement.width / 2, canvasElement.height / 2 + 30);
-                });
+                camera.start().catch(err => console.error('FT camera error:', err));
             }
 
             return {
@@ -873,7 +687,6 @@
                         restartEsp32: () => { stopCameraStreams(); startCamera(); },
                         restartCamera: () => { stopCameraStreams(); startCamera(); }
                     };
-                    setCanvasDimensions();
                     startCamera();
                 },
                 stop: () => {
@@ -884,9 +697,7 @@
             };
         })();
 
-        // =================================================================
         // MODULE 2: GESTURE CLASSIFIER CONTROLLER
-        // =================================================================
         const GestureClassifierModule = (() => {
             const knn = new LandmarkKNNClassifier(5);
             let recordingLabel = null;
@@ -896,6 +707,7 @@
             let isRunning = false;
             let esp32Img = null;
             let esp32AnimId = null;
+            let isProcessing = false;
 
             const gcStatusDisplay = document.getElementById('gc-status');
             const videoElement = document.getElementById('gc-video');
@@ -905,6 +717,7 @@
             function setCanvasDimensions() {
                 canvasElement.width = 480;
                 canvasElement.height = 360;
+                updateCanvasTransform(canvasElement);
             }
 
             function extractFeatures(landmarks) {
@@ -1050,16 +863,13 @@
                 }
                 if (esp32AnimId) { cancelAnimationFrame(esp32AnimId); esp32AnimId = null; }
                 if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
-                globalEsp32ActiveModules.delete('gc');
-                updateEsp32Bar();
+                isProcessing = false;
             }
 
-            let isProcessing = false;
             function startCamera() {
+                stopGcCameraStreams();
+                setCanvasDimensions();
                 if (window.globalCamModeIndex === 2) {
-                    // ESP32 MJPEG mode
-                    globalEsp32ActiveModules.add('gc');
-                    updateEsp32Bar();
                     esp32Img = createEsp32ImgSource(globalEsp32Url);
                     document.body.appendChild(esp32Img);
                     setupHands();
@@ -1068,17 +878,13 @@
                         if (esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) {
                             if (hands && !isProcessing) {
                                 isProcessing = true;
-                                hands.send({ image: esp32Img }).catch(() => { }).finally(() => { isProcessing = false; });
+                                offscreenCtx.drawImage(esp32Img, 0, 0, 480, 360);
+                                hands.send({ image: offscreenCanvas }).catch(() => { }).finally(() => { isProcessing = false; });
                             }
                         }
                         esp32AnimId = requestAnimationFrame(gcEsp32Loop);
                     }
-                    esp32Img.onload = () => { esp32AnimId = requestAnimationFrame(gcEsp32Loop); };
-                    esp32Img.onerror = () => {
-                        canvasCtx.fillStyle = '#1e293b'; canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-                        canvasCtx.fillStyle = '#64748b'; canvasCtx.font = 'bold 24px sans-serif'; canvasCtx.textAlign = 'center';
-                        canvasCtx.fillText('📡 ESP32 Offline', canvasElement.width / 2, canvasElement.height / 2);
-                    };
+                    esp32AnimId = requestAnimationFrame(gcEsp32Loop);
                     return;
                 }
                 currentFacingMode = CAM_MODES[window.globalCamModeIndex];
@@ -1111,7 +917,6 @@
                         restartEsp32: () => { stopGcCameraStreams(); startCamera(); },
                         restartCamera: () => { stopGcCameraStreams(); startCamera(); }
                     };
-                    setCanvasDimensions();
                     startCamera();
                 },
                 stop: () => {
@@ -1123,9 +928,7 @@
             };
         })();
 
-        // =================================================================
         // MODULE 3: IMAGE CLASSIFIER (TEACHABLE WEBCAM)
-        // =================================================================
         const ImageClassifierModule = (() => {
             const video = document.getElementById('ic-webcam');
             const statusEl = document.getElementById('ic-status');
@@ -1172,28 +975,43 @@
             }
 
             async function setupWebcam() {
-                if (window.globalCamModeIndex === 2) {
-                    // ESP32 mode: use img element as source
-                    if (video.srcObject) {
-                        video.srcObject.getTracks().forEach(t => t.stop());
-                        video.srcObject = null;
-                    }
-                    if (!esp32Img) {
-                        esp32Img = createEsp32ImgSource(globalEsp32Url);
-                        document.body.appendChild(esp32Img);
-                        globalEsp32ActiveModules.add('ic');
-                        updateEsp32Bar();
-                    }
-                    return new Promise(r => {
-                        esp32Img.onload = r;
-                        if (esp32Img.complete && esp32Img.naturalWidth > 0) r();
-                    });
+                const icContainer = document.querySelector('#block-image-classifier .vision-video-container');
+
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(t => t.stop());
+                    video.srcObject = null;
                 }
                 if (esp32Img) {
-                    esp32Img.src = ''; esp32Img.remove(); esp32Img = null;
-                    globalEsp32ActiveModules.delete('ic');
-                    updateEsp32Bar();
+                    esp32Img.src = '';
+                    esp32Img.remove();
+                    esp32Img = null;
                 }
+
+                updateCanvasTransform(video);
+
+                if (window.globalCamModeIndex === 2) {
+                    video.style.display = 'none';
+                    esp32Img = createEsp32ImgSource(globalEsp32Url);
+                    esp32Img.className = 'vision-canvas-feed';
+                    updateCanvasTransform(esp32Img);
+                    esp32Img.style.display = 'block';
+                    if (icContainer) icContainer.appendChild(esp32Img);
+
+                    return new Promise(r => {
+                        if (esp32Img.naturalWidth > 0) {
+                            r();
+                        } else {
+                            const checkInterval = setInterval(() => {
+                                if (esp32Img && esp32Img.naturalWidth > 0) {
+                                    clearInterval(checkInterval);
+                                    r();
+                                }
+                            }, 50);
+                        }
+                    });
+                }
+
+                video.style.display = 'block';
                 currentFacingMode = CAM_MODES[window.globalCamModeIndex];
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -1209,7 +1027,9 @@
 
             async function addExample(classId) {
                 if (!net) return;
-                const img = tf.browser.fromPixels(video);
+                const imgSource = (window.globalCamModeIndex === 2 && esp32Img) ? esp32Img : video;
+                if (!imgSource) return;
+                const img = tf.browser.fromPixels(imgSource);
                 const activation = net.infer(img, true);
                 classifier.addExample(activation, classId);
                 img.dispose();
@@ -1238,7 +1058,7 @@
             function initEvents() {
                 document.querySelectorAll('.ic-train-btn').forEach(btn => {
                     const classId = Number(btn.dataset.class);
-                    if (isNaN(classId)) return; // Exclude non-numbered buttons
+                    if (isNaN(classId)) return;
 
                     const start = (e) => {
                         e.preventDefault();
@@ -1276,7 +1096,6 @@
                     }
                     updateBadges();
                     statusEl.textContent = 'Ready – hold a number to train';
-                    console.log("Memory cleared.");
                 });
             }
 
@@ -1288,7 +1107,6 @@
                 async function loop(ts) {
                     if (!isRunning) return;
 
-                    // Prevent Float32Array error by strictly checking video/img dimensions before passing to TensorFlow
                     let isSourceReady = false;
                     const imgSource = window.globalCamModeIndex === 2 ? esp32Img : video;
 
@@ -1315,12 +1133,10 @@
                             tfImg.dispose(); activation.dispose();
                             updateBadges();
 
-                            // Self-correct error text if recovered
                             if (statusEl.textContent.startsWith('Error:')) {
                                 statusEl.textContent = `Ready • Examples: ${JSON.stringify(classifier.getClassExampleCount())}`;
                             }
                         } catch (e) {
-                            // Silently ignore transient dimension errors during flip
                         } finally {
                             isPredicting = false;
                         }
@@ -1338,12 +1154,10 @@
                             const conf = result.confidences[result.label];
                             if (conf >= CONFIDENCE_THRESHOLD) { logStable(Number(result.label)); }
 
-                            // Self-correct error text if recovered
                             if (statusEl.textContent.startsWith('Error:')) {
                                 statusEl.textContent = `Ready • Examples: ${JSON.stringify(classifier.getClassExampleCount())}`;
                             }
                         } catch (e) {
-                            // Silently ignore transient dimension errors during flip
                         } finally {
                             isPredicting = false;
                         }
@@ -1360,15 +1174,9 @@
                     window._activeVisionModule = {
                         isEsp32Mode: () => window.globalCamModeIndex === 2,
                         restartEsp32: () => {
-                            if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
-                            globalEsp32ActiveModules.delete('ic');
-                            updateEsp32Bar();
                             if (isRunning) setupWebcam();
                         },
                         restartCamera: () => {
-                            if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
-                            globalEsp32ActiveModules.delete('ic');
-                            updateEsp32Bar();
                             if (isRunning) setupWebcam();
                         }
                     };
@@ -1397,16 +1205,12 @@
                         video.srcObject = null;
                     }
                     if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
-                    globalEsp32ActiveModules.delete('ic');
-                    updateEsp32Bar();
                 },
                 trainFixed: async (classId, count = 20) => { await trainFixed(classId, count); }
             };
         })();
 
-        // =================================================================
-        // RGB TRACKER FACTORY (For Coords, ColorPicker, Grid)
-        // =================================================================
+        // RGB TRACKER FACTORY
         function createRGBTrackerModule(cfg) {
             const video = document.getElementById(cfg.videoId);
             const outputCanvas = document.getElementById(cfg.outputCanvasId);
@@ -1425,13 +1229,11 @@
             procCanvas.width = PROC_WIDTH;
             procCanvas.height = PROC_HEIGHT;
 
-            let appState = 0; // 0=Init, 1=Select, 2=Track
+            let appState = 0;
             let currentFacingMode = 'user';
             let isRunning = false;
             let animId = null;
             let esp32Img = null;
-            // A pseudo-unique key for the module to track its ESP32 stream status
-            const moduleKey = cfg.videoId;
 
             const THRESH_HUE = 15;
             const THRESH_SAT = 0.35;
@@ -1456,28 +1258,29 @@
                     video.srcObject = null;
                 }
                 if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
-                globalEsp32ActiveModules.delete(moduleKey);
-                updateEsp32Bar();
             }
 
             async function startCamera() {
+                stopRgbCameraStreams();
+                updateCanvasTransform(outputCanvas);
+
                 if (window.globalCamModeIndex === 2) {
-                    // ESP32 MJPEG mode
-                    globalEsp32ActiveModules.add(moduleKey);
-                    updateEsp32Bar();
                     esp32Img = createEsp32ImgSource(globalEsp32Url);
                     document.body.appendChild(esp32Img);
 
-                    const onEsp32Ready = () => {
-                        outputCanvas.width = esp32Img.naturalWidth || 640;
-                        outputCanvas.height = esp32Img.naturalHeight || 480;
-                        btnAction.style.display = 'block';
-                        appState = 1;
-                        if (isRunning && !animId) renderLoop();
-                    };
-                    esp32Img.onload = onEsp32Ready;
+                    const checkEspReady = setInterval(() => {
+                        if (esp32Img && esp32Img.naturalWidth > 0) {
+                            clearInterval(checkEspReady);
+                            outputCanvas.width = esp32Img.naturalWidth || 640;
+                            outputCanvas.height = esp32Img.naturalHeight || 480;
+                            btnAction.style.display = 'block';
+                            appState = 1;
+                            if (isRunning && !animId) renderLoop();
+                        }
+                    }, 50);
                     return;
                 }
+
                 currentFacingMode = CAM_MODES[window.globalCamModeIndex];
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({
@@ -1503,11 +1306,11 @@
             function handleAction() {
                 if (appState === 1) {
                     captureTargetProfile();
-                    appState = 2; // Track
+                    appState = 2;
                     btnAction.innerText = 'Reset target';
                     btnAction.style.background = '#475569';
                 } else if (appState === 2) {
-                    appState = 1; // Select
+                    appState = 1;
                     btnAction.innerText = 'Capture target';
                     btnAction.style.background = '#10b981';
 
@@ -1693,7 +1496,6 @@
 
             function renderLoop() {
                 if (!isRunning) return;
-                // Use esp32Img as source if in ESP32 mode
                 const src = (window.globalCamModeIndex === 2 && esp32Img && esp32Img.complete && esp32Img.naturalWidth > 0) ? esp32Img : video;
                 if (window.globalCamModeIndex === 2 && (!esp32Img || !esp32Img.complete || !esp32Img.naturalWidth)) {
                     animId = requestAnimationFrame(renderLoop);
@@ -1702,7 +1504,6 @@
                 ctxOutput.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
                 ctxOutput.drawImage(src, 0, 0, outputCanvas.width, outputCanvas.height);
 
-                // Mode: 3x3 Grid
                 if (cfg.hasGrid) {
                     const cellW = outputCanvas.width / 3;
                     const cellH = outputCanvas.height / 3;
@@ -1716,7 +1517,6 @@
                     ctxOutput.stroke();
                 }
 
-                // Draw capture bounding box during Select mode
                 if (appState === 1) {
                     const cx = outputCanvas.width / 2, cy = outputCanvas.height / 2, box = 40;
                     ctxOutput.strokeStyle = '#00ff66';
@@ -1731,7 +1531,6 @@
                 }
 
                 if (appState === 2) {
-                    // When in ESP32 mode, draw from esp32Img into proc canvas
                     if (window.globalCamModeIndex === 2 && esp32Img) {
                         try { ctxProc.drawImage(esp32Img, 0, 0, PROC_WIDTH, PROC_HEIGHT); } catch (e) { }
                     }
@@ -1777,7 +1576,6 @@
                         uiPosY.innerText = Math.round(drawCY);
                         uiBlobSize.innerText = Math.round(res.blob.size);
 
-                        // Mode specific logging
                         if (cfg.logCoords) {
                             console.log(`X: ${displayX}, Y: ${Math.round(drawCY)}`);
                         }
@@ -1823,14 +1621,13 @@
                 },
                 stop: () => {
                     isRunning = false;
-                    if (animId) { cancelAnimationFrame(animId); animId = null; }
+                    if (animId) cancelAnimationFrame(animId);
                     stopRgbCameraStreams();
                     ctxOutput.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
                 }
             };
         }
 
-        // Initialize RGB Modules (statusId & boxId properties are safely ignored now)
         const RGBCoordinatesModule = createRGBTrackerModule({
             videoId: 'rgb-coord-video',
             outputCanvasId: 'rgb-coord-output',
@@ -1870,9 +1667,6 @@
             hasGrid: true
         });
 
-        // =================================================================
-        // GLOBAL BLOCK SWITCHER & LIFECYCLE COORDINATOR
-        // =================================================================
         const modules = {
             'block-finger-tracking': FingerTrackingModule,
             'block-gesture-classifier': GestureClassifierModule,
@@ -1885,11 +1679,6 @@
         let currentActiveBlockId = 'block-finger-tracking';
 
         function switchModule(targetBlockId) {
-            if (targetBlockId === currentActiveBlockId && modules[targetBlockId]) {
-                return;
-            }
-
-            // 1. Stop current active module
             if (currentActiveBlockId && modules[currentActiveBlockId]) {
                 try {
                     modules[currentActiveBlockId].stop();
@@ -1898,16 +1687,13 @@
                 }
             }
 
-            // 2. Hide all block divs
             document.querySelectorAll('.app-block').forEach(b => b.classList.remove('active'));
 
-            // 3. Show target block div
             const targetBlock = document.getElementById(targetBlockId);
             if (targetBlock) targetBlock.classList.add('active');
 
             currentActiveBlockId = targetBlockId;
 
-            // 4. Start new module
             if (modules[targetBlockId]) {
                 try {
                     modules[targetBlockId].start();
@@ -1917,28 +1703,20 @@
             }
         }
 
-        // Start initial module on page load
         window.addEventListener('load', () => {
             if (modules[currentActiveBlockId]) {
                 modules[currentActiveBlockId].start();
             }
         });
 
-        // Global trigger for gesture classifier & image classifier clear option
         window.clearClassifiers = function () {
-            // Trigger gesture classifier clear
             const gcBtn = document.getElementById('gc-clearDataBtn');
             if (gcBtn) gcBtn.click();
-            // Trigger image classifier clear
             const icBtn = document.getElementById('ic-clear-btn');
             if (icBtn) icBtn.click();
-            // Trigger finger tracking clear
-            const ftBtn = document.getElementById('ft-clearDataBtn');
-            if (ftBtn) ftBtn.click();
             console.log("Classifier memory cleared via clearClassifiers().");
         };
 
-        // Global trigger to train 20 images for Image or Gesture Classifier
         window.trainClassifier = async function (type, buttonId = 1, count = 20) {
             const classNum = parseInt(buttonId, 10) || 1;
             if (type === 'gesture') {
@@ -1958,6 +1736,8 @@
         window.addEventListener('message', (event) => {
             if (event.data === 'clear_classifiers' || (event.data && event.data.action === 'clear_classifiers')) {
                 window.clearClassifiers();
+            } else if (event.data === 'switch_cam' || event.data === 'cycle_cam' || (event.data && (event.data.action === 'switch_cam' || event.data.action === 'cycle_cam'))) {
+                cycleCameraMode();
             } else if (event.data && (event.data.action === 'train_classifier' || event.data.type === 'train_classifier')) {
                 const target = event.data.classifier || 'image';
                 const button = event.data.button || event.data.classId || 1;
