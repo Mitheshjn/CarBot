@@ -512,6 +512,34 @@
             }
         }
 
+        function forceReleaseCamera(videoElement) {
+            if (videoElement && videoElement.srcObject) {
+                try {
+                    const tracks = videoElement.srcObject.getTracks();
+                    tracks.forEach(track => {
+                        track.stop();
+                        track.enabled = false;
+                    });
+                } catch (e) { }
+                videoElement.srcObject = null;
+            }
+        }
+
+        async function getCameraStream(facingMode) {
+            try {
+                return await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { exact: facingMode }, width: { ideal: 480 }, height: { ideal: 360 } },
+                    audio: false
+                });
+            } catch (err) {
+                return await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode, width: { ideal: 480 }, height: { ideal: 360 } },
+                    audio: false
+                });
+            }
+        }
+
+
         function cycleCameraMode() {
             window.globalCamModeIndex = (window.globalCamModeIndex + 1) % 3;
             if (window._activeVisionModule && window._activeVisionModule.restartCamera) {
@@ -1011,16 +1039,10 @@
                     });
                 }
 
+                forceReleaseCamera(video);
                 video.style.display = 'block';
                 currentFacingMode = CAM_MODES[window.globalCamModeIndex];
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { ideal: currentFacingMode },
-                        width: { ideal: 480 },
-                        height: { ideal: 360 }
-                    },
-                    audio: false
-                });
+                const stream = await getCameraStream(currentFacingMode);
                 video.srcObject = stream;
                 return new Promise(r => video.onloadeddata = r);
             }
@@ -1281,12 +1303,10 @@
                     return;
                 }
 
+                forceReleaseCamera(video);
                 currentFacingMode = CAM_MODES[window.globalCamModeIndex];
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: currentFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
-                        audio: false
-                    });
+                    const stream = await getCameraStream(currentFacingMode);
                     video.srcObject = stream;
                     video.onloadedmetadata = () => {
                         outputCanvas.width = video.videoWidth || 640;
