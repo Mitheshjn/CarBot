@@ -1163,10 +1163,12 @@
         <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite"
           style="width: 32px; height: 32px; font-size: 14px; padding: 0;">↻</button>
       </div>
+      <span id="visionStatusBadge" style="font-size:11px;color:#00e5ff;font-weight:600;padding:3px 8px;background:rgba(0,229,255,0.1);border-radius:12px;border:1px solid rgba(0,229,255,0.25);">🤖 AI Ready</span>
     </div>
     <div id="visionFrameWrapper"
       style="position: relative; width: 100%; height: 320px; border-radius: 8px; background: #000; overflow: hidden; transition: height 0.25s ease;">
       <iframe id="visionAiFrame" src="about:blank" style="width: 100%; height: 100%; border: none; display: block;"
+        onload="if(typeof onVisionAiFrameLoaded==='function')onVisionAiFrameLoaded()"
         allow="camera *; microphone *; camera; microphone; autoplay; fullscreen" allowfullscreen></iframe>
     </div>
   </div>
@@ -2414,7 +2416,7 @@
 
     let camTimeout = null;
     let camLoadedOnce = false;
-    let currentCamSource = 'esp32';
+    let currentCamSource = 'vision'; // Default to Vision AI Suite so the camera folder is called directly!
     let phoneFacingMode = 'user';
     let phoneMediaStream = null;
 
@@ -2426,8 +2428,16 @@
         return;
       }
       btn.style.display = 'inline-flex';
-      btn.textContent = currentCamSource === 'phone' ? '📱' : '📷';
-      btn.title = currentCamSource === 'phone' ? 'Switch to Car Camera' : 'Switch to Phone Camera';
+      if (currentCamSource === 'vision') {
+        btn.textContent = '🤖 AI';
+        btn.title = 'Active: Vision AI Suite (Click to switch to Car ESP32 stream)';
+      } else if (currentCamSource === 'esp32') {
+        btn.textContent = '📷 ESP';
+        btn.title = 'Active: Car Camera Stream (Click to switch to Phone/Webcam)';
+      } else {
+        btn.textContent = '📱 CAM';
+        btn.title = 'Active: Phone/Webcam (Click to switch to Vision AI Suite)';
+      }
     }
 
     function onCamLoadOnce() {
@@ -2469,7 +2479,7 @@
           const title = e.querySelector('div:nth-child(2)');
           const sub = e.querySelector('div:last-child');
           if (title) title.innerText = 'Camera Error';
-          if (sub) sub.innerText = 'Phone camera not supported';
+          if (sub) sub.innerText = 'Device camera not supported in this browser context';
         }
         return Promise.reject(new Error('getUserMedia not supported'));
       }
@@ -2534,37 +2544,46 @@
 
     function toggleCameraSource() {
       if (!isCameraOn) return;
+      if (currentCamSource === 'vision') {
+        setCameraSource('esp32');
+      } else if (currentCamSource === 'esp32') {
+        setCameraSource('phone');
+      } else {
+        setCameraSource('vision');
+      }
+    }
+
+    function setCameraSource(source) {
+      currentCamSource = source;
+      updateCamSourceButtonUI();
+
+      const s = document.getElementById('cameraSection');
       const f = document.getElementById('camFrame');
       const e = document.getElementById('camError');
+      const previewCard = document.getElementById('cameraVisionPreviewCard');
 
-      if (currentCamSource === 'esp32') {
-        currentCamSource = 'phone';
-        updateCamSourceButtonUI();
+      if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
 
-        if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-        if (f) {
-          f.onload = null;
-          f.removeAttribute('src');
-          f.src = '';
-          f.style.display = 'none';
-        }
-        if (e) e.style.display = 'none';
-
-        startPhoneCamera();
-      } else {
-        currentCamSource = 'esp32';
-        updateCamSourceButtonUI();
-
+      if (source === 'vision') {
         stopPhoneCamera();
-
-        if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
-        if (e) {
-          const title = e.querySelector('div:nth-child(2)');
-          const sub = e.querySelector('div:last-child');
-          if (title) title.innerText = 'Camera Offline';
-          if (sub) sub.innerText = 'Check ESP32-CAM (192.168.4.10)';
-          e.style.display = 'none';
-        }
+        if (f) { f.removeAttribute('src'); f.src = ''; f.style.display = 'none'; }
+        if (e) e.style.display = 'none';
+        if (s) s.style.display = 'none';
+        if (previewCard) previewCard.style.display = 'block';
+        loadVisionAiFrame();
+        showToast('Active: Vision AI Suite', 'info');
+      } else if (source === 'phone') {
+        if (previewCard && activeBlockMode !== 'camera') previewCard.style.display = 'none';
+        if (s) s.style.display = 'block';
+        if (f) { f.removeAttribute('src'); f.src = ''; f.style.display = 'none'; }
+        if (e) e.style.display = 'none';
+        startPhoneCamera();
+        showToast('Active: Device Camera', 'info');
+      } else { // esp32
+        stopPhoneCamera();
+        if (previewCard && activeBlockMode !== 'camera') previewCard.style.display = 'none';
+        if (s) s.style.display = 'block';
+        if (e) e.style.display = 'none';
         if (f) {
           f.style.display = 'none';
           camLoadedOnce = false;
@@ -2573,10 +2592,12 @@
           camTimeout = setTimeout(onCamError, 3500);
           f.src = 'http://192.168.4.10:81/stream';
         }
+        showToast('Connecting to ESP32 stream...', 'info');
       }
     }
 
     window.toggleCameraSource = toggleCameraSource;
+    window.setCameraSource = setCameraSource;
     window.setPhoneCameraFacingMode = setPhoneCameraFacingMode;
     window.togglePhoneFacingMode = togglePhoneFacingMode;
 
@@ -2600,6 +2621,7 @@
       const speedSlider = document.getElementById('speedSlider');
       const rowAux = document.getElementById('rowAuxSwitches');
       const addOnsPanel = document.getElementById('addOnsContainer');
+      const previewCard = document.getElementById('cameraVisionPreviewCard');
 
       if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
 
@@ -2619,35 +2641,7 @@
         updateSpeedUI(CAM_FIXED_SPEED);
         sendSpeed(CAM_FIXED_SPEED);
 
-        const terminalEl = document.getElementById('terminalPanel');
-        const isCameraBlocksActive = activeBlockMode === 'camera' && terminalEl && terminalEl.style.display !== 'none';
-        if (s) s.style.display = isCameraBlocksActive ? 'none' : 'block';
-        if (e) {
-          const title = e.querySelector('div:nth-child(2)');
-          const sub = e.querySelector('div:last-child');
-          if (title) title.innerText = 'Camera Offline';
-          if (sub) sub.innerText = 'Check ESP32-CAM (192.168.4.10)';
-          e.style.display = 'none';
-        }
-
-        if (currentCamSource === 'phone') {
-          if (f) {
-            f.removeAttribute('src');
-            f.src = '';
-            f.style.display = 'none';
-          }
-          startPhoneCamera();
-        } else {
-          stopPhoneCamera();
-          if (f) {
-            f.style.display = 'none';
-            camLoadedOnce = false;
-            f.onload = onCamLoadOnce;
-            f.onerror = onCamError;
-            camTimeout = setTimeout(onCamError, 3500);
-            f.src = 'http://192.168.4.10:81/stream';
-          }
-        }
+        setCameraSource(currentCamSource || 'vision');
       } else {
         stopPhoneCamera();
         if (f) {
@@ -2658,6 +2652,7 @@
         }
         if (e) e.style.display = 'none';
         if (s) s.style.display = 'none';
+        if (previewCard && activeBlockMode !== 'camera') previewCard.style.display = 'none';
 
         if (rowAux) rowAux.style.display = 'flex';
 
@@ -2807,27 +2802,96 @@
       'block-rgb-grid': '⊞ RGB 3x3 Grid'
     };
 
+    let isVisionFrameReady = false;
+    let pendingVisionMessages = [];
+
+    function getVisionSuiteUrl() {
+      return 'camera/index.html';
+    }
+
+    function loadVisionAiFrame() {
+      const frame = document.getElementById('visionAiFrame');
+      if (!frame) return;
+
+      if (!frame.src || frame.src === 'about:blank' || frame.src.endsWith('about:blank')) {
+        let triedFallback = false;
+        frame.onerror = function() {
+          if (!triedFallback) {
+            triedFallback = true;
+            frame.src = '../camera/index.html';
+          }
+        };
+        frame.src = getVisionSuiteUrl();
+      } else if (isVisionFrameReady) {
+        try { frame.contentWindow.postMessage({ action: 'resume' }, '*'); } catch (err) { }
+      }
+    }
+
+    function postToVisionAi(msg) {
+      const frame = document.getElementById('visionAiFrame');
+      if (!frame) return;
+      if (frame.contentWindow && isVisionFrameReady) {
+        try {
+          frame.contentWindow.postMessage(msg, '*');
+          return;
+        } catch (e) { }
+      }
+      pendingVisionMessages.push(msg);
+    }
+
+    function onVisionAiFrameLoaded() {
+      isVisionFrameReady = true;
+      while (pendingVisionMessages.length > 0) {
+        const msg = pendingVisionMessages.shift();
+        postToVisionAi(msg);
+      }
+    }
+    window.onVisionAiFrameLoaded = onVisionAiFrameLoaded;
+
+    window.addEventListener('message', function (event) {
+      if (!event.data) return;
+      if (event.data.action === 'vision_ready') {
+        isVisionFrameReady = true;
+        while (pendingVisionMessages.length > 0) {
+          const msg = pendingVisionMessages.shift();
+          postToVisionAi(msg);
+        }
+      } else if (event.data.action === 'vision_result') {
+        window.latestVisionData = event.data;
+        const badge = document.getElementById('visionStatusBadge');
+        if (badge) {
+          let summary = '';
+          if (event.data.type === 'finger_tracking') {
+            summary = `🖐️ ${event.data.fingerCount ?? event.data.value} Fingers`;
+          } else if (event.data.type === 'gesture_classifier') {
+            summary = `✌️ ${event.data.prediction ?? event.data.value}`;
+          } else if (event.data.type === 'image_classifier') {
+            summary = `📷 Class: ${event.data.classId ?? event.data.value}`;
+          } else if (event.data.type === 'rgb_tracker') {
+            const rx = event.data.x ?? event.data.posX ?? 0;
+            const ry = event.data.y ?? event.data.posY ?? 0;
+            summary = `🎯 X:${rx} Y:${ry}${event.data.grid ? ' (Grid ' + event.data.grid + ')' : ''}`;
+          }
+          if (summary) badge.textContent = summary;
+        }
+      } else if (event.data.action === 'cam_mode_changed') {
+        const btn = document.getElementById('btnVisionCamCycle');
+        if (btn && event.data.icon) btn.textContent = event.data.icon;
+      }
+    });
+
     function switchVisionPreviewCam(event) {
       if (event) event.preventDefault();
-      const frame = document.getElementById('visionAiFrame');
-      if (frame && frame.contentWindow) {
-        try {
-          frame.contentWindow.postMessage({ action: 'switch_cam' }, '*');
-        } catch (err) { }
-      }
+      loadVisionAiFrame();
+      postToVisionAi({ action: 'switch_cam' });
     }
     window.switchVisionPreviewCam = switchVisionPreviewCam;
 
     function switchCameraModule(targetBlockId) {
       if (!targetBlockId) return;
       currentVisionModule = targetBlockId;
-
-      const frame = document.getElementById('visionAiFrame');
-      if (frame && frame.contentWindow) {
-        try {
-          frame.contentWindow.postMessage({ action: 'switch_module', module: targetBlockId }, '*');
-        } catch (err) { }
-      }
+      loadVisionAiFrame();
+      postToVisionAi({ action: 'switch_module', module: targetBlockId });
     }
     window.switchCameraModule = switchCameraModule;
     window.switchCameraDiv = switchCameraModule;
@@ -2863,7 +2927,8 @@
       if (event) event.preventDefault();
       const frame = document.getElementById('visionAiFrame');
       if (frame) {
-        frame.src = '../camera/index.html';
+        isVisionFrameReady = false;
+        frame.src = getVisionSuiteUrl();
         showToast('Vision AI suite reloaded', 'info');
       }
     }
@@ -2939,14 +3004,7 @@
         if (liveCamSec) liveCamSec.style.display = 'none';
         if (previewCard) previewCard.style.display = 'block';
 
-        const frame = document.getElementById('visionAiFrame');
-        if (frame) {
-          if (!frame.src || frame.src === 'about:blank' || frame.src.endsWith('about:blank')) {
-            frame.src = '../camera/index.html';
-          } else {
-            try { frame.contentWindow.postMessage({ action: 'resume' }, '*'); } catch (err) { }
-          }
-        }
+        loadVisionAiFrame();
 
         if (!workspaceCamera) {
           const toolboxCam = document.getElementById('toolbox_camera');

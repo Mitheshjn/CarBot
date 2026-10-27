@@ -236,11 +236,11 @@
     });
 
     async function app() {
-      await tf.setBackend('webgl');
+        await tf.setBackend('webgl');
       await tf.ready();
 
       statusEl.textContent = 'Loading model...';
-      net = await mobilenet.load({ version: 2, alpha: 0.5, modelUrl: 'model.json' });
+        net = await mobilenet.load({ version: 2, alpha: 0.5, modelUrl: 'model.json' });
 
       await setupWebcam();
       statusEl.textContent = 'Ready – hold a number to train';

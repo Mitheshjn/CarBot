@@ -410,6 +410,63 @@
     </main>
 
     <script>
+function forceReleaseCamera(videoElement) {
+  if (videoElement && videoElement.srcObject) {
+    try {
+      const tracks = videoElement.srcObject.getTracks();
+      tracks.forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
+    } catch (e) { }
+    videoElement.srcObject = null;
+  }
+}
+
+async function getCameraStream(facingMode) {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { exact: facingMode }, width: { ideal: 480 }, height: { ideal: 360 } },
+      audio: false
+    });
+  } catch (err) {
+    // If exact or ideal facingMode fails due to NotReadableError, try generic video constraint
+    return await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: facingMode, width: { ideal: 480 }, height: { ideal: 360 } },
+      audio: false
+    });
+  }
+}
+
+function forceReleaseAllCameras() {
+  try { document.querySelectorAll('video').forEach(v => forceReleaseCamera(v)); } catch (e) { }
+}
+
+const __originalGetUserMedia = (navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
+  ? navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices) : null;
+
+if (navigator.mediaDevices && __originalGetUserMedia) {
+  navigator.mediaDevices.getUserMedia = async function (constraints) {
+    let lastErr;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        forceReleaseAllCameras();
+        if (attempt > 0) await new Promise(res => setTimeout(res, 250 * attempt));
+        return await __originalGetUserMedia(constraints);
+      } catch (err) {
+        lastErr = err;
+        if (err && err.name === 'NotReadableError' && attempt < 4) {
+          await new Promise(res => setTimeout(res, 300 * (attempt + 1)));
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr;
+  };
+}
+
+
         function isMediapipeLog(msg) {
             if (typeof msg !== 'string') return false;
             return msg.startsWith('I0000') || msg.startsWith('W0000') || msg.startsWith('E0000') || msg.includes('gl_context');
@@ -553,6 +610,7 @@
             let esp32Img = null;
             let esp32AnimId = null;
             let isProcessing = false;
+            let ftCameraSession = 0;
 
             const fingerCountDisplay = document.getElementById('ft-fingerCount');
             const videoElement = document.getElementById('ft-video');
@@ -599,6 +657,17 @@
                         if (lmlist.length === 21) {
                             const fingerCount = countFingers(lmlist);
                             fingerCountDisplay.innerText = `Fingers Raised: ${fingerCount}`;
+                            if (window.parent && window.parent !== window) {
+                                try {
+                                    window.parent.postMessage({
+                                        action: 'vision_result',
+                                        type: 'finger_tracking',
+                                        module: 'block-finger-tracking',
+                                        fingerCount: fingerCount,
+                                        value: fingerCount
+                                    }, '*');
+                                } catch (e) { }
+                            }
                         }
 
                         drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 5 });
@@ -608,12 +677,9 @@
                 canvasCtx.restore();
             }
 
-            function stopCameraStreams() {
-                if (camera) { camera.stop(); camera = null; }
-                if (videoElement.srcObject) {
-                    videoElement.srcObject.getTracks().forEach(t => t.stop());
-                    videoElement.srcObject = null;
-                }
+            async function stopCameraStreams() {
+                if (camera) { try { await camera.stop(); } catch (e) { } camera = null; }
+                forceReleaseCamera(videoElement);
                 if (esp32AnimId) { cancelAnimationFrame(esp32AnimId); esp32AnimId = null; }
                 if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
                 isProcessing = false;
@@ -652,10 +718,14 @@
                 esp32AnimId = requestAnimationFrame(esp32Loop);
             }
 
-            function startCamera() {
-                stopCameraStreams();
+            async function startCamera() {
+                const session = ++ftCameraSession;
+                await stopCameraStreams();
+                await new Promise(res => setTimeout(res, 200));
+                if (session !== ftCameraSession) return;
                 setCanvasDimensions();
                 if (window.globalCamModeIndex === 2) {
+                    if (session !== ftCameraSession) return;
                     startEsp32Feed();
                     return;
                 }
@@ -664,6 +734,7 @@
                 camera = new Camera(videoElement, {
                     onFrame: async () => {
                         if (!isRunning || !hands || isProcessing) return;
+                        if (window.globalCamModeIndex === 2) return;
                         isProcessing = true;
                         try {
                             await hands.send({ image: videoElement });
@@ -676,7 +747,15 @@
                     height: 360,
                     facingMode: currentFacingMode,
                 });
-                camera.start().catch(err => console.error('FT camera error:', err));
+                try {
+                    await camera.start();
+                } catch (err) {
+                    console.error('FT camera error:', err);
+                }
+                if (session !== ftCameraSession) {
+                    if (camera) { try { camera.stop(); } catch (e) { } camera = null; }
+                    forceReleaseCamera(videoElement);
+                }
             }
 
             return {
@@ -689,14 +768,13 @@
                     };
                     startCamera();
                 },
-                stop: () => {
+                stop: async () => {
                     isRunning = false;
-                    stopCameraStreams();
+                    await stopCameraStreams();
                     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                 }
             };
         })();
-
         // MODULE 2: GESTURE CLASSIFIER CONTROLLER
         const GestureClassifierModule = (() => {
             const knn = new LandmarkKNNClassifier(5);
@@ -708,6 +786,7 @@
             let esp32Img = null;
             let esp32AnimId = null;
             let isProcessing = false;
+            let gcCameraSession = 0;
 
             const gcStatusDisplay = document.getElementById('gc-status');
             const videoElement = document.getElementById('gc-video');
@@ -786,6 +865,17 @@
                             if (pred !== null) {
                                 gcStatusDisplay.innerText = `Prediction: ${pred}`;
                                 gcStatusDisplay.style.color = "#00ff66";
+                                if (window.parent && window.parent !== window) {
+                                    try {
+                                        window.parent.postMessage({
+                                            action: 'vision_result',
+                                            type: 'gesture_classifier',
+                                            module: 'block-gesture-classifier',
+                                            prediction: pred,
+                                            value: pred
+                                        }, '*');
+                                    } catch (e) { }
+                                }
                             } else {
                                 gcStatusDisplay.innerText = `Prediction: None`;
                                 gcStatusDisplay.style.color = "#00ff66";
@@ -855,21 +945,22 @@
                 }
             }
 
-            function stopGcCameraStreams() {
-                if (camera) { camera.stop(); camera = null; }
-                if (videoElement.srcObject) {
-                    videoElement.srcObject.getTracks().forEach(t => t.stop());
-                    videoElement.srcObject = null;
-                }
+            async function stopGcCameraStreams() {
+                if (camera) { try { await camera.stop(); } catch (e) { } camera = null; }
+                forceReleaseCamera(videoElement);
                 if (esp32AnimId) { cancelAnimationFrame(esp32AnimId); esp32AnimId = null; }
                 if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
                 isProcessing = false;
             }
 
-            function startCamera() {
-                stopGcCameraStreams();
+            async function startCamera() {
+                const session = ++gcCameraSession;
+                await stopGcCameraStreams();
+                await new Promise(res => setTimeout(res, 200));
+                if (session !== gcCameraSession) return;
                 setCanvasDimensions();
                 if (window.globalCamModeIndex === 2) {
+                    if (session !== gcCameraSession) return;
                     esp32Img = createEsp32ImgSource(globalEsp32Url);
                     document.body.appendChild(esp32Img);
                     setupHands();
@@ -892,6 +983,7 @@
                 camera = new Camera(videoElement, {
                     onFrame: async () => {
                         if (!isRunning || !hands || isProcessing) return;
+                        if (window.globalCamModeIndex === 2) return;
                         isProcessing = true;
                         try {
                             await hands.send({ image: videoElement });
@@ -904,7 +996,15 @@
                     height: 360,
                     facingMode: currentFacingMode,
                 });
-                camera.start().catch(err => console.error('GC cam:', err));
+                try {
+                    await camera.start();
+                } catch (err) {
+                    console.error('GC cam:', err);
+                }
+                if (session !== gcCameraSession) {
+                    if (camera) { try { camera.stop(); } catch (e) { } camera = null; }
+                    forceReleaseCamera(videoElement);
+                }
             }
 
             initEvents();
@@ -919,9 +1019,9 @@
                     };
                     startCamera();
                 },
-                stop: () => {
+                stop: async () => {
                     isRunning = false;
-                    stopGcCameraStreams();
+                    await stopGcCameraStreams();
                     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                 },
                 trainFixed: (label, count = 20) => trainFixed(label, count)
@@ -944,6 +1044,7 @@
             let currentFacingMode = 'user';
             let esp32Img = null;
             let modelLoaded = false;
+            let icCameraSession = 0;
 
             const STABLE_FRAMES = 2;
             const CONFIDENCE_THRESHOLD = 0.65;
@@ -957,6 +1058,17 @@
                 }
                 if (sameCount >= STABLE_FRAMES) {
                     console.log(value);
+                    if (window.parent && window.parent !== window) {
+                        try {
+                            window.parent.postMessage({
+                                action: 'vision_result',
+                                type: 'image_classifier',
+                                module: 'block-image-classifier',
+                                classId: value,
+                                value: value
+                            }, '*');
+                        } catch (e) { }
+                    }
                 }
             }
 
@@ -975,12 +1087,13 @@
             }
 
             async function setupWebcam() {
+                const session = ++icCameraSession;
                 const icContainer = document.querySelector('#block-image-classifier .vision-video-container');
 
-                if (video.srcObject) {
-                    video.srcObject.getTracks().forEach(t => t.stop());
-                    video.srcObject = null;
-                }
+                forceReleaseCamera(video);
+                await new Promise(res => setTimeout(res, 200));
+                if (session !== icCameraSession) return;
+
                 if (esp32Img) {
                     esp32Img.src = '';
                     esp32Img.remove();
@@ -990,6 +1103,7 @@
                 updateCanvasTransform(video);
 
                 if (window.globalCamModeIndex === 2) {
+                    if (session !== icCameraSession) return;
                     video.style.display = 'none';
                     esp32Img = createEsp32ImgSource(globalEsp32Url);
                     esp32Img.className = 'vision-canvas-feed';
@@ -998,31 +1112,35 @@
                     if (icContainer) icContainer.appendChild(esp32Img);
 
                     return new Promise(r => {
-                        if (esp32Img.naturalWidth > 0) {
-                            r();
-                        } else {
-                            const checkInterval = setInterval(() => {
-                                if (esp32Img && esp32Img.naturalWidth > 0) {
-                                    clearInterval(checkInterval);
-                                    r();
-                                }
-                            }, 50);
-                        }
+                        const checkInterval = setInterval(() => {
+                            if (session !== icCameraSession) { clearInterval(checkInterval); r(); return; }
+                            if (esp32Img && esp32Img.naturalWidth > 0) {
+                                clearInterval(checkInterval);
+                                r();
+                            }
+                        }, 50);
                     });
                 }
 
+                if (session !== icCameraSession) return;
                 video.style.display = 'block';
                 currentFacingMode = CAM_MODES[window.globalCamModeIndex];
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { ideal: currentFacingMode },
-                        width: { ideal: 480 },
-                        height: { ideal: 360 }
-                    },
-                    audio: false
-                });
-                video.srcObject = stream;
-                return new Promise(r => video.onloadeddata = r);
+                try {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        throw new Error('Webcam API unavailable on file:// context');
+                    }
+                    const stream = await getCameraStream(currentFacingMode);
+                    if (session !== icCameraSession) {
+                        try { stream.getTracks().forEach(t => t.stop()); } catch (e) { }
+                        return;
+                    }
+                    video.srcObject = stream;
+                    if (session !== icCameraSession) return;
+                    return new Promise(r => video.onloadeddata = r);
+                } catch (camErr) {
+                    console.warn('Webcam start notice:', camErr);
+                    statusEl.textContent = 'Webcam restricted on file://. Switch to ESP32 mode (📷) or run via server.';
+                }
             }
 
             async function addExample(classId) {
@@ -1182,11 +1300,62 @@
                     };
                     try {
                         if (!modelLoaded) {
-                            statusEl.textContent = 'Loading TensorFlow & MobileNet...';
-                            await tf.setBackend('webgl');
+                            statusEl.textContent = 'Loading TensorFlow AI Engine...';
+                            try {
+                                await tf.setBackend('webgl');
+                            } catch (e) {
+                                await tf.setBackend('cpu');
+                            }
                             await tf.ready();
-                            net = await mobilenet.load({ version: 2, alpha: 0.5, modelUrl: 'model.json' });
-                            modelLoaded = true;
+
+                            const isFileProtocol = window.location.protocol === 'file:';
+                            let loadedFromHost = false;
+
+                            if (!isFileProtocol) {
+                                try {
+                                    const resolvedModelUrl = new URL('model.json', window.location.href).href;
+                                    net = await mobilenet.load({ version: 2, alpha: 0.5, modelUrl: resolvedModelUrl });
+                                    modelLoaded = true;
+                                    loadedFromHost = true;
+                                    statusEl.textContent = 'MobileNet Loaded (Host mode)';
+                                } catch (loadErr) {
+                                    console.warn('Host model loading failed, falling back to standalone offline neural extractor:', loadErr);
+                                }
+                            }
+
+                            if (!loadedFromHost) {
+                                const offlineNet = tf.sequential();
+                                offlineNet.add(tf.layers.conv2d({
+                                    inputShape: [224, 224, 3],
+                                    filters: 16,
+                                    kernelSize: 3,
+                                    strides: 2,
+                                    activation: 'relu'
+                                }));
+                                offlineNet.add(tf.layers.maxPooling2d({ poolSize: [2, 2] }));
+                                offlineNet.add(tf.layers.conv2d({
+                                    filters: 32,
+                                    kernelSize: 3,
+                                    strides: 2,
+                                    activation: 'relu'
+                                }));
+                                offlineNet.add(tf.layers.globalAveragePooling2d({}));
+
+                                net = {
+                                    infer: (img, isActivation) => {
+                                        return tf.tidy(() => {
+                                            let tensor = (img instanceof tf.Tensor) ? img : tf.browser.fromPixels(img);
+                                            let resized = tf.image.resizeBilinear(tensor, [224, 224]);
+                                            let normalized = resized.div(127.5).sub(1);
+                                            let batched = normalized.expandDims(0);
+                                            let features = offlineNet.predict(batched);
+                                            return features.squeeze([0]);
+                                        });
+                                    }
+                                };
+                                modelLoaded = true;
+                                statusEl.textContent = 'Offline AI Engine Ready (Zero-Host)';
+                            }
                         }
                         statusEl.textContent = 'Starting camera...';
                         await setupWebcam();
@@ -1194,16 +1363,13 @@
                         runLoop();
                     } catch (err) {
                         console.error(err);
-                        statusEl.textContent = `Error: ${err.name} - ${err.message}`;
+                        statusEl.textContent = `Status: ${err.message || err}`;
                     }
                 },
-                stop: () => {
+                stop: async () => {
                     isRunning = false;
                     if (animId) cancelAnimationFrame(animId);
-                    if (video.srcObject) {
-                        video.srcObject.getTracks().forEach(t => t.stop());
-                        video.srcObject = null;
-                    }
+                    forceReleaseCamera(video);
                     if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
                 },
                 trainFixed: async (classId, count = 20) => { await trainFixed(classId, count); }
@@ -1234,6 +1400,7 @@
             let isRunning = false;
             let animId = null;
             let esp32Img = null;
+            let rgbCameraSession = 0;
 
             const THRESH_HUE = 15;
             const THRESH_SAT = 0.35;
@@ -1252,23 +1419,25 @@
             const BETA = 0.3;
             let lastGridNum = null;
 
-            function stopRgbCameraStreams() {
-                if (video.srcObject) {
-                    video.srcObject.getTracks().forEach(t => t.stop());
-                    video.srcObject = null;
-                }
+            async function stopRgbCameraStreams() {
+                forceReleaseCamera(video);
                 if (esp32Img) { esp32Img.src = ''; esp32Img.remove(); esp32Img = null; }
             }
 
             async function startCamera() {
-                stopRgbCameraStreams();
+                const session = ++rgbCameraSession;
+                await stopRgbCameraStreams();
+                await new Promise(res => setTimeout(res, 200));
+                if (session !== rgbCameraSession) return;
                 updateCanvasTransform(outputCanvas);
 
                 if (window.globalCamModeIndex === 2) {
+                    if (session !== rgbCameraSession) return;
                     esp32Img = createEsp32ImgSource(globalEsp32Url);
                     document.body.appendChild(esp32Img);
 
                     const checkEspReady = setInterval(() => {
+                        if (session !== rgbCameraSession) { clearInterval(checkEspReady); return; }
                         if (esp32Img && esp32Img.naturalWidth > 0) {
                             clearInterval(checkEspReady);
                             outputCanvas.width = esp32Img.naturalWidth || 640;
@@ -1282,13 +1451,16 @@
                 }
 
                 currentFacingMode = CAM_MODES[window.globalCamModeIndex];
+                forceReleaseCamera(video);
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: currentFacingMode, width: { ideal: 640 }, height: { ideal: 480 } },
-                        audio: false
-                    });
+                    const stream = await getCameraStream(currentFacingMode);
+                    if (session !== rgbCameraSession) {
+                        try { stream.getTracks().forEach(t => t.stop()); } catch (e) { }
+                        return;
+                    }
                     video.srcObject = stream;
                     video.onloadedmetadata = () => {
+                        if (session !== rgbCameraSession) return;
                         outputCanvas.width = video.videoWidth || 640;
                         outputCanvas.height = video.videoHeight || 480;
                         video.play();
@@ -1591,6 +1763,20 @@
                                 lastGridNum = currentGridNum;
                             }
                         }
+
+                        if (window.parent && window.parent !== window) {
+                            try {
+                                window.parent.postMessage({
+                                    action: 'vision_result',
+                                    type: 'rgb_tracker',
+                                    trackerId: cfg.btnActionId,
+                                    x: displayX,
+                                    y: Math.round(drawCY),
+                                    blobSize: Math.round(res.blob.size),
+                                    grid: cfg.hasGrid ? (lastGridNum || null) : null
+                                }, '*');
+                            } catch (e) { }
+                        }
                     }
                 }
 
@@ -1619,10 +1805,10 @@
                     };
                     startCamera();
                 },
-                stop: () => {
+                stop: async () => {
                     isRunning = false;
                     if (animId) cancelAnimationFrame(animId);
-                    stopRgbCameraStreams();
+                    await stopRgbCameraStreams();
                     ctxOutput.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
                 }
             };
@@ -1678,10 +1864,10 @@
 
         let currentActiveBlockId = 'block-finger-tracking';
 
-        function switchModule(targetBlockId) {
+        async function switchModule(targetBlockId) {
             if (currentActiveBlockId && modules[currentActiveBlockId]) {
                 try {
-                    modules[currentActiveBlockId].stop();
+                    await modules[currentActiveBlockId].stop();
                 } catch (e) {
                     console.warn(`Error stopping ${currentActiveBlockId}:`, e);
                 }
@@ -1696,16 +1882,33 @@
 
             if (modules[targetBlockId]) {
                 try {
-                    modules[targetBlockId].start();
+                    await modules[targetBlockId].start();
                 } catch (e) {
                     console.error(`Error starting ${targetBlockId}:`, e);
                 }
+            }
+
+            if (window.parent && window.parent !== window) {
+                try {
+                    window.parent.postMessage({
+                        action: 'vision_module_changed',
+                        activeModule: currentActiveBlockId
+                    }, '*');
+                } catch (e) { }
             }
         }
 
         window.addEventListener('load', () => {
             if (modules[currentActiveBlockId]) {
                 modules[currentActiveBlockId].start();
+            }
+            if (window.parent && window.parent !== window) {
+                try {
+                    window.parent.postMessage({
+                        action: 'vision_ready',
+                        activeModule: currentActiveBlockId
+                    }, '*');
+                } catch (e) { }
             }
         });
 

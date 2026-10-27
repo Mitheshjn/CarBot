@@ -72,23 +72,105 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
       _localServer!.listen((HttpRequest request) async {
         if (request.method == 'OPTIONS') {
           request.response.headers.add('Access-Control-Allow-Origin', '*');
-          request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+          request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD');
           request.response.headers.add('Access-Control-Allow-Headers', '*');
+          request.response.headers.add('Access-Control-Max-Age', '86400');
           request.response.statusCode = HttpStatus.ok;
           await request.response.close();
           return;
         }
 
-        String path = request.uri.path;
-        if (path.startsWith('/')) path = path.substring(1);
+        String rawPath = request.uri.path;
+        String path = Uri.decodeComponent(rawPath).trim();
+        while (path.startsWith('/')) {
+          path = path.substring(1);
+        }
+        if (path.contains('?')) {
+          path = path.split('?').first;
+        }
+        if (path.contains('#')) {
+          path = path.split('#').first;
+        }
         if (path.startsWith('flutter_assets/')) {
           path = path.substring('flutter_assets/'.length);
         }
-        if (path.isEmpty) path = 'assets/web/index.html';
 
-        try {
-          final ByteData data = await rootBundle.load(path);
-          final lower = path.toLowerCase();
+        final List<String> candidates = <String>[];
+
+        if (path.isEmpty || path == 'assets/web' || path == 'assets/web/') {
+          candidates.add('assets/web/index.html');
+        } else if (path == 'camera' ||
+            path == 'camera/' ||
+            path == 'assets/camera' ||
+            path == 'assets/camera/' ||
+            path == 'assets/web/camera' ||
+            path == 'assets/web/camera/') {
+          candidates.add('assets/web/camera/index.html');
+        } else {
+          String normalized = path;
+          if (normalized.endsWith('/')) {
+            normalized = '${normalized}index.html';
+          }
+
+          if (normalized.startsWith('assets/camera/')) {
+            final sub = normalized.substring('assets/camera/'.length);
+            candidates.add('assets/web/camera/$sub');
+            candidates.add(normalized);
+          } else if (normalized.startsWith('camera/')) {
+            final sub = normalized.substring('camera/'.length);
+            candidates.add('assets/web/camera/$sub');
+            candidates.add('assets/camera/$sub');
+            candidates.add('assets/web/$normalized');
+          } else if (normalized.startsWith('assets/web/camera/')) {
+            candidates.add(normalized);
+          } else if (normalized.startsWith('assets/web/')) {
+            candidates.add(normalized);
+            final sub = normalized.substring('assets/web/'.length);
+            if (!sub.startsWith('camera/')) {
+              candidates.add('assets/web/camera/$sub');
+            }
+          } else if (normalized.startsWith('assets/')) {
+            candidates.add(normalized);
+            final sub = normalized.substring('assets/'.length);
+            candidates.add('assets/web/$sub');
+            candidates.add('assets/web/camera/$sub');
+          } else {
+            // Non-prefixed files (e.g. scripts, models, shards, styles)
+            candidates.add('assets/web/$normalized');
+            candidates.add('assets/web/camera/$normalized');
+            candidates.add('assets/$normalized');
+            candidates.add(normalized);
+          }
+        }
+
+        ByteData? data;
+        String resolvedPath = '';
+
+        for (final candidate in candidates) {
+          try {
+            data = await rootBundle.load(candidate);
+            resolvedPath = candidate;
+            break;
+          } catch (_) {}
+        }
+
+        // Local file fallback for development / desktop environments
+        if (data == null) {
+          for (final candidate in candidates) {
+            try {
+              final file = File(candidate);
+              if (await file.exists()) {
+                final bytes = await file.readAsBytes();
+                data = ByteData.view(bytes.buffer);
+                resolvedPath = candidate;
+                break;
+              }
+            } catch (_) {}
+          }
+        }
+
+        if (data != null) {
+          final lower = resolvedPath.toLowerCase();
 
           if (lower.endsWith('.html')) {
             request.response.headers.contentType = ContentType('text', 'html', charset: 'utf-8');
@@ -100,12 +182,18 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
             request.response.headers.contentType = ContentType('application', 'json', charset: 'utf-8');
           } else if (lower.endsWith('.wasm')) {
             request.response.headers.contentType = ContentType('application', 'wasm');
+          } else if (lower.endsWith('.xml')) {
+            request.response.headers.contentType = ContentType('text', 'xml', charset: 'utf-8');
           } else if (lower.endsWith('.png')) {
             request.response.headers.contentType = ContentType('image', 'png');
           } else if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) {
             request.response.headers.contentType = ContentType('image', 'jpeg');
           } else if (lower.endsWith('.svg')) {
             request.response.headers.contentType = ContentType('image', 'svg+xml');
+          } else if (lower.endsWith('.mp3')) {
+            request.response.headers.contentType = ContentType('audio', 'mpeg');
+          } else if (lower.endsWith('.wav')) {
+            request.response.headers.contentType = ContentType('audio', 'wav');
           } else if (lower.endsWith('.bin') ||
               lower.endsWith('.binarypb') ||
               lower.endsWith('.tflite') ||
@@ -116,16 +204,20 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
           }
 
           request.response.headers.add('Access-Control-Allow-Origin', '*');
-          request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+          request.response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, HEAD');
           request.response.headers.add('Access-Control-Allow-Headers', '*');
+          request.response.headers.add('Cross-Origin-Resource-Policy', 'cross-origin');
           request.response.headers.add('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
           request.response.headers.add('Pragma', 'no-cache');
           request.response.headers.add('Expires', '0');
 
-          request.response.add(data.buffer.asUint8List());
-        } catch (e) {
-          debugPrint('Local server 404 for asset: $path ($e)');
+          if (request.method != 'HEAD') {
+            request.response.add(data.buffer.asUint8List());
+          }
+        } else {
+          debugPrint('Local server 404 for asset: $path (tried: ${candidates.join(', ')})');
           request.response.statusCode = HttpStatus.notFound;
+          request.response.headers.contentType = ContentType('text', 'plain', charset: 'utf-8');
           request.response.write('Asset not found: $path');
         }
         await request.response.close();
@@ -315,9 +407,16 @@ class _ControllerWebViewScreenState extends State<ControllerWebViewScreen> {
               _registerJsHandlers(controller);
             },
             onPermissionRequest: (controller, request) async {
+              final status = await Permission.camera.request();
+              if (status.isGranted || status.isLimited) {
+                return PermissionResponse(
+                  resources: request.resources,
+                  action: PermissionResponseAction.GRANT,
+                );
+              }
               return PermissionResponse(
                 resources: request.resources,
-                action: PermissionResponseAction.GRANT,
+                action: PermissionResponseAction.DENY,
               );
             },
             onConsoleMessage: (controller, consoleMessage) {
