@@ -636,11 +636,13 @@
 
     .workspace-floating-controls {
       position: absolute;
-      bottom: 18px;
-      right: 18px;
+      bottom: 20px;
+      right: 20px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
+      padding: 10px;
+      align-items: flex-end;
       z-index: 80;
       user-select: none;
     }
@@ -650,12 +652,12 @@
       color: #24292e !important;
       border: 1px solid #d0d7de !important;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-      border-radius: 8px !important;
-      padding: 0 10px !important;
-      min-width: 44px !important;
-      width: auto !important;
-      height: 36px !important;
-      font-size: 0.88rem !important;
+      border-radius: 6px !important;
+      padding: 2px !important;
+      min-width: 32px !important;
+      width: 32px !important;
+      height: 32px !important;
+      font-size: 0.75rem !important;
       font-weight: 600 !important;
       cursor: pointer !important;
       display: flex !important;
@@ -1100,6 +1102,27 @@
     .conn-btn:active {
       transform: scale(0.96);
     }
+
+    /* Show global scroll buttons only in landscape */
+    #globalScrollButtons {
+      display: none !important;
+    }
+
+    @media (orientation: landscape) {
+      #globalScrollButtons {
+        display: flex !important;
+      }
+    }
+
+    /* Keep + and - square; let Center/Delete fit their text */
+    .workspace-floating-controls button[onclick*="workspaceResetZoom"],
+    .workspace-floating-controls #btnDelete,
+    .workspace-floating-controls #btnDeleteCamera {
+      width: auto !important;
+      min-width: 46px !important;
+      padding: 0 6px !important;
+      font-size: 0.68rem !important;
+    }
   </style>
 </head>
 
@@ -1165,6 +1188,7 @@
     </div>
     <div id="visionFrameWrapper"
       style="position: relative; width: 100%; height: 320px; border-radius: 8px; background: #000; overflow: hidden; transition: height 0.25s ease;">
+
       <iframe id="visionAiFrame" src="about:blank" style="width: 100%; height: 100%; border: none; display: block;"
         onload="if(typeof onVisionAiFrameLoaded==='function')onVisionAiFrameLoaded()"
         allow="camera *; microphone *; camera; microphone; autoplay; fullscreen" allowfullscreen></iframe>
@@ -1235,14 +1259,14 @@
           <input type="checkbox" id="lightsToggle" onchange="toggleHeadlights(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="headlightLabel" class="switch-label">💡 Lights</span>
+        <span id="headlightLabel" class="switch-label">Lights</span>
       </div>
       <div class="switch-container">
         <label class="switch">
           <input type="checkbox" id="addOnToggle" onchange="toggleAddOns(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="addOnLabel" class="switch-label">🔌 Add-Ons</span>
+        <span id="addOnLabel" class="switch-label">Add-Ons</span>
       </div>
     </div>
 
@@ -1253,21 +1277,21 @@
           <input type="checkbox" id="cockpitToggle" onchange="toggleCockpitMode(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="cockpitLabel" class="switch-label">🏎️ Cockpit</span>
+        <span id="cockpitLabel" class="switch-label">Cockpit</span>
       </div>
       <div class="switch-container" id="camToggleContainer">
         <label class="switch">
           <input type="checkbox" id="camToggle" onchange="toggleCamera(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="camLabel" class="switch-label">📷 Cam</span>
+        <span id="camLabel" class="switch-label">Cam</span>
       </div>
       <div class="switch-container">
         <label class="switch">
           <input type="checkbox" id="terminalToggle" onchange="toggleTerminal(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="terminalLabel" class="switch-label">🧩 Blocks</span>
+        <span id="terminalLabel" class="switch-label">Blocks</span>
       </div>
     </div>
   </div>
@@ -1342,12 +1366,12 @@
       <div id="oledControlGroup" class="mod-subgroup" style="display:none;">
         <div class="mod-subgroup-title">OLED Screen Modes:</div>
         <div class="mod-btn-grid">
-          <button type="button" class="mod-btn" onclick="setOledMode(0)">🤖 Robot Face</button>
-          <button type="button" class="mod-btn" onclick="setOledMode(3)">🦖 Chrome Dino</button>
-          <button type="button" class="mod-btn" onclick="setOledMode(5)">👾 Space Invaders</button>
+          <button type="button" class="mod-btn" onclick="setOledMode(0)">Robot Face</button>
+          <button type="button" class="mod-btn" onclick="setOledMode(3)">Chrome Dino</button>
+          <button type="button" class="mod-btn" onclick="setOledMode(5)">Space Invaders</button>
         </div>
         <div id="oledHint" style="font-size:10px;color:#888;margin-top:8px;font-style:italic;">
-          👀 Face: Eyes react to car drive direction
+          Face: Eyes react to car drive direction
         </div>
       </div>
     </div>
@@ -1362,17 +1386,15 @@
           <button type="button" id="tabMainBlocks" class="tab-btn active" onclick="switchBlockSection('main')"
             style="padding: 5px 10px; font-size: 11px; border-radius: 6px; cursor: pointer;">Main Blocks</button>
           <button type="button" id="tabCameraBlocks" class="tab-btn" onclick="switchBlockSection('camera')"
-            style="padding: 5px 10px; font-size: 11px; border-radius: 6px; cursor: pointer;">📷 Camera Blocks</button>
+            style="padding: 5px 10px; font-size: 11px; border-radius: 6px; cursor: pointer;">Camera Blocks</button>
         </div>
       </div>
       <div class="rover-actions header-actions">
-        <button onclick="openCodeModal('python')" class="btn-secondary" title="View generated Python & XML">👁
-          Code</button>
-        <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">📋 Copy Python</button>
-        <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">💾 Download
-          XML</button>
-        <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">📂 Upload
-          XML</button>
+        <button onclick="openCodeModal('python')" class="btn-secondary"
+          title="View generated Python & XML">Code</button>
+        <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">Copy .py</button>
+        <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">Save</button>
+        <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">Upload</button>
       </div>
     </div>
 
@@ -1633,10 +1655,9 @@
       <block type="lib_mpu6050_initialize"></block>
       <block type="lib_mpu6050_enable_gyro"></block>
       <block type="lib_mpu6050_disable_gyro"></block>
-      <block type="lib_mpu6050_change_gyro_range"></block>
+      <block type="lib_mpu6050_get_gyro"></block>
       <block type="lib_mpu6050_enable_accel"></block>
       <block type="lib_mpu6050_disable_accel"></block>
-      <block type="lib_mpu6050_change_accel_range"></block>
       <block type="lib_mpu6050_get_accel"></block>
     </category>
     <category name="TOF" colour="180">
@@ -2772,7 +2793,7 @@
 
       if (!frame.src || frame.src === 'about:blank' || frame.src.endsWith('about:blank')) {
         let triedFallback = false;
-        frame.onerror = function() {
+        frame.onerror = function () {
           if (!triedFallback) {
             triedFallback = true;
             frame.src = '../camera/index.html';
@@ -3569,7 +3590,24 @@
           showToast('Stop command sent.', 'info');
         });
     }
+    function scrollPageUp() {
+      window.scrollBy({ top: -Math.max(200, window.innerHeight * 0.6), behavior: 'smooth' });
+    }
+    function scrollPageDown() {
+      window.scrollBy({ top: Math.max(200, window.innerHeight * 0.6), behavior: 'smooth' });
+    }
+    window.scrollPageUp = scrollPageUp;
+    window.scrollPageDown = scrollPageDown;
+
   </script>
+  <!-- GLOBAL SCROLL BUTTONS -->
+  <div id="globalScrollButtons"
+    style="position:fixed;right:12px;bottom:90px;display:none;flex-direction:column;gap:8px;z-index:2147483647;">
+    <button type="button" onclick="scrollPageUp()"
+      style="width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#252525;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);">↑</button>
+    <button type="button" onclick="scrollPageDown()"
+      style="width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#252525;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.5);">↓</button>
+  </div>
 </body>
 
 </html>
