@@ -1155,15 +1155,13 @@
       style="display:flex;justify-content:space-between;align-items:center;padding:0 0 8px 0;margin-bottom:6px;border-bottom:1px solid #2a2a2a;flex-wrap:wrap;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="panel-title" style="margin-bottom:0;">Vision AI Suite Preview</span>
-        <button type="button" class="rst-btn" onclick="switchVisionPreviewCam(event)" id="btnVisionCamCycle"
-          title="Switch Camera (Front / Back / ESP32)"
-          style="width: 32px; height: 32px; font-size: 14px; padding: 0;">📷</button>
         <button type="button" class="rst-btn" onclick="toggleVisionPreview(event)" id="btnToggleVisionPreview"
           title="Toggle Preview" style="width: 32px; height: 32px; font-size: 14px; padding: 0;">👁</button>
+        <button type="button" class="rst-btn" onclick="switchVisionPreviewCam(event)" title="Flip Camera"
+          style="width: 32px; height: 32px; font-size: 14px; padding: 0;">📷</button>
         <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite"
           style="width: 32px; height: 32px; font-size: 14px; padding: 0;">↻</button>
       </div>
-      <span id="visionStatusBadge" style="font-size:11px;color:#00e5ff;font-weight:600;padding:3px 8px;background:rgba(0,229,255,0.1);border-radius:12px;border:1px solid rgba(0,229,255,0.25);">🤖 AI Ready</span>
     </div>
     <div id="visionFrameWrapper"
       style="position: relative; width: 100%; height: 320px; border-radius: 8px; background: #000; overflow: hidden; transition: height 0.25s ease;">
@@ -2422,22 +2420,7 @@
 
     function updateCamSourceButtonUI() {
       const btn = document.getElementById('camSourceSwitchBtn');
-      if (!btn) return;
-      if (!isCameraOn) {
-        btn.style.display = 'none';
-        return;
-      }
-      btn.style.display = 'inline-flex';
-      if (currentCamSource === 'vision') {
-        btn.textContent = '🤖 AI';
-        btn.title = 'Active: Vision AI Suite (Click to switch to Car ESP32 stream)';
-      } else if (currentCamSource === 'esp32') {
-        btn.textContent = '📷 ESP';
-        btn.title = 'Active: Car Camera Stream (Click to switch to Phone/Webcam)';
-      } else {
-        btn.textContent = '📱 CAM';
-        btn.title = 'Active: Phone/Webcam (Click to switch to Vision AI Suite)';
-      }
+      if (btn) btn.style.display = 'none';
     }
 
     function onCamLoadOnce() {
@@ -2543,56 +2526,30 @@
     }
 
     function toggleCameraSource() {
-      if (!isCameraOn) return;
-      if (currentCamSource === 'vision') {
-        setCameraSource('esp32');
-      } else if (currentCamSource === 'esp32') {
-        setCameraSource('phone');
-      } else {
-        setCameraSource('vision');
-      }
+      // Only ESP32 feed is used; no source switching.
+      setCameraSource('esp32');
     }
 
     function setCameraSource(source) {
-      currentCamSource = source;
+      currentCamSource = 'esp32';
       updateCamSourceButtonUI();
 
       const s = document.getElementById('cameraSection');
       const f = document.getElementById('camFrame');
       const e = document.getElementById('camError');
-      const previewCard = document.getElementById('cameraVisionPreviewCard');
 
       if (camTimeout) { clearTimeout(camTimeout); camTimeout = null; }
 
-      if (source === 'vision') {
-        stopPhoneCamera();
-        if (f) { f.removeAttribute('src'); f.src = ''; f.style.display = 'none'; }
-        if (e) e.style.display = 'none';
-        if (s) s.style.display = 'none';
-        if (previewCard) previewCard.style.display = 'block';
-        loadVisionAiFrame();
-        showToast('Active: Vision AI Suite', 'info');
-      } else if (source === 'phone') {
-        if (previewCard && activeBlockMode !== 'camera') previewCard.style.display = 'none';
-        if (s) s.style.display = 'block';
-        if (f) { f.removeAttribute('src'); f.src = ''; f.style.display = 'none'; }
-        if (e) e.style.display = 'none';
-        startPhoneCamera();
-        showToast('Active: Device Camera', 'info');
-      } else { // esp32
-        stopPhoneCamera();
-        if (previewCard && activeBlockMode !== 'camera') previewCard.style.display = 'none';
-        if (s) s.style.display = 'block';
-        if (e) e.style.display = 'none';
-        if (f) {
-          f.style.display = 'none';
-          camLoadedOnce = false;
-          f.onload = onCamLoadOnce;
-          f.onerror = onCamError;
-          camTimeout = setTimeout(onCamError, 3500);
-          f.src = 'http://192.168.4.10:81/stream';
-        }
-        showToast('Connecting to ESP32 stream...', 'info');
+      stopPhoneCamera();
+      if (s) s.style.display = isCameraOn ? 'block' : 'none';
+      if (e) e.style.display = 'none';
+      if (f) {
+        f.style.display = 'none';
+        camLoadedOnce = false;
+        f.onload = onCamLoadOnce;
+        f.onerror = onCamError;
+        camTimeout = setTimeout(onCamError, 3500);
+        f.src = 'http://192.168.4.10:81/stream';
       }
     }
 
@@ -2641,7 +2598,7 @@
         updateSpeedUI(CAM_FIXED_SPEED);
         sendSpeed(CAM_FIXED_SPEED);
 
-        setCameraSource(currentCamSource || 'vision');
+        setCameraSource('esp32');
       } else {
         stopPhoneCamera();
         if (f) {
@@ -2858,22 +2815,6 @@
         }
       } else if (event.data.action === 'vision_result') {
         window.latestVisionData = event.data;
-        const badge = document.getElementById('visionStatusBadge');
-        if (badge) {
-          let summary = '';
-          if (event.data.type === 'finger_tracking') {
-            summary = `🖐️ ${event.data.fingerCount ?? event.data.value} Fingers`;
-          } else if (event.data.type === 'gesture_classifier') {
-            summary = `✌️ ${event.data.prediction ?? event.data.value}`;
-          } else if (event.data.type === 'image_classifier') {
-            summary = `📷 Class: ${event.data.classId ?? event.data.value}`;
-          } else if (event.data.type === 'rgb_tracker') {
-            const rx = event.data.x ?? event.data.posX ?? 0;
-            const ry = event.data.y ?? event.data.posY ?? 0;
-            summary = `🎯 X:${rx} Y:${ry}${event.data.grid ? ' (Grid ' + event.data.grid + ')' : ''}`;
-          }
-          if (summary) badge.textContent = summary;
-        }
       } else if (event.data.action === 'cam_mode_changed') {
         const btn = document.getElementById('btnVisionCamCycle');
         if (btn && event.data.icon) btn.textContent = event.data.icon;
