@@ -2077,6 +2077,7 @@
         if (activeBlockMode === 'camera') {
           if (liveCamSec) liveCamSec.style.display = 'none';
           if (previewCard) previewCard.style.display = 'block';
+          loadVisionAiFrame();
 
           if (mainCamToggle) {
             if (mainCamToggle.checked) {
@@ -2093,6 +2094,16 @@
       } else {
         if (previewCard) previewCard.style.display = 'none';
         if (liveCamSec) liveCamSec.style.display = isCameraOn ? 'block' : 'none';
+
+        // Shut down Vision AI suite stream when blocks toggle is closed
+        const vFrame = document.getElementById('visionAiFrame');
+        if (vFrame) {
+          try { vFrame.contentWindow.postMessage({ action: 'pause' }, '*'); } catch (err) { }
+          vFrame.onload = null;
+          vFrame.removeAttribute('src');
+          vFrame.src = 'about:blank';
+        }
+        activeBlockMode = activeBlockMode; // keep last mode
 
         if (mainCamToggle) {
           mainCamToggle.disabled = false;
@@ -3007,8 +3018,12 @@
         if (secMain) secMain.style.display = 'block';
 
         const frame = document.getElementById('visionAiFrame');
-        if (frame && frame.contentWindow && frame.src && !frame.src.endsWith('about:blank')) {
+        if (frame) {
           try { frame.contentWindow.postMessage({ action: 'pause' }, '*'); } catch (err) { }
+          // Fully release the Vision AI suite (and its ESP32 stream) when leaving camera blocks
+          frame.onload = null;
+          frame.removeAttribute('src');
+          frame.src = 'about:blank';
         }
 
         if (previewCard) previewCard.style.display = 'none';
