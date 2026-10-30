@@ -634,69 +634,7 @@
       backdrop-filter: blur(2px);
     }
 
-    .workspace-floating-controls {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      padding: 10px;
-      align-items: flex-end;
-      z-index: 80;
-      user-select: none;
-    }
 
-    .workspace-floating-controls .ctrl-btn {
-      background: #ffffff !important;
-      color: #24292e !important;
-      border: 1px solid #d0d7de !important;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-      border-radius: 6px !important;
-      padding: 2px !important;
-      min-width: 32px !important;
-      width: 32px !important;
-      height: 32px !important;
-      font-size: 0.75rem !important;
-      font-weight: 600 !important;
-      cursor: pointer !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      transition: all 0.15s ease !important;
-      margin: 0 !important;
-    }
-
-    .workspace-floating-controls .ctrl-btn:hover {
-      background: #f6f8fa !important;
-      border-color: #0969da !important;
-      color: #0969da !important;
-      transform: translateY(-1px) !important;
-    }
-
-    .workspace-floating-controls .ctrl-btn:active {
-      transform: translateY(0) !important;
-      background: #eaeef2 !important;
-    }
-
-    .workspace-floating-controls .ctrl-btn-danger {
-      font-size: 0.82rem !important;
-      color: #cf222e !important;
-    }
-
-    .workspace-floating-controls .ctrl-btn-danger:hover {
-      background: #ffebe9 !important;
-      border-color: #cf222e !important;
-      color: #a40e26 !important;
-    }
-
-    .workspace-floating-controls .ctrl-btn-danger.drag-over-delete {
-      background: #cf222e !important;
-      color: #ffffff !important;
-      border-color: #a40e26 !important;
-      transform: scale(1.12) !important;
-      box-shadow: 0 4px 14px rgba(207, 34, 46, 0.5) !important;
-    }
 
     .rover-car-controls {
       display: flex;
@@ -1858,7 +1796,9 @@
   </xml>
 
   <script>
+    // Configurable endpoints - change these to match your rover's IP
     const ESP_HOST = "http://192.168.4.1";
+    const ESP_CAM_HOST = "http://192.168.4.10:81";
     (function () {
       const fixCamToolbox = () => {
         const camToolbox = document.getElementById('toolbox_camera');
@@ -2017,7 +1957,6 @@
       activePointerId = null;
       if (driveHeartbeat) { clearInterval(driveHeartbeat); driveHeartbeat = null; }
       fetchApi('/stop', 500);
-      setTimeout(() => { if (currentDriveDir === 'stop') fetchApi('/stop', 500); }, 50);
     }
 
     function stopPress(e) {
@@ -2044,12 +1983,6 @@
     window.addEventListener('blur', () => { if (currentDriveDir !== 'stop') driveStop(); });
 
     let isAddOnsActive = false;
-
-    function toggleHeadlights(en) {
-      const lbl = document.getElementById('headlightLabel');
-      if (lbl) lbl.style.color = en ? "#007aff" : "#aaa";
-      fetchApi('/setFrontLed?state=' + (en ? 1 : 0));
-    }
 
     function toggleAddOns(en) {
       isAddOnsActive = !!en;
@@ -2580,7 +2513,7 @@
         f.onload = onCamLoadOnce;
         f.onerror = onCamError;
         camTimeout = setTimeout(onCamError, 3500);
-        f.src = 'http://192.168.4.10:81/stream';
+        f.src = ESP_CAM_HOST + '/stream';
       }
     }
 
@@ -2681,7 +2614,7 @@
         f.onerror = onCamError;
         f.onload = onCamLoadOnce;
         camTimeout = setTimeout(onCamError, 4000);
-        f.src = 'http://192.168.4.10:81/stream?t=' + Date.now();
+        f.src = ESP_CAM_HOST + '/stream?t=' + Date.now();
       }, 60);
       return false;
     }
@@ -3754,9 +3687,6 @@
           }, 250);
         } else {
           fetchApi('/stop', 500);
-          setTimeout(() => {
-            if (currentLiveDriveDir === 'stop') fetchApi('/stop', 500);
-          }, 60);
         }
       } else if (newDir !== 'stop' && !liveDriveHeartbeat) {
         liveDriveHeartbeat = setInterval(() => {
@@ -3793,9 +3723,6 @@
       if (currentLiveDriveDir !== 'stop') {
         currentLiveDriveDir = 'stop';
         fetchApi('/stop', 500);
-        setTimeout(() => {
-          if (currentLiveDriveDir === 'stop') fetchApi('/stop', 500);
-        }, 60);
       }
     }
 
@@ -4067,9 +3994,6 @@
         liveDriveHeartbeat = null;
       }
       fetchApi('/stop', 500);
-      setTimeout(() => {
-        if (currentLiveDriveDir === 'stop') fetchApi('/stop', 500);
-      }, 60);
       updateCameraLiveUI(false);
     }
 

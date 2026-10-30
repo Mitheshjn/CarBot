@@ -112,11 +112,12 @@ header button:active {
   color: #24292e;
   border: 1px solid #d0d7de;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  border-radius: 8px;
-  padding: 0 10px;
-  min-width: 42px;
-  height: 38px;
-  font-size: 0.9rem;
+  border-radius: 6px;
+  padding: 0;
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -124,6 +125,7 @@ header button:active {
   justify-content: center;
   transition: all 0.15s ease;
   font-family: inherit;
+  margin: 0;
 }
 
 .workspace-floating-controls .ctrl-btn:hover {
