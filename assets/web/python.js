@@ -207,6 +207,18 @@ registerPythonBlock('lib_motor_rotate', function (a) {
         return b + ".rotate(speed=" + c + ", direction=" + a + ")\n"
 });
 
+registerPythonBlock('lib_camera_motor_rotate', function (a) {
+        Blockly.Python.definitions_.import_motor = "from blocks.actuators.motor import Motor";
+        var b = Blockly.Python.valueToCode(a, "motor_object", Blockly.Python.ORDER_MEMBER) || "left_motor",
+                dir = Blockly.Python.valueToCode(a, "motor_direction", Blockly.Python.ORDER_NONE) || "True";
+        return b + ".rotate(speed=45, direction=" + dir + ")\n";
+});
+
+registerPythonBlock('lib_camera_motor_stop', function (block) {
+        Blockly.Python.definitions_.import_motor = "from blocks.actuators.motor import Motor";
+        return "left_motor.rotate(speed=0, direction=True)\nright_motor.rotate(speed=0, direction=True)\n";
+});
+
 // MPU6050 Generators
 registerPythonBlock('lib_mpu6050_initialize', function (a) {
         Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";

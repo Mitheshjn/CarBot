@@ -771,6 +771,39 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": ""
   },
   {
+    "type": "lib_camera_motor_rotate",
+    "message0": "Rotate Motor %1 direction %2",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "motor_object",
+        "check": "motor_object",
+        "align": "RIGHT"
+      },
+      {
+        "type": "input_value",
+        "name": "motor_direction",
+        "check": "Boolean",
+        "align": "RIGHT"
+      }
+    ],
+    "inputsInline": false,
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 260,
+    "tooltip": "Rotate motor at fixed camera speed (45 PWM)",
+    "helpUrl": ""
+  },
+  {
+    "type": "lib_camera_motor_stop",
+    "message0": "Stop Motors",
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": 260,
+    "tooltip": "Stop car motors immediately",
+    "helpUrl": ""
+  },
+  {
     "type": "lib_mpu6050_initialize",
     "message0": "MPU6050 Onboard %1 %2",
     "args0": [

@@ -7,6 +7,34 @@
     <title>Vision AI Suite</title>
 
     <!-- External Local Libraries -->
+    <script>
+        window.Module = window.Module || {};
+        (function() {
+            const _origLog = console.log;
+            console.log = function(...args) {
+                _origLog.apply(console, args);
+                try {
+                    if (args.length > 0) {
+                        const val = args[0];
+                        const num = typeof val === 'number' ? val : (typeof val === 'string' && /^-?\d+(\.\d+)?$/.test(val.trim()) ? parseFloat(val.trim()) : null);
+                        if (num !== null && !isNaN(num) && num > 0) {
+                            if (window.parent && window.parent !== window) {
+                                window.parent.postMessage({
+                                    action: 'vision_result',
+                                    type: 'console_log',
+                                    value: num,
+                                    grid: num,
+                                    fingerCount: num,
+                                    classId: num,
+                                    prediction: num
+                                }, '*');
+                            }
+                        }
+                    }
+                } catch(e) {}
+            };
+        })();
+    </script>
     <script src="camera_utils.js"></script>
     <script src="control_utils.js"></script>
     <script src="drawing_utils.js"></script>
@@ -1802,7 +1830,8 @@ if (navigator.mediaDevices && __originalGetUserMedia) {
                                     x: displayX,
                                     y: Math.round(drawCY),
                                     blobSize: Math.round(res.blob.size),
-                                    grid: cfg.hasGrid ? (lastGridNum || null) : null
+                                    grid: cfg.hasGrid ? (lastGridNum || null) : null,
+                                    value: cfg.hasGrid ? (lastGridNum || 0) : displayX
                                 }, '*');
                             } catch (e) { }
                         }
@@ -1928,6 +1957,14 @@ if (navigator.mediaDevices && __originalGetUserMedia) {
         }
 
         window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const requestedModule = urlParams.get('module');
+            if (requestedModule && modules[requestedModule]) {
+                document.querySelectorAll('.app-block').forEach(b => b.classList.remove('active'));
+                const el = document.getElementById(requestedModule);
+                if (el) el.classList.add('active');
+                currentActiveBlockId = requestedModule;
+            }
             if (modules[currentActiveBlockId]) {
                 modules[currentActiveBlockId].start();
             }

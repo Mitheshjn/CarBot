@@ -1114,15 +1114,6 @@
       }
     }
 
-    /* Keep + and - square; let Center/Delete fit their text */
-    .workspace-floating-controls button[onclick*="workspaceResetZoom"],
-    .workspace-floating-controls #btnDelete,
-    .workspace-floating-controls #btnDeleteCamera {
-      width: auto !important;
-      min-width: 46px !important;
-      padding: 0 6px !important;
-      font-size: 0.68rem !important;
-    }
   </style>
 </head>
 
@@ -1181,7 +1172,7 @@
         <button type="button" class="rst-btn" onclick="toggleVisionPreview(event)" id="btnToggleVisionPreview"
           title="Toggle Preview" style="width: 32px; height: 32px; font-size: 14px; padding: 0;">👁</button>
         <button type="button" class="rst-btn" onclick="switchVisionPreviewCam(event)" title="Flip Camera"
-          style="width: 32px; height: 32px; font-size: 14px; padding: 0;">📷</button>
+          style="width: 32px; height: 32px; font-size: 14px; padding: 0;">🔄</button>
         <button type="button" class="rst-btn" onclick="reloadVisionFrame(event)" title="Reload Suite"
           style="width: 32px; height: 32px; font-size: 14px; padding: 0;">↻</button>
       </div>
@@ -1252,46 +1243,35 @@
       </div>
     </div>
 
-    <!-- ROW 1: AUXILIARY SWITCHES -->
-    <div class="switches-row" id="rowAuxSwitches">
-      <div class="switch-container">
-        <label class="switch">
-          <input type="checkbox" id="lightsToggle" onchange="toggleHeadlights(this.checked)">
-          <span class="slider"></span>
-        </label>
-        <span id="headlightLabel" class="switch-label">Lights</span>
-      </div>
+    <!-- AUXILIARY & MAIN SWITCHES -->
+    <div class="switches-row" id="rowMainSwitches" style="flex-wrap:wrap;gap:6px;">
       <div class="switch-container">
         <label class="switch">
           <input type="checkbox" id="addOnToggle" onchange="toggleAddOns(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="addOnLabel" class="switch-label">Add-Ons</span>
+        <span id="addOnLabel" class="switch-label" style="font-size:11px;">Add-Ons</span>
       </div>
-    </div>
-
-    <!-- ROW 2: MAIN SWITCHES -->
-    <div class="switches-row" id="rowMainSwitches">
       <div class="switch-container">
         <label class="switch">
           <input type="checkbox" id="cockpitToggle" onchange="toggleCockpitMode(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="cockpitLabel" class="switch-label">Cockpit</span>
+        <span id="cockpitLabel" class="switch-label" style="font-size:11px;">Cockpit</span>
       </div>
       <div class="switch-container" id="camToggleContainer">
         <label class="switch">
           <input type="checkbox" id="camToggle" onchange="toggleCamera(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="camLabel" class="switch-label">Cam</span>
+        <span id="camLabel" class="switch-label" style="font-size:11px;">Cam</span>
       </div>
       <div class="switch-container">
         <label class="switch">
           <input type="checkbox" id="terminalToggle" onchange="toggleTerminal(this.checked)">
           <span class="slider"></span>
         </label>
-        <span id="terminalLabel" class="switch-label">Blocks</span>
+        <span id="terminalLabel" class="switch-label" style="font-size:11px;">Blocks</span>
       </div>
     </div>
   </div>
@@ -1381,7 +1361,7 @@
   <div class="panel panel-wide" id="terminalPanel" style="display:none;">
     <div class="rover-header" style="flex-wrap: wrap; gap: 8px; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <h1 style="margin: 0;">Blockly Studio</h1>
+        <h1 style="margin: 0;">Code Studio</h1>
         <div style="display: inline-flex; background: #222; border-radius: 8px; padding: 2px; border: 1px solid #333;">
           <button type="button" id="tabMainBlocks" class="tab-btn active" onclick="switchBlockSection('main')"
             style="padding: 5px 10px; font-size: 11px; border-radius: 6px; cursor: pointer;">Main Blocks</button>
@@ -1390,9 +1370,9 @@
         </div>
       </div>
       <div class="rover-actions header-actions">
-        <button onclick="openCodeModal('python')" class="btn-secondary"
+        <button id="codeBtn" onclick="openCodeModal('python')" class="btn-secondary"
           title="View generated Python & XML">Code</button>
-        <button onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">Copy .py</button>
+        <button id="copyCodeBtn" onclick="copyPythonCode()" class="btn-blue" title="Copy Python code">Copy .py</button>
         <button onclick="downloadXml()" class="btn-primary" title="Download workspace as XML file">Save</button>
         <button onclick="triggerXmlUpload()" class="btn-amber" title="Upload XML file to load blocks">Upload</button>
       </div>
@@ -1407,12 +1387,12 @@
 
           <div class="workspace-floating-controls" id="workspaceControls">
             <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()"
-              title="Center Workspace">Center</button>
+              title="Center Workspace">⊙</button>
             <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
             <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
             <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDelete" onclick="deleteSelectedBlock()"
               onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()"
-              title="Drag a block here to delete">Delete</button>
+              title="Drag a block here to delete">🗑</button>
           </div>
         </div>
       </div>
@@ -1420,12 +1400,6 @@
 
     <!-- CAMERA BLOCK SECTION -->
     <div id="cameraBlocksSection" style="display: none;">
-      <div
-        style="display:flex; justify-content:space-between; align-items:center; margin: 4px 2px 8px; padding: 6px 10px; background: rgba(0, 229, 255, 0.08); border-left: 3px solid #00e5ff; border-radius: 4px;">
-        <span style="font-size: 11px; color: #00e5ff; font-weight: 600;">📷 Camera &amp; Motor Mode: Logic, Math, Text,
-          Loops, Variables &amp; System enabled. Modular sensors disabled.</span>
-      </div>
-
       <div id="main-container-camera">
         <div id="blocklyAreaCamera">
           <div id="blocklyDivCamera"></div>
@@ -1433,12 +1407,12 @@
 
           <div class="workspace-floating-controls" id="workspaceControlsCamera">
             <button type="button" class="ctrl-btn" onclick="workspaceResetZoom()"
-              title="Center Workspace">Center</button>
+              title="Center Workspace">⊙</button>
             <button type="button" class="ctrl-btn" onclick="workspaceZoomIn()" title="Zoom In">+</button>
             <button type="button" class="ctrl-btn" onclick="workspaceZoomOut()" title="Zoom Out">−</button>
             <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnDeleteCamera" onclick="deleteSelectedBlock()"
               onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()"
-              title="Drag a block here to delete">Delete</button>
+              title="Drag a block here to delete">🗑</button>
           </div>
         </div>
       </div>
@@ -1446,8 +1420,10 @@
 
     <!-- Car Hardware Run & Stop Actions -->
     <div class="rover-car-controls">
-      <button class="rover-car-btn rover-btn-run" onclick="uploadRoverCode()">⬆ Upload &amp; Run on Car</button>
-      <button class="rover-car-btn rover-btn-stop" onclick="stopRoverGroup()">■ Stop Car</button>
+      <button class="rover-car-btn rover-btn-run" id="btnRoverRun" onclick="handleRoverRunClick()">⬆ Upload &amp; Run on
+        Car</button>
+      <button class="rover-car-btn rover-btn-stop" id="btnRoverStop" onclick="handleRoverStopClick()">■ Stop
+        Car</button>
     </div>
   </div>
 
@@ -1609,6 +1585,7 @@
       <block type="lib_left_motor_initialize"></block>
       <block type="lib_right_motor_initialize"></block>
       <block type="lib_motor_rotate"></block>
+
     </category>
     <category name="ARGB" colour="224">
       <block type="lib_argb_initialize"></block>
@@ -1828,6 +1805,7 @@
       <block type="lib_left_motor_initialize"></block>
       <block type="lib_right_motor_initialize"></block>
       <block type="lib_motor_rotate"></block>
+
     </category>
     <category name="Camera" colour="260">
       <block type="lib_camera_initialize"></block>
@@ -1881,6 +1859,26 @@
 
   <script>
     const ESP_HOST = "http://192.168.4.1";
+    (function () {
+      const fixCamToolbox = () => {
+        const camToolbox = document.getElementById('toolbox_camera');
+        if (camToolbox) {
+          const m = camToolbox.querySelector('block[type="lib_motor_rotate"]');
+          if (m) m.setAttribute('type', 'lib_camera_motor_rotate');
+          const motorCat = camToolbox.querySelector('category[name="Motor"]');
+          if (motorCat && !motorCat.querySelector('block[type="lib_camera_motor_stop"]')) {
+            const stopB = document.createElement('block');
+            stopB.setAttribute('type', 'lib_camera_motor_stop');
+            motorCat.appendChild(stopB);
+          }
+        }
+      };
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fixCamToolbox);
+      } else {
+        fixCamToolbox();
+      }
+    })();
     let isCamActive = false;
 
     function fetchApi(endpoint, timeoutMs = 800) {
@@ -2081,8 +2079,8 @@
 
           if (mainCamToggle) {
             if (mainCamToggle.checked) {
-              mainCamToggle.checked = false;
-              toggleCamera(false);
+              mainCamToggle.checked = false; toggleCamera(false);
+              // fpv disconnected
             }
             mainCamToggle.disabled = true;
             if (camContainer) {
@@ -2095,6 +2093,7 @@
         if (previewCard) previewCard.style.display = 'none';
         if (liveCamSec) liveCamSec.style.display = isCameraOn ? 'block' : 'none';
 
+        if (typeof stopCameraLiveRunner === 'function' && isCameraLiveActive) stopCameraLiveRunner();
         // Shut down Vision AI suite stream when blocks toggle is closed
         const vFrame = document.getElementById('visionAiFrame');
         if (vFrame) {
@@ -2205,7 +2204,7 @@
 
     const NORMAL_SPEED_MIN = 0;
     const NORMAL_SPEED_MAX = 255;
-    const CAM_FIXED_SPEED = 40;
+    const CAM_FIXED_SPEED = 45;
 
     let isCameraOn = false;
     window.isCameraOn = false;
@@ -2214,15 +2213,15 @@
 
     function clampSpeedVal(val) {
       let num = parseInt(val, 10);
-      if (isNaN(num)) num = isCameraOn ? CAM_FIXED_SPEED : 0;
-      if (isCameraOn) return CAM_FIXED_SPEED;
+      if (isNaN(num)) num = (isCameraOn || activeBlockMode === 'camera') ? CAM_FIXED_SPEED : 0;
+      if (isCameraOn || activeBlockMode === 'camera') return CAM_FIXED_SPEED;
       if (num < NORMAL_SPEED_MIN) return NORMAL_SPEED_MIN;
       if (num > NORMAL_SPEED_MAX) return NORMAL_SPEED_MAX;
       return num;
     }
 
     function onSliderInput(val) {
-      if (isCameraOn) return;
+      if (isCameraOn || activeBlockMode === 'camera') return;
       isSliderActive = true;
       lastSliderInteractTime = Date.now();
       const clamped = clampSpeedVal(val);
@@ -2238,7 +2237,7 @@
     }
 
     function onSliderChange(val) {
-      if (isCameraOn) return;
+      if (isCameraOn || activeBlockMode === 'camera') return;
       isSliderActive = false;
       lastSliderInteractTime = Date.now();
       const clamped = clampSpeedVal(val);
@@ -2716,7 +2715,7 @@
           }
 
           let slider = document.getElementById('speedSlider');
-          if (slider && !isCameraOn && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
+          if (slider && !isCameraOn && activeBlockMode !== 'camera' && d.pwm !== undefined && !isSliderActive && (Date.now() - lastSliderInteractTime > 3000) && currentDriveDir === 'stop') {
             slider.value = d.pwm;
             updateSpeedUI(d.pwm);
           }
@@ -2795,7 +2794,8 @@
     let pendingVisionMessages = [];
 
     function getVisionSuiteUrl() {
-      return 'camera/index.html';
+      const mod = currentVisionModule || 'block-finger-tracking';
+      return 'camera/index.html?module=' + encodeURIComponent(mod);
     }
 
     function loadVisionAiFrame() {
@@ -2847,6 +2847,17 @@
         }
       } else if (event.data.action === 'vision_result') {
         window.latestVisionData = event.data;
+        if (typeof updateLatchedVisionValue === 'function') {
+          let cand = null;
+          if (event.data.grid !== undefined && event.data.grid !== null) cand = Number(event.data.grid);
+          else if (event.data.value !== undefined && event.data.value !== null) cand = Number(event.data.value);
+          else if (event.data.fingerCount !== undefined && event.data.fingerCount !== null) cand = Number(event.data.fingerCount);
+          else if (event.data.classId !== undefined && event.data.classId !== null) cand = Number(event.data.classId);
+          else if (event.data.prediction !== undefined && event.data.prediction !== null) cand = Number(event.data.prediction);
+          if (cand !== null && !isNaN(cand) && cand > 0) {
+            updateLatchedVisionValue(cand);
+          }
+        }
       } else if (event.data.action === 'cam_mode_changed') {
         const btn = document.getElementById('btnVisionCamCycle');
         if (btn && event.data.icon) btn.textContent = event.data.icon;
@@ -2953,11 +2964,26 @@
       const camToggleEl = document.getElementById('camToggle');
       const camContainer = document.getElementById('camToggleContainer');
       const sliderCol = document.getElementById('sliderContainer');
+      const codeBtn = document.getElementById('codeBtn');
+      const copyCodeBtn = document.getElementById('copyCodeBtn');
+      if (codeBtn) codeBtn.style.display = (mode === 'camera') ? 'none' : '';
+      if (copyCodeBtn) copyCodeBtn.style.display = (mode === 'camera') ? 'none' : '';
 
       if (mode === 'camera') {
-        // Disconnect direct live FPV socket to free bandwidth for MediaPipe processing
-        if (isCameraOn) {
-          toggleCamera(false);
+        if (isCameraOn) toggleCamera(false);
+        const speedSlider = document.getElementById('speedSlider');
+        if (speedSlider) {
+          const curr = parseInt(speedSlider.value, 10);
+          if (!isNaN(curr) && curr > 0 && curr !== CAM_FIXED_SPEED) {
+            savedSpeedBeforeCamera = curr;
+          }
+          speedSlider.value = CAM_FIXED_SPEED;
+        }
+        updateSpeedUI(CAM_FIXED_SPEED);
+        sendSpeed(CAM_FIXED_SPEED);
+        fetchApi('/setSpeed?pwm=' + CAM_FIXED_SPEED, 500);
+        if (false) {
+          // fpv disconnected
         }
 
         if (camToggleEl) {
@@ -2981,6 +3007,16 @@
 
         if (!workspaceCamera) {
           const toolboxCam = document.getElementById('toolbox_camera');
+          if (toolboxCam) {
+            const camMotor = toolboxCam.querySelector('block[type="lib_motor_rotate"]');
+            if (camMotor) camMotor.setAttribute('type', 'lib_camera_motor_rotate');
+            const motorCat = toolboxCam.querySelector('category[name="Motor"]');
+            if (motorCat && !motorCat.querySelector('block[type="lib_camera_motor_stop"]')) {
+              const stopB = document.createElement('block');
+              stopB.setAttribute('type', 'lib_camera_motor_stop');
+              motorCat.appendChild(stopB);
+            }
+          }
           if (toolboxCam && typeof Blockly !== 'undefined') {
             try {
               workspaceCamera = Blockly.inject('blocklyDivCamera', {
@@ -3001,6 +3037,9 @@
         workspace = workspaceCamera || workspaceMain;
         setTimeout(() => {
           if (workspaceCamera) Blockly.svgResize(workspaceCamera);
+          if (typeof updateCameraLiveUI === 'function') updateCameraLiveUI(isCameraLiveActive);
+          const btnStopCam = document.getElementById('btnRoverStop');
+          if (btnStopCam) btnStopCam.innerHTML = '■ Stop Live';
         }, 80);
       } else {
         if (camToggleEl) {
@@ -3010,7 +3049,24 @@
             camContainer.style.cursor = 'pointer';
           }
         }
+        if (typeof stopCameraLiveRunner === 'function' && isCameraLiveActive) stopCameraLiveRunner();
+        const btnRunMain = document.getElementById('btnRoverRun');
+        const btnStopMain = document.getElementById('btnRoverStop');
+        if (btnRunMain) {
+          btnRunMain.innerHTML = '⬆ Upload &amp; Run on Car';
+          btnRunMain.style.background = '';
+          btnRunMain.style.borderColor = '';
+        }
+        if (btnStopMain) btnStopMain.innerHTML = '■ Stop Car';
         if (sliderCol) sliderCol.style.display = cockpitActive ? 'none' : 'flex';
+        const speedSlider = document.getElementById('speedSlider');
+        if (speedSlider) {
+          speedSlider.min = NORMAL_SPEED_MIN;
+          speedSlider.max = NORMAL_SPEED_MAX;
+          speedSlider.value = savedSpeedBeforeCamera;
+          updateSpeedUI(savedSpeedBeforeCamera);
+          sendSpeed(savedSpeedBeforeCamera);
+        }
 
         if (tabCam) tabCam.classList.remove('active');
         if (tabMain) tabMain.classList.add('active');
@@ -3605,6 +3661,469 @@
           showToast('Stop command sent.', 'info');
         });
     }
+    // ==========================================
+    // CAMERA BLOCKS: LOCAL APP EXECUTION ENGINE
+    // ==========================================
+    let isCameraLiveActive = false;
+    let currentLiveDriveDir = 'stop';
+    let targetLeftMotorDir = null;
+    let targetRightMotorDir = null;
+    let liveDriveHeartbeat = null;
+    let latchedVisionValue = 0;
+
+    function updateLatchedVisionValue(val) {
+      const num = Number(val);
+      if (!isNaN(num) && num > 0) {
+        latchedVisionValue = num;
+      }
+    }
+
+    (function () {
+      const _origLog = console.log;
+      console.log = function (...args) {
+        _origLog.apply(console, args);
+        try {
+          if (args.length > 0) {
+            const val = args[0];
+            const num = typeof val === 'number' ? val : (typeof val === 'string' && /^-?\d+(\.\d+)?$/.test(val.trim()) ? parseFloat(val.trim()) : null);
+            if (num !== null && !isNaN(num) && num > 0) {
+              updateLatchedVisionValue(num);
+            }
+          }
+        } catch (e) { }
+      };
+    })();
+
+    function _readCameraVision() {
+      if (window.latestVisionData) {
+        const d = window.latestVisionData;
+        let cand = null;
+        if (d.grid !== undefined && d.grid !== null) cand = Number(d.grid);
+        else if (d.value !== undefined && d.value !== null) cand = Number(d.value);
+        else if (d.fingerCount !== undefined && d.fingerCount !== null) cand = Number(d.fingerCount);
+        else if (d.classId !== undefined && d.classId !== null) cand = Number(d.classId);
+        else if (d.prediction !== undefined && d.prediction !== null) cand = Number(d.prediction);
+
+        if (cand !== null && !isNaN(cand) && cand > 0) {
+          latchedVisionValue = cand;
+        }
+      }
+      return latchedVisionValue;
+    }
+
+    function _yield(ms = 40) {
+      return new Promise(resolve => setTimeout(resolve, Math.max(10, ms)));
+    }
+
+    function _syncLiveMotorDrive() {
+      if (!isCameraLiveActive) return;
+      let newDir = 'stop';
+      if (targetLeftMotorDir === true && targetRightMotorDir === true) {
+        newDir = 'forward';
+      } else if (targetLeftMotorDir === false && targetRightMotorDir === false) {
+        newDir = 'backward';
+      } else if (targetLeftMotorDir === false && targetRightMotorDir === true) {
+        newDir = 'left';
+      } else if (targetLeftMotorDir === true && targetRightMotorDir === false) {
+        newDir = 'right';
+      } else if (targetLeftMotorDir === true && (targetRightMotorDir === 'stop' || targetRightMotorDir === null)) {
+        newDir = 'right';
+      } else if (targetRightMotorDir === true && (targetLeftMotorDir === 'stop' || targetLeftMotorDir === null)) {
+        newDir = 'left';
+      } else if (targetLeftMotorDir === false && (targetRightMotorDir === 'stop' || targetRightMotorDir === null)) {
+        newDir = 'backward';
+      } else if (targetRightMotorDir === false && (targetLeftMotorDir === 'stop' || targetLeftMotorDir === null)) {
+        newDir = 'backward';
+      } else {
+        newDir = 'stop';
+      }
+
+      if (newDir !== currentLiveDriveDir) {
+        currentLiveDriveDir = newDir;
+        if (liveDriveHeartbeat) {
+          clearInterval(liveDriveHeartbeat);
+          liveDriveHeartbeat = null;
+        }
+
+        if (newDir !== 'stop') {
+          fetchApi('/' + newDir, 500);
+          liveDriveHeartbeat = setInterval(() => {
+            if (isCameraLiveActive && currentLiveDriveDir !== 'stop') {
+              fetchApi('/' + currentLiveDriveDir, 500);
+            }
+          }, 250);
+        } else {
+          fetchApi('/stop', 500);
+          setTimeout(() => {
+            if (currentLiveDriveDir === 'stop') fetchApi('/stop', 500);
+          }, 60);
+        }
+      } else if (newDir !== 'stop' && !liveDriveHeartbeat) {
+        liveDriveHeartbeat = setInterval(() => {
+          if (isCameraLiveActive && currentLiveDriveDir !== 'stop') {
+            fetchApi('/' + currentLiveDriveDir, 500);
+          }
+        }, 250);
+      }
+    }
+
+    async function _motorRotate(motor, dir, speed = 45) {
+      if (!isCameraLiveActive) return;
+      const isLeft = (motor === 'left' || motor === 'left_motor' || (typeof motor === 'string' && motor.toLowerCase().includes('left')));
+      const isStop = (speed === 0 || speed === '0' || speed === false);
+      const isFwd = (dir === true || dir === 1 || dir === 'True' || dir === 'true');
+      if (isStop) {
+        if (isLeft) targetLeftMotorDir = 'stop';
+        else targetRightMotorDir = 'stop';
+      } else {
+        if (isLeft) targetLeftMotorDir = isFwd;
+        else targetRightMotorDir = isFwd;
+      }
+
+      _syncLiveMotorDrive();
+    }
+
+    async function _stopMotors() {
+      targetLeftMotorDir = 'stop';
+      targetRightMotorDir = 'stop';
+      if (liveDriveHeartbeat) {
+        clearInterval(liveDriveHeartbeat);
+        liveDriveHeartbeat = null;
+      }
+      if (currentLiveDriveDir !== 'stop') {
+        currentLiveDriveDir = 'stop';
+        fetchApi('/stop', 500);
+        setTimeout(() => {
+          if (currentLiveDriveDir === 'stop') fetchApi('/stop', 500);
+        }, 60);
+      }
+    }
+
+    function transpileCameraPythonToJs(pyCode) {
+      const rawLines = pyCode.split(/\r?\n/);
+      const jsLines = [];
+      const indentStack = [0];
+      const declaredVars = new Set();
+
+      for (let rawLine of rawLines) {
+        const trimmed = rawLine.trim();
+        if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('from ') || trimmed.startsWith('import ')) {
+          continue;
+        }
+
+        const indentMatch = rawLine.match(/^(\s*)/);
+        const indent = indentMatch ? indentMatch[1].length : 0;
+
+        while (indent < indentStack[indentStack.length - 1]) {
+          indentStack.pop();
+          jsLines.push(' '.repeat(indentStack[indentStack.length - 1]) + '}');
+        }
+
+        let l = trimmed;
+
+        l = l.replace(/\bTrue\b/g, 'true')
+          .replace(/\bFalse\b/g, 'false')
+          .replace(/\bNone\b/g, 'null')
+          .replace(/\band\b/g, '&&')
+          .replace(/\bor\b/g, '||')
+          .replace(/\bnot\b/g, '!')
+          .replace(/==/g, '===')
+          .replace(/!=/g, '!==');
+
+        l = l.replace(/sleep_ms\s*\((.*?)\)/g, 'await _yield($1)')
+          .replace(/sleep\s*\((.*?)\)/g, 'await _yield(($1) * 1000)')
+          .replace(/time\.sleep\s*\((.*?)\)/g, 'await _yield(($1) * 1000)');
+
+        l = l.replace(/Camera\s*\([^)]*\)\.read_console_values\s*\(\)/gi, '_readCameraVision()')
+          .replace(/[a-zA-Z0-9_]+\.read_console_values\s*\(\)/g, '_readCameraVision()')
+          .replace(/Camera\s*\([^)]*\)\.take_picture\s*\(\)/gi, 'null')
+          .replace(/[a-zA-Z0-9_]+\.take_picture\s*\(\)/g, 'null')
+          .replace(/Camera\s*\([^)]*\)\.convert_to_grayscale\s*\(\)/gi, 'null')
+          .replace(/[a-zA-Z0-9_]+\.convert_to_grayscale\s*\(\)/g, 'null')
+          .replace(/Camera\s*\([^)]*\)\.switch_div\s*\((.*?)\)/gi, 'switchCameraModule($1)')
+          .replace(/[a-zA-Z0-9_]+\.switch_div\s*\((.*?)\)/g, 'switchCameraModule($1)')
+          .replace(/Camera\s*\([^)]*\)\.switch_module\s*\((.*?)\)/gi, 'switchCameraModule($1)')
+          .replace(/[a-zA-Z0-9_]+\.switch_module\s*\((.*?)\)/g, 'switchCameraModule($1)')
+          .replace(/Camera\s*\([^)]*\)\.clear\s*\(\)/gi, 'if (typeof clearClassifiers === "function") clearClassifiers()')
+          .replace(/[a-zA-Z0-9_]+\.clear\s*\(\)/g, 'if (typeof clearClassifiers === "function") clearClassifiers()')
+          .replace(/Camera\s*\([^)]*\)\.train_classifier\s*\((.*?)\)/gi, 'if (typeof trainClassifier === "function") trainClassifier($1)')
+          .replace(/[a-zA-Z0-9_]+\.train_classifier\s*\((.*?)\)/g, 'if (typeof trainClassifier === "function") trainClassifier($1)')
+          .replace(/\bCamera\s*\([^)]*\)/gi, 'Camera()')
+          .replace(/\bLeftMotor\s*\([^)]*\)/gi, 'LeftMotor()')
+          .replace(/\bRightMotor\s*\([^)]*\)/gi, 'RightMotor()');
+
+        l = l.replace(/([a-zA-Z0-9_().]+?)\.stop\s*\(\)/g, (match, caller) => {
+          const isRight = /right/i.test(caller);
+          const motorName = isRight ? 'right' : 'left';
+          return `await _motorRotate('${motorName}', true, 0)`;
+        });
+        l = l.replace(/\bstop_motors\s*\(\)/g, 'await _stopMotors()');
+
+        const rotateMatch = l.match(/^(.*?)\.rotate\s*\((.*?)\)$/);
+        if (rotateMatch) {
+          const caller = rotateMatch[1];
+          const args = rotateMatch[2].trim();
+          const isRight = /right/i.test(caller);
+          const motorName = isRight ? 'right' : 'left';
+          const isStop = /speed\s*===\s*0|speed\s*=\s*0/.test(args) || args === '0';
+          if (isStop) {
+            l = `await _motorRotate('${motorName}', true, 0)`;
+          } else {
+            let dirVal = 'true';
+            const dirMatch = args.match(/direction\s*=\s*([a-zA-Z0-9_!]+)/);
+            if (dirMatch) {
+              dirVal = dirMatch[1];
+            } else if (/\bfalse\b/i.test(args)) {
+              dirVal = 'false';
+            } else if (/\btrue\b/i.test(args)) {
+              dirVal = 'true';
+            }
+            l = `await _motorRotate('${motorName}', ${dirVal}, 45)`;
+          }
+        }
+
+
+
+
+
+        l = l.replace(/print\s*\((.*?)\)/g, 'showToast(String($1), "info")');
+
+        if (l.startsWith('elif ') && l.endsWith(':')) {
+          const cond = l.slice(5, -1).trim();
+          jsLines.push(' '.repeat(indent) + 'else if (' + cond + ') {');
+          indentStack.push(indent + 2);
+        } else if (l === 'else:') {
+          jsLines.push(' '.repeat(indent) + 'else {');
+          indentStack.push(indent + 2);
+        } else if (l.startsWith('if ') && l.endsWith(':')) {
+          const cond = l.slice(3, -1).trim();
+          jsLines.push(' '.repeat(indent) + 'if (' + cond + ') {');
+          indentStack.push(indent + 2);
+        } else if (l.startsWith('while ') && l.endsWith(':')) {
+          const cond = l.slice(6, -1).trim();
+          jsLines.push(' '.repeat(indent) + 'while (isCameraLiveActive && (' + cond + ')) {');
+          jsLines.push(' '.repeat(indent + 2) + 'await _yield(30);');
+          indentStack.push(indent + 2);
+        } else if (l.startsWith('for ') && l.endsWith(':')) {
+          const rangeMatch = l.match(/^for\s+([a-zA-Z0-9_]+)\s+in\s+range\s*\((.*?)\):$/);
+          if (rangeMatch) {
+            const loopVar = rangeMatch[1];
+            const rawArgs = rangeMatch[2].split(',').map(s => s.trim());
+            let forHeader = '';
+            if (rawArgs.length === 1) {
+              forHeader = 'for (var ' + loopVar + ' = 0; ' + loopVar + ' < (' + rawArgs[0] + ') && isCameraLiveActive; ' + loopVar + '++) {';
+            } else if (rawArgs.length === 2) {
+              forHeader = 'for (var ' + loopVar + ' = (' + rawArgs[0] + '); ' + loopVar + ' <= (' + rawArgs[1] + ') && isCameraLiveActive; ' + loopVar + '++) {';
+            } else {
+              forHeader = 'for (var ' + loopVar + ' = (' + rawArgs[0] + '); ' + loopVar + ' <= (' + rawArgs[1] + ') && isCameraLiveActive; ' + loopVar + ' += (' + rawArgs[2] + ')) {';
+            }
+            jsLines.push(' '.repeat(indent) + forHeader);
+            jsLines.push(' '.repeat(indent + 2) + 'await _yield(30);');
+            indentStack.push(indent + 2);
+          } else {
+            jsLines.push(' '.repeat(indent) + 'for (;;) { if (!isCameraLiveActive) break;');
+            indentStack.push(indent + 2);
+          }
+        } else {
+          const assignMatch = l.match(/^([a-zA-Z0-9_]+)\s*=\s*(.+)$/);
+          if (assignMatch) {
+            const varName = assignMatch[1];
+            if (!declaredVars.has(varName)) {
+              declaredVars.add(varName);
+              l = 'var ' + l;
+            }
+          }
+          jsLines.push(' '.repeat(indent) + l + (l.endsWith(';') ? '' : ';'));
+        }
+      }
+
+      while (indentStack.length > 1) {
+        indentStack.pop();
+        jsLines.push(' '.repeat(indentStack[indentStack.length - 1]) + '}');
+      }
+
+      return jsLines.join('\n');
+    }
+
+    function compileCameraLiveScript(pyCode) {
+      const transpiledJs = transpileCameraPythonToJs(pyCode);
+      console.log('Transpiled Camera JS:\n' + transpiledJs);
+      const prelude = `
+        function LeftMotor() { return { name: 'left', rotate: (s, d) => { const dir = (typeof s === 'object' && s !== null) ? s.direction : (d !== undefined ? d : (s === 0 ? true : true)); const sp = (typeof s === 'object' && s !== null) ? s.speed : (typeof s === 'number' ? s : 45); return _motorRotate('left', dir, sp); }, stop: () => _motorRotate('left', true, 0) }; }
+        function RightMotor() { return { name: 'right', rotate: (s, d) => { const dir = (typeof s === 'object' && s !== null) ? s.direction : (d !== undefined ? d : (s === 0 ? true : true)); const sp = (typeof s === 'object' && s !== null) ? s.speed : (typeof s === 'number' ? s : 45); return _motorRotate('right', dir, sp); }, stop: () => _motorRotate('right', true, 0) }; }
+        function Camera() {
+          return {
+            read_console_values: () => _readCameraVision(),
+            take_picture: () => null,
+            convert_to_grayscale: () => null,
+            switch_div: (m) => switchCameraModule(m),
+            switch_module: (m) => switchCameraModule(m),
+            clear: () => { if (typeof clearClassifiers === 'function') clearClassifiers(); },
+            train_classifier: (t, b, c) => { if (typeof trainClassifier === 'function') trainClassifier(t, b, c); }
+          };
+        }
+        var left_motor = LeftMotor(), right_motor = RightMotor(), camera = Camera(), cam = camera, left = left_motor, right = right_motor, motor = left_motor;
+        var stop_motors = () => _stopMotors();
+        var math = Math; math.fabs = Math.abs;
+        var random = { randint: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min };
+      `;
+      const asyncBody = `
+        return (async function() {
+          ${prelude}
+          ${transpiledJs}
+        })();
+      `;
+      return new Function(
+        '_readCameraVision',
+        '_motorRotate',
+        '_stopMotors',
+        '_yield',
+        'switchCameraModule',
+        'trainClassifier',
+        'clearClassifiers',
+        'showToast',
+        asyncBody
+      ).bind(
+        null,
+        _readCameraVision,
+        _motorRotate,
+        _stopMotors,
+        _yield,
+        switchCameraModule,
+        window.trainClassifier,
+        window.clearClassifiers,
+        showToast
+      );
+    }
+
+    async function startCameraLiveRunner() {
+      if (isCameraLiveActive) return;
+
+      const pyCode = generatePythonCode().trim();
+      if (!pyCode || pyCode.startsWith('# Error') || pyCode.length < 5) {
+        showToast('No blocks connected yet!', 'error');
+        return;
+      }
+
+      loadVisionAiFrame();
+
+      sendSpeed(CAM_FIXED_SPEED);
+      fetchApi('/setSpeed?pwm=' + CAM_FIXED_SPEED, 500);
+
+      latchedVisionValue = 0;
+      targetLeftMotorDir = null;
+      targetRightMotorDir = null;
+      currentLiveDriveDir = 'stop';
+      if (liveDriveHeartbeat) {
+        clearInterval(liveDriveHeartbeat);
+        liveDriveHeartbeat = null;
+      }
+
+      isCameraLiveActive = true;
+      updateCameraLiveUI(true);
+      showToast('Live Camera Run active! Processing logic in app.', 'success');
+
+      let runnerFn;
+      try {
+        runnerFn = compileCameraLiveScript(pyCode);
+      } catch (err) {
+        console.error('Failed to compile camera blocks script:', err);
+        console.error('Raw Python code was:\n' + pyCode);
+        showToast('Syntax error compiling camera blocks: ' + (err.message || err), 'error');
+        stopCameraLiveRunner();
+        return;
+      }
+
+      const hasUserLoop = pyCode.includes('while ') || pyCode.includes('for ');
+
+      try {
+        if (hasUserLoop) {
+          await runnerFn();
+        } else {
+          while (isCameraLiveActive) {
+            await runnerFn();
+            await _yield(80);
+          }
+        }
+      } catch (err) {
+        if (isCameraLiveActive) {
+          console.error('Camera live runner error:', err);
+          showToast('Live run notice: ' + (err.message || err), 'info');
+        }
+      } finally {
+        stopCameraLiveRunner();
+      }
+    }
+
+    function stopCameraLiveRunner() {
+      if (!isCameraLiveActive && currentLiveDriveDir === 'stop') return;
+      isCameraLiveActive = false;
+      latchedVisionValue = 0;
+      targetLeftMotorDir = 'stop';
+      targetRightMotorDir = 'stop';
+      currentLiveDriveDir = 'stop';
+      if (liveDriveHeartbeat) {
+        clearInterval(liveDriveHeartbeat);
+        liveDriveHeartbeat = null;
+      }
+      fetchApi('/stop', 500);
+      setTimeout(() => {
+        if (currentLiveDriveDir === 'stop') fetchApi('/stop', 500);
+      }, 60);
+      updateCameraLiveUI(false);
+    }
+
+    function updateCameraLiveUI(running) {
+      const btnRun = document.getElementById('btnRoverRun');
+      const badge = document.getElementById('camLiveStatusBadge');
+
+      if (btnRun && activeBlockMode === 'camera') {
+        if (running) {
+          btnRun.innerHTML = '⏹ Stop Live Run';
+          btnRun.style.background = '#d93025';
+          btnRun.style.borderColor = '#ff4d4d';
+        } else {
+          btnRun.innerHTML = '▶ Run Live in App';
+          btnRun.style.background = '#0e639c';
+          btnRun.style.borderColor = '#1177bb';
+        }
+      }
+
+      if (badge) {
+        if (running) {
+          badge.style.background = '#00e5ff';
+          badge.style.color = '#000';
+          badge.innerText = '● LIVE RUNNING (App Logic)';
+        } else {
+          badge.style.background = '#222';
+          badge.style.color = '#888';
+          badge.innerText = 'READY';
+        }
+      }
+    }
+
+    function handleRoverRunClick() {
+      if (activeBlockMode === 'camera') {
+        if (isCameraLiveActive) {
+          stopCameraLiveRunner();
+          showToast('Live Camera Run stopped', 'info');
+        } else {
+          startCameraLiveRunner();
+        }
+      } else {
+        uploadRoverCode();
+      }
+    }
+
+    function handleRoverStopClick() {
+      if (activeBlockMode === 'camera') {
+        stopCameraLiveRunner();
+        showToast('Car stopped', 'info');
+      } else {
+        stopRoverGroup();
+      }
+    }
+
     function scrollPageUp() {
       window.scrollBy({ top: -Math.max(200, window.innerHeight * 0.6), behavior: 'smooth' });
     }
