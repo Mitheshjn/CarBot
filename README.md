@@ -1,140 +1,177 @@
-# 🏎️ CAR BOT — Snap Racer (SRV 2.0) Controller App
+# CAR BOT — Snap Racer (SRV 2.0) Controller Application
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white)](https://flutter.dev)
 [![ESP32](https://img.shields.io/badge/Hardware-ESP32%20%2B%20ESP32--CAM-E7352C?logo=espressif&logoColor=white)](https://espressif.com)
 [![Blockly](https://img.shields.io/badge/Blockly-Visual%20Programming-4285F4?logo=google&logoColor=white)](https://developers.google.com/blockly)
+[![TensorFlow.js](https://img.shields.io/badge/AI-TensorFlow.js%20%2B%20MediaPipe-FF6F00?logo=tensorflow&logoColor=white)](https://www.tensorflow.org/js)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**CAR BOT** (Snap Racer Rover 2.0) is a high-performance cross-platform controller application built with **Flutter** and modern web technologies. It provides real-time telemetry, low-latency Wi-Fi driving controls, live FPV video streaming, modular hardware plug-and-play sensor management, and an integrated **Blockly Studio** to program the rover in Python visually.
+CAR BOT (Snap Racer Rover 2.0) is a cross-platform robotics controller and visual programming environment developed with Flutter, modern web technologies, Google Blockly, and browser-based computer vision engines. The platform supports real-time telemetry streaming, low-latency Wi-Fi driving controls, live FPV video monitoring, modular hardware sensor integration, and dual-execution visual programming supporting both on-hardware MicroPython execution and app-side vision logic.
 
 ---
 
-## 🌟 Key Features
+## System Overview
 
-### 🕹️ Dual Driving Modes
-- **Classic D-Pad**: Intuitive on-screen directional buttons (Forward, Reverse, Left, Right, Brake) with precision PWM speed throttle (0–255).
-- **Cockpit Steering Wheel**: Interactive rotating steering wheel interface.
-- **Gyroscope Tilt Steering**: Drive the rover naturally using your smartphone's internal motion sensors.
-- **Gas & Reverse Pedals**: Analog-feel acceleration and regenerative braking simulation.
+### Driving Interfaces
+- **Directional D-Pad**: Standard digital directional inputs (Forward, Reverse, Left, Right, Stop) with adjustable PWM motor speed scaling (0–255).
+- **Cockpit Steering Simulation**: Virtual steering wheel interface paired with analog-style acceleration and braking inputs.
+- **Inertial Gyroscope Steering**: Orientation-based vehicle steering leveraging device accelerometer and gyroscope hardware.
+- **Heartbeat Safety Protocol**: Continuous 250ms interval command transmission ensuring reliable rover motion while preventing hardware watchdog timeouts.
 
-### 📹 Live FPV Video Streaming
-- Low-latency real-time video stream directly from the on-board **ESP32-CAM** (`http://192.168.4.10:81/stream`).
-- Quick-reload stream button and camera offline fallback diagnostics.
+### Video Telemetry & Streaming
+- Low-latency real-time video streaming sourced from an on-board ESP32-CAM module (`http://192.168.4.10:81/stream`).
+- Diagnostic reconnection routines and stream status monitoring.
+- Multi-source camera selection: Device Front Camera, Device Rear Camera, and ESP32-CAM stream.
 
-### 🔌 Modular Sensor Port & Smart Add-Ons
-Hot-swappable sensor and peripheral support with automatic telemetry readouts:
-1. **VL53L0X Time-of-Flight Distance Sensor**: Real-time millimeter-accurate distance telemetry.
-2. **DHT11 / DHT22**: Ambient temperature and humidity monitoring.
-3. **LDR Light Sensor**: Real-time ambient light tracking.
-4. **WS2812B RGB NeoPixel Ring**: Multiple animation modes (*Auto Drive, Tachometer, Police, Rainbow, Chase, Breathing*), custom 16-million color hex picker, and brightness slider.
-5. **SSD1306 128x64 OLED Display**: Dynamic interactive modes (*Animated Robot Face reacting to drive direction, Chrome Dino, Space Invaders*).
-6. **ADXL345 / MPU6050 Accelerometer**: Vehicle tilt, pitch, and roll detection.
-7. **Servo Motor Control**: Preset angle buttons (0°, 45°, 90°, 135°, 180°).
-
-### 🧩 RoverBlocks Studio (Visual Programming)
-- Integrated **Google Blockly** environment with custom Snap Racer hardware blocks.
-- **Python Code Generation**: Real-time preview of Python code generated from block logic.
-- **Native File Picker & Saver**: Load and save block programs (`.xml`) directly to Android device downloads via native bridge.
-- **Over-The-Air (OTA) Program Execution**: Upload and execute Python programs directly onto the car hardware with a single tap.
-
-### 📱 Native Flutter Bridge Integrations
-- **Orientation Lock**: Dynamic toggling between portrait and landscape modes with native screen locking.
-- **Direct Public Storage Access**: Android downloads directory integration (`/storage/emulated/0/Download`) without browser sandbox restrictions.
-- **One-Tap App Reload**: Instant soft-reset of the controller interface.
+### Modular Peripheral Support
+Support for hot-swappable I2C, PWM, and GPIO hardware accessories:
+1. **VL53L0X Time-of-Flight Distance Sensor**: Millimeter-level proximity telemetry.
+2. **DHT11 / DHT22 Sensor**: Ambient temperature and relative humidity tracking.
+3. **LDR Light Sensor**: Ambient illumination monitoring.
+4. **WS2812B NeoPixel Ring**: Visual lighting profiles (Auto Drive, Tachometer, Strobe, Rainbow, Chase, Breathing), 24-bit RGB customization, and brightness scaling.
+5. **SSD1306 128x64 OLED Display**: Configurable graphical modes including reactive expression states and mini-game displays.
+6. **MPU6050 / ADXL345 Inertial Measurement Units**: Vehicle pitch, roll, and dynamic tilt metrics.
+7. **PWM Servo Actuators**: Absolute position control across preset angles (0° to 180°).
 
 ---
 
-## 🏗️ Architecture & Network Topology
+## RoverBlocks Studio
+
+RoverBlocks Studio provides two isolated execution models designed to balance hardware constraints with advanced computing tasks:
+
+### 1. Main Blocks Mode (Autonomous MicroPython Upload)
+- **Target**: On-board ESP32 microcontroller runtime.
+- **Compilation**: Translates visual block logic into MicroPython scripts.
+- **Deployment**: Over-The-Air (OTA) deployment via `POST /uploadCode` executes programs directly on the vehicle microcontroller.
+- **Hardware Coverage**: Full direct control over motor drivers, digital I/O, I2C bus sensors, and display peripherals.
+
+### 2. Camera Blocks Mode (Local Application Execution)
+- **Target**: Local Flutter/WebView client engine with zero processing overhead on the ESP32.
+- **Transpilation**: Translates Python logic into asynchronous JavaScript executed within the client environment.
+- **Command Transmission**: Dispatches low-latency directional commands (`/forward`, `/backward`, `/left`, `/right`, `/stop`) accompanied by an active 250ms keep-alive heartbeat.
+- **State Latching**: Latches vision detection parameters (grid coordinates, gesture classes, finger counts) to prevent transient frame drops from prematurely halting vehicle motion.
+- **Workspace Isolation**: Automatically validates block structures, disallowing direct micro-level sensor calls that require on-board execution.
+
+---
+
+## Computer Vision Suite
+
+Integrated directly within Camera Blocks is a client-side computer vision subsystem:
+
+| Module | Purpose | Underlying Technology |
+| :--- | :--- | :--- |
+| **Finger Tracking** | Hand landmark detection with 0–5 finger counting. | MediaPipe Hands |
+| **Gesture Classifier** | Dynamic gesture categorization based on normalized hand coordinates. | KNN Classifier |
+| **Image Classifier** | Multiclass visual classification trained interactively in-browser. | TensorFlow.js + MobileNet |
+| **RGB Coordinates** | Real-time color centroid extraction and bounding box sizing. | HSV Segmentation Pipeline |
+| **RGB Color Picker** | Click-to-lock color profile sampling with live feedback. | HSV Segmentation Pipeline |
+| **RGB 3x3 Grid** | 9-cell spatial partitioning for visual navigation and grid indexing (1–9). | HSV Segmentation Pipeline |
+
+- **Two-Way Workspace Synchronization**: Adding or inspecting camera blocks dynamically switches the active vision module in the preview frame via HTML5 `postMessage`.
+- **Viewport Management**: Interface controls allow minimizing the video feed to preserve workspace area while maintaining active frame processing.
+
+---
+
+## Architecture & Network Topology
 
 ```mermaid
 graph TD
-    subgraph MobileDevice["Mobile Device (Flutter App)"]
+    subgraph MobileDevice["Mobile Client (Flutter Application)"]
         Flutter["Flutter Shell (main.dart)"]
-        WebView["WebView Runtime (assets/web/)"]
-        Blockly["RoverBlocks Studio"]
-        Bridge["JavaScript Bridge (Orientation, File I/O)"]
+        WebView["WebView Engine (assets/web/index.html)"]
         
-        Flutter <-->|Native Channels| Bridge
+        subgraph Studio["RoverBlocks Studio"]
+            MainBlocks["Main Blocks (MicroPython Compiler)"]
+            CamBlocks["Camera Blocks (Client Execution Engine)"]
+            VisionSuite["Vision AI Suite (camera/index.html)"]
+        end
+        
+        Bridge["Native JavaScript Bridge"]
+        
+        Flutter <-->|Platform Channels| Bridge
         Bridge <--> WebView
-        WebView --- Blockly
+        WebView --- MainBlocks
+        WebView --- CamBlocks
+        CamBlocks <-->|postMessage| VisionSuite
     end
 
     subgraph HardwareNetwork["Rover Wi-Fi Network (SNAP-RACER AP)"]
-        ESP32["ESP32 Main Controller\n(192.168.4.1)"]
-        ESPCam["ESP32-CAM Video Streamer\n(192.168.4.10:81)"]
-        Sensors["Modular Sensors & Actuators\n(I2C, PWM, GPIO)"]
+        ESP32["ESP32 Microcontroller\n(192.168.4.1)"]
+        ESPCam["ESP32-CAM Module\n(192.168.4.10:81)"]
+        Sensors["Hardware Sensors & Peripherals"]
         Motors["Motor Driver & Chassis"]
         
         ESP32 --- Sensors
         ESP32 --- Motors
     end
 
-    WebView -->|HTTP REST Commands| ESP32
-    ESP32 -->|Telemetry Data /data| WebView
-    WebView -->|MJPEG Stream| ESPCam
+    MainBlocks -->|OTA Upload /uploadCode| ESP32
+    CamBlocks -->|Heartbeat Commands /forward, /stop| ESP32
+    WebView -->|Telemetry Polling /data| ESP32
+    VisionSuite -.->|MJPEG Capture| ESPCam
 ```
 
 ---
 
-## 📡 Hardware REST API Reference
+## REST API Reference
 
-The app communicates with the main ESP32 web server at `http://192.168.4.1`:
+Client commands communicate with the primary controller endpoint at `http://192.168.4.1`:
 
 | Endpoint | Method | Parameters | Description |
 | :--- | :---: | :--- | :--- |
-| `/ping` | `GET` | — | Connection health check and heartbeat |
-| `/forward`, `/backward`, `/left`, `/right` | `GET` | — | Directional movement commands |
-| `/stop` | `GET` | — | Emergency motor brake |
-| `/setSpeed` | `GET` | `?pwm=0..255` | Adjust motor PWM throttle |
-| `/setFrontLed` | `GET` | `?state=0\|1` | Toggle front LED headlights |
-| `/setMode` | `GET` | `?mode=<name>` | Set modular sensor port profile |
-| `/setServo` | `GET` | `?angle=0..180` | Set servo horn position in degrees |
-| `/setRgb` | `GET` | `?mode=<mode>` | Change RGB LED ring animation pattern |
-| `/setRgbBrightness` | `GET` | `?b=0..255` | Set LED brightness |
-| `/setOledConfig` | `GET` | `?mode=0..5` | Set OLED screen graphics mode |
-| `/data` | `GET` | — | Polling telemetry sensor readings |
-| `/uploadCode` | `POST` | Python script body | Upload and run custom script on the car |
-| `/stopCode` | `GET` | — | Abort running Python script on the car |
+| `/ping` | `GET` | — | Link verification and connection health check |
+| `/forward`, `/backward`, `/left`, `/right` | `GET` | — | Directional movement trigger |
+| `/stop` | `GET` | — | Immediate motor halt |
+| `/setSpeed` | `GET` | `?pwm=0..255` | Adjusts base motor PWM throttle |
+| `/setFrontLed` | `GET` | `?state=0\|1` | Toggles vehicle illumination LEDs |
+| `/setMode` | `GET` | `?mode=<name>` | Sets active modular sensor profile |
+| `/setServo` | `GET` | `?angle=0..180` | Sets servo deflection angle |
+| `/setRgb` | `GET` | `?mode=<mode>` | Selects active RGB animation profile |
+| `/setRgbBrightness` | `GET` | `?b=0..255` | Adjusts RGB LED brightness |
+| `/setOledConfig` | `GET` | `?mode=0..5` | Configures OLED graphics rendering mode |
+| `/data` | `GET` | — | Retrieves aggregate telemetry payload |
+| `/uploadCode` | `POST` | Python payload | Transmits and starts on-board Python script |
+| `/stopCode` | `GET` | — | Terminates on-board script execution |
 
 ---
 
-## 🚀 Getting Started & Installation
+## Installation & Setup
 
-### Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (>= 3.13.4)
-- Android SDK & Android Studio (for Android build)
-- Physical Android/iOS device or emulator
+### Requirements
+- Flutter SDK (version 3.13.4 or higher)
+- Android SDK & Build Tools (API Level 21+)
+- Android or iOS physical device / emulator
 
-### 1. Clone & Install Dependencies
+### 1. Repository Setup
 ```bash
-git clone <repository-url>
-cd flutter_application_1
+git clone https://github.com/Mitheshjn/CarBot.git
+cd CarBot
 flutter pub get
 ```
 
-### 2. Verify Assets
-Ensure that `pubspec.yaml` points to the web assets:
+### 2. Verify Asset Declaration
+Confirm that `pubspec.yaml` contains required asset paths:
 ```yaml
 flutter:
   uses-material-design: true
   assets:
     - assets/web/
+    - assets/web/camera/
 ```
 
-### 3. Run the App
-Connect your mobile device or launch an emulator:
+### 3. Application Execution
 ```bash
 flutter run
 ```
 
-### 4. Build Production APK
+### 4. Production Build
 ```bash
 flutter build apk --release
 ```
-The output APK will be generated at `build/app/outputs/flutter-apk/app-release.apk`.
+The compiled binary will be located at `build/app/outputs/flutter-apk/app-release.apk`.
 
 ---
 
-## 📖 Complete User & Setup Guide
+## Documentation
 
-For step-by-step instructions on connecting to the car's Wi-Fi network, troubleshooting communication issues, and using RoverBlocks Studio, see the **[GUIDE.md](file:///c:/Users/devan/OneDrive/Desktop/SRV2.0%20app/flutter_application_1/GUIDE.md)**.
+For hardware assembly, network configuration, and instructional workflows, consult **[GUIDE.md](file:///e:/qtblocks-mobile/GUIDE.md)**.
