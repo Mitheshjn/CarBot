@@ -334,8 +334,12 @@ registerPythonBlock('lib_camera_take_picture', function (a) {
 
 registerPythonBlock('lib_camera_convert_to_grayscale', function (a) {
         Blockly.Python.definitions_.import_camera = "from blocks.sensors.camera import Camera";
+        var state = a.getFieldValue("STATE") || "True";
         var b = Blockly.Python.valueToCode(a, "camera_object", Blockly.Python.ORDER_MEMBER) || "camera";
-        return [b + ".convert_to_grayscale()", Blockly.Python.ORDER_MEMBER];
+        if (a.outputConnection && a.outputConnection.targetConnection) {
+                return [b + ".convert_to_grayscale(" + state + ")", Blockly.Python.ORDER_MEMBER];
+        }
+        return b + ".convert_to_grayscale(" + state + ")\n";
 });
 
 registerPythonBlock('lib_camera_read_console_values', function (a) {

@@ -70,6 +70,16 @@
             flex-direction: column;
         }
 
+        html.grayscale-active,
+        html.grayscale-active *,
+        body.grayscale-active,
+        body.grayscale-active *,
+        .vision-canvas-feed.grayscale-active,
+        #workspace-container.grayscale-active {
+            -webkit-filter: grayscale(100%) !important;
+            filter: grayscale(100%) !important;
+        }
+
         #workspace-container {
             flex: 1;
             position: relative;
@@ -1978,12 +1988,32 @@ if (navigator.mediaDevices && __originalGetUserMedia) {
             }
         });
 
+        window.setGrayscaleMode = function(isGray) {
+            const filterVal = isGray ? 'grayscale(100%)' : 'none';
+            document.documentElement.classList.toggle('grayscale-active', !!isGray);
+            document.body.classList.toggle('grayscale-active', !!isGray);
+            document.querySelectorAll('.vision-canvas-feed, video, canvas, img').forEach(el => {
+                el.style.filter = filterVal;
+                el.style.webkitFilter = filterVal;
+                el.classList.toggle('grayscale-active', !!isGray);
+            });
+            const container = document.getElementById('workspace-container');
+            if (container) {
+                container.style.filter = filterVal;
+                container.style.webkitFilter = filterVal;
+                container.classList.toggle('grayscale-active', !!isGray);
+            }
+        };
+
         window.clearClassifiers = function () {
             const gcBtn = document.getElementById('gc-clearDataBtn');
             if (gcBtn) gcBtn.click();
             const icBtn = document.getElementById('ic-clear-btn');
             if (icBtn) icBtn.click();
-            console.log("Classifier memory cleared via clearClassifiers().");
+            if (typeof window.setGrayscaleMode === 'function') {
+                window.setGrayscaleMode(false);
+            }
+            console.log("Classifier memory and visual filters cleared via clearClassifiers().");
         };
 
         window.trainClassifier = async function (type, buttonId = 1, count = 20) {
@@ -2025,6 +2055,19 @@ if (navigator.mediaDevices && __originalGetUserMedia) {
                 if (targetMod && typeof switchModule === 'function') {
                     switchModule(targetMod);
                 }
+            } else if (event.data && (event.data.action === 'set_grayscale' || event.data.action === 'set_filter')) {
+                const isGray = event.data.enabled !== false;
+                if (typeof window.setGrayscaleMode === 'function') {
+                    window.setGrayscaleMode(isGray);
+                }
+            } else if (false) {
+                const isGray = event.data.enabled !== false;
+                const filterVal = isGray ? 'grayscale(100%)' : 'none';
+                document.querySelectorAll('.vision-canvas-feed, video, canvas, img').forEach(el => {
+                    el.style.filter = filterVal;
+                });
+                const container = document.getElementById('workspace-container');
+                if (container) container.style.filter = filterVal;
             } else if (typeof event.data === 'string' && event.data.startsWith('block-')) {
                 if (typeof switchModule === 'function') {
                     switchModule(event.data);

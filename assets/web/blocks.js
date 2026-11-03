@@ -1169,35 +1169,35 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "Camera Convert to Grayscale %1",
     "args0": [
       {
-        "type": "input_value",
-        "name": "camera_object",
-        "check": [
-          "camera_object",
-          "image_object"
+        "type": "field_dropdown",
+        "name": "STATE",
+        "options": [
+          [
+            "ON",
+            "True"
+          ],
+          [
+            "OFF",
+            "False"
+          ]
         ]
       }
     ],
-    "output": "image_object",
+    "previousStatement": null,
+    "nextStatement": null,
     "colour": 260,
-    "tooltip": "Convert camera capture or image to grayscale.",
+    "tooltip": "Convert visible camera feed to grayscale (ON or OFF).",
     "helpUrl": "https://schoolrobotics.com/docs/micropython/camera.html#camera"
   },
   {
     "type": "lib_camera_read_console_values",
-    "message0": "Camera Read Console Values %1",
-    "args0": [
-      {
-        "type": "input_value",
-        "name": "camera_object",
-        "check": "camera_object"
-      }
-    ],
+    "message0": "Camera Read Console Values",
     "output": [
       "String",
       "Number"
     ],
     "colour": 260,
-    "tooltip": "Read console values output by the camera Vision AI suite.",
+    "tooltip": "Read live detection value (finger count, gesture, image class, or RGB) output by the camera Vision AI suite.",
     "helpUrl": "https://schoolrobotics.com/docs/micropython/camera.html#camera"
   },
   {

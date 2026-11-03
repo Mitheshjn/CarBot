@@ -56,6 +56,15 @@
       color: #fff;
     }
 
+    .grayscale-active,
+    #visionAiFrame.grayscale-active,
+    #visionFrameWrapper.grayscale-active,
+    #camFrame.grayscale-active,
+    #phoneCamVideo.grayscale-active {
+      -webkit-filter: grayscale(100%) !important;
+      filter: grayscale(100%) !important;
+    }
+
     .header-bar {
       display: flex;
       justify-content: space-between;
@@ -1746,16 +1755,23 @@
 
     </category>
     <category name="Camera" colour="260">
-      <block type="lib_camera_initialize"></block>
+
       <block type="lib_camera_take_picture"></block>
-      <block type="lib_camera_convert_to_grayscale"></block>
+      <block type="lib_camera_convert_to_grayscale">
+        <field name="STATE">True</field>
+      </block>
       <block type="lib_camera_read_console_values"></block>
       <block type="lib_camera_switch_div">
         <field name="DIV">block-finger-tracking</field>
       </block>
-      <block type="lib_camera_div">
+      <!-- camera_div_removed:
+      <block type="lib_camera_switch_div">
         <field name="DIV">block-finger-tracking</field>
       </block>
+
+        <field name="DIV">block-finger-tracking</field>
+      </block>
+      -->
       <block type="lib_camera_button">
         <field name="NUM">1</field>
       </block>
@@ -2762,6 +2778,9 @@
     }
 
     function onVisionAiFrameLoaded() {
+      if (typeof isCameraGrayscaleActive !== 'undefined' && isCameraGrayscaleActive) {
+        setCameraGrayscale(true);
+      }
       isVisionFrameReady = true;
       while (pendingVisionMessages.length > 0) {
         const msg = pendingVisionMessages.shift();
@@ -2773,6 +2792,9 @@
     window.addEventListener('message', function (event) {
       if (!event.data) return;
       if (event.data.action === 'vision_ready') {
+        if (typeof isCameraGrayscaleActive !== 'undefined' && isCameraGrayscaleActive) {
+          setCameraGrayscale(true);
+        }
         isVisionFrameReady = true;
         while (pendingVisionMessages.length > 0) {
           const msg = pendingVisionMessages.shift();
@@ -2812,6 +2834,87 @@
     }
     window.switchCameraModule = switchCameraModule;
     window.switchCameraDiv = switchCameraModule;
+
+    let isCameraGrayscaleActive = false;
+
+    function setCameraGrayscale(enable = true) {
+      const isGray = (enable === true || enable === 'True' || enable === 'true' || enable === 1 || enable === '1');
+      isCameraGrayscaleActive = isGray;
+      const filterVal = isGray ? 'grayscale(100%)' : 'none';
+
+      const frame = document.getElementById('visionAiFrame');
+      if (frame) {
+        frame.style.filter = filterVal;
+        frame.style.webkitFilter = filterVal;
+        frame.classList.toggle('grayscale-active', isGray);
+        const wrapper = document.getElementById('visionFrameWrapper');
+        if (wrapper) {
+          wrapper.style.filter = filterVal;
+          wrapper.style.webkitFilter = filterVal;
+        }
+
+        try {
+          if (frame.contentWindow && typeof frame.contentWindow.setGrayscaleMode === 'function') {
+            frame.contentWindow.setGrayscaleMode(isGray);
+          } else if (frame.contentDocument) {
+            frame.contentDocument.documentElement.classList.toggle('grayscale-active', isGray);
+            if (frame.contentDocument.body) {
+              frame.contentDocument.body.classList.toggle('grayscale-active', isGray);
+            }
+          }
+        } catch (e) { }
+
+        postToVisionAi({ action: 'set_grayscale', enabled: isGray });
+      }
+
+      const camFrame = document.getElementById('camFrame');
+      if (camFrame) {
+        camFrame.style.filter = filterVal;
+        camFrame.style.webkitFilter = filterVal;
+        camFrame.classList.toggle('grayscale-active', isGray);
+      }
+
+      const phoneCamVideo = document.getElementById('phoneCamVideo');
+      if (phoneCamVideo) {
+        phoneCamVideo.style.filter = filterVal;
+        phoneCamVideo.style.webkitFilter = filterVal;
+        phoneCamVideo.classList.toggle('grayscale-active', isGray);
+      }
+
+      console.log('Camera Grayscale set to:', isGray);
+    }
+    window.setCameraGrayscale = setCameraGrayscale;
+
+    function syncCameraWorkspaceGrayscale(ws) {
+      if (!ws) return;
+      const allBlocks = ws.getAllBlocks ? ws.getAllBlocks(false) : [];
+      let hasGrayscaleOn = false;
+      for (const blk of allBlocks) {
+        if (blk && blk.type === 'lib_camera_convert_to_grayscale') {
+          const val = blk.getFieldValue('STATE');
+          if (val === 'True' || val === true) {
+            hasGrayscaleOn = true;
+            break;
+          }
+        }
+      }
+      setCameraGrayscale(hasGrayscaleOn);
+    }
+    window.syncCameraWorkspaceGrayscale = syncCameraWorkspaceGrayscale;
+
+    function clearClassifiers() {
+      postToVisionAi({ action: 'clear_classifiers' });
+      setCameraGrayscale(false);
+    }
+    window.clearClassifiers = clearClassifiers;
+
+    function trainClassifier(classifier, button, count = 20) {
+      loadVisionAiFrame();
+      postToVisionAi({ action: 'train_classifier', classifier: classifier, button: button, count: count });
+    }
+    window.trainClassifier = trainClassifier;
+
+
 
     let isVisionPreviewMinimized = false;
     function toggleVisionPreview(event) {
@@ -2854,9 +2957,19 @@
     function attachBlockCameraModuleListener(ws) {
       if (!ws || ws._camModuleListenerAttached) return;
       ws._camModuleListenerAttached = true;
+      syncCameraWorkspaceGrayscale(ws);
 
       ws.addChangeListener(function (e) {
-        if (e.type === Blockly.Events.BLOCK_CHANGE && (e.name === 'DIV' || e.name === 'MODULE')) {
+        if ((e.type === Blockly.Events.BLOCK_CHANGE && e.name === 'STATE') || e.type === Blockly.Events.BLOCK_CREATE || e.type === Blockly.Events.BLOCK_DELETE || e.type === Blockly.Events.BLOCK_MOVE) {
+          syncCameraWorkspaceGrayscale(ws);
+        }
+        if (e.type === Blockly.Events.BLOCK_CHANGE && e.name === 'STATE') {
+          const blk = ws.getBlockById(e.blockId);
+          if (blk && blk.type === 'lib_camera_convert_to_grayscale') {
+            const val = blk.getFieldValue('STATE');
+            setCameraGrayscale(val === 'True' || val === true);
+          }
+        } else if (e.type === Blockly.Events.BLOCK_CHANGE && (e.name === 'DIV' || e.name === 'MODULE')) {
           const blk = ws.getBlockById(e.blockId);
           if (blk && (blk.type === 'lib_camera_switch_div' || blk.type === 'lib_camera_switch_module' || blk.type === 'lib_camera_div')) {
             const val = blk.getFieldValue('DIV') || blk.getFieldValue('MODULE');
@@ -2969,7 +3082,10 @@
         }
         workspace = workspaceCamera || workspaceMain;
         setTimeout(() => {
-          if (workspaceCamera) Blockly.svgResize(workspaceCamera);
+          if (workspaceCamera) {
+            Blockly.svgResize(workspaceCamera);
+            if (typeof syncCameraWorkspaceGrayscale === 'function') syncCameraWorkspaceGrayscale(workspaceCamera);
+          }
           if (typeof updateCameraLiveUI === 'function') updateCameraLiveUI(isCameraLiveActive);
           const btnStopCam = document.getElementById('btnRoverStop');
           if (btnStopCam) btnStopCam.innerHTML = '■ Stop Live';
@@ -3013,6 +3129,7 @@
           frame.onload = null;
           frame.removeAttribute('src');
           frame.src = 'about:blank';
+          if (typeof setCameraGrayscale === 'function') setCameraGrayscale(false);
         }
 
         if (previewCard) previewCard.style.display = 'none';
@@ -3765,8 +3882,8 @@
           .replace(/[a-zA-Z0-9_]+\.read_console_values\s*\(\)/g, '_readCameraVision()')
           .replace(/Camera\s*\([^)]*\)\.take_picture\s*\(\)/gi, 'null')
           .replace(/[a-zA-Z0-9_]+\.take_picture\s*\(\)/g, 'null')
-          .replace(/Camera\s*\([^)]*\)\.convert_to_grayscale\s*\(\)/gi, 'null')
-          .replace(/[a-zA-Z0-9_]+\.convert_to_grayscale\s*\(\)/g, 'null')
+          .replace(/Camera\s*\([^)]*\)\.convert_to_grayscale\s*\((.*?)\)/gi, (m, arg) => 'setCameraGrayscale(' + (arg.trim() !== '' ? arg.trim() : 'true') + ')')
+          .replace(/[a-zA-Z0-9_]+\.convert_to_grayscale\s*\((.*?)\)/g, (m, arg) => 'setCameraGrayscale(' + (arg.trim() !== '' ? arg.trim() : 'true') + ')')
           .replace(/Camera\s*\([^)]*\)\.switch_div\s*\((.*?)\)/gi, 'switchCameraModule($1)')
           .replace(/[a-zA-Z0-9_]+\.switch_div\s*\((.*?)\)/g, 'switchCameraModule($1)')
           .replace(/Camera\s*\([^)]*\)\.switch_module\s*\((.*?)\)/gi, 'switchCameraModule($1)')
@@ -3882,7 +3999,7 @@
           return {
             read_console_values: () => _readCameraVision(),
             take_picture: () => null,
-            convert_to_grayscale: () => null,
+            convert_to_grayscale: (enable = true) => { if (typeof setCameraGrayscale === 'function') setCameraGrayscale(enable); },
             switch_div: (m) => switchCameraModule(m),
             switch_module: (m) => switchCameraModule(m),
             clear: () => { if (typeof clearClassifiers === 'function') clearClassifiers(); },
@@ -3908,6 +4025,8 @@
         'switchCameraModule',
         'trainClassifier',
         'clearClassifiers',
+        'setCameraGrayscale',
+
         'showToast',
         asyncBody
       ).bind(
@@ -3919,6 +4038,8 @@
         switchCameraModule,
         window.trainClassifier,
         window.clearClassifiers,
+        window.setCameraGrayscale,
+
         showToast
       );
     }
@@ -3995,6 +4116,7 @@
       }
       fetchApi('/stop', 500);
       updateCameraLiveUI(false);
+      if (typeof setCameraGrayscale === 'function') setCameraGrayscale(false);
     }
 
     function updateCameraLiveUI(running) {
