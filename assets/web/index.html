@@ -1289,17 +1289,6 @@
         </div>
       </div>
 
-      <!-- OLED SCREEN MODES -->
-      <div id="oledControlGroup" class="mod-subgroup" style="display:none;">
-        <div class="mod-subgroup-title">OLED Screen Modes:</div>
-        <div class="mod-btn-grid">
-          <button type="button" class="mod-btn" onclick="setOledMode(0)">Robot Face</button>
-          <button type="button" class="mod-btn" onclick="setOledMode(3)">Chrome Dino</button>
-          <button type="button" class="mod-btn" onclick="setOledMode(5)">Space Invaders</button>
-        </div>
-        <div id="oledHint" style="font-size:10px;color:#888;margin-top:8px;font-style:italic;">
-          Face: Eyes react to car drive direction
-        </div>
       </div>
     </div>
   </div>
@@ -2073,10 +2062,8 @@
     function updateSubgroupVisibility(val) {
       const sc = document.getElementById('servoControlGroup');
       const rc = document.getElementById('rgbControlGroup');
-      const oc = document.getElementById('oledControlGroup');
       if (sc) sc.style.display = (val === 'servo') ? 'block' : 'none';
       if (rc) rc.style.display = (val === 'rgb') ? 'block' : 'none';
-      if (oc) oc.style.display = (val === 'oled') ? 'block' : 'none';
     }
 
     function switchMode(val) {
@@ -2132,23 +2119,6 @@
       rgbBrightnessTimer = setTimeout(() => {
         fetchApi('/setRgbBrightness?b=' + b, 500);
       }, 60);
-    }
-
-    function setOledMode(mode) {
-      const ms = document.getElementById('modSelect');
-      if (ms && ms.value !== 'oled') {
-        ms.value = 'oled';
-        switchMode('oled');
-      }
-      fetchApi('/setOledConfig?mode=' + mode, 800);
-      const hint = document.getElementById('oledHint');
-      if (hint) {
-        if (mode === 3) hint.innerText = '🎮 Dino: F = Jump, B = Crouch';
-        else if (mode === 5) hint.innerText = '🎮 Invaders: L / R = Move, F = Fire';
-        else hint.innerText = '👀 Face: Eyes react to car drive direction';
-      }
-      const names = { 0: 'Robot Face', 3: 'Chrome Dino', 5: 'Space Invaders' };
-      showToast('OLED Mode: ' + (names[mode] || mode), 'info');
     }
 
     const NORMAL_SPEED_MIN = 0;
