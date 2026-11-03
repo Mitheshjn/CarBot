@@ -257,6 +257,42 @@ registerPythonBlock('lib_mpu6050_get_gyro', function (a) {
         return [Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) + ".get_gyro()", Blockly.Python.ORDER_MEMBER]
 });
 
+registerPythonBlock('lib_mpu6050_get_roll', function (a) {
+        Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
+        var b = Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) || "mpu6050";
+        return [b + ".get_roll()", Blockly.Python.ORDER_MEMBER];
+});
+
+registerPythonBlock('lib_mpu6050_get_pitch', function (a) {
+        Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
+        var b = Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) || "mpu6050";
+        return [b + ".get_pitch()", Blockly.Python.ORDER_MEMBER];
+});
+
+registerPythonBlock('lib_mpu6050_get_yaw', function (a) {
+        Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
+        var b = Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) || "mpu6050";
+        return [b + ".get_yaw()", Blockly.Python.ORDER_MEMBER];
+});
+
+registerPythonBlock('lib_mpu6050_read_roll', function (a) {
+        Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
+        var b = Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) || "mpu6050";
+        return [b + ".get_roll()", Blockly.Python.ORDER_MEMBER];
+});
+
+registerPythonBlock('lib_mpu6050_read_pitch', function (a) {
+        Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
+        var b = Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) || "mpu6050";
+        return [b + ".get_pitch()", Blockly.Python.ORDER_MEMBER];
+});
+
+registerPythonBlock('lib_mpu6050_read_yaw', function (a) {
+        Blockly.Python.definitions_.import_mpu6050 = "from blocks.sensors.mpu6050 import MPU6050";
+        var b = Blockly.Python.valueToCode(a, "mpu6050_object", Blockly.Python.ORDER_MEMBER) || "mpu6050";
+        return [b + ".get_yaw()", Blockly.Python.ORDER_MEMBER];
+});
+
 // Servo Generators
 registerPythonBlock('lib_servo_initialize', function (a) {
         Blockly.Python.definitions_.import_servo = "from blocks.actuators.servo import Servo";

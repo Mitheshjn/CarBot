@@ -910,6 +910,96 @@ Blockly.defineBlocksWithJsonArray([
     "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html#mpu6050.mpu6050.clear"
   },
   {
+    "type": "lib_mpu6050_get_roll",
+    "message0": "Read Roll Value %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "mpu6050_object",
+        "check": "mpu6050_object"
+      }
+    ],
+    "output": "Number",
+    "colour": 260,
+    "tooltip": "Read Roll value from the referenced mpu6050 object.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
+  },
+  {
+    "type": "lib_mpu6050_get_pitch",
+    "message0": "Read Pitch Value %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "mpu6050_object",
+        "check": "mpu6050_object"
+      }
+    ],
+    "output": "Number",
+    "colour": 260,
+    "tooltip": "Read Pitch value from the referenced mpu6050 object.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
+  },
+  {
+    "type": "lib_mpu6050_get_yaw",
+    "message0": "Read Yaw Value %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "mpu6050_object",
+        "check": "mpu6050_object"
+      }
+    ],
+    "output": "Number",
+    "colour": 260,
+    "tooltip": "Read Yaw value from the referenced mpu6050 object.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
+  },
+  {
+    "type": "lib_mpu6050_read_roll",
+    "message0": "Read Roll Value %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "mpu6050_object",
+        "check": "mpu6050_object"
+      }
+    ],
+    "output": "Number",
+    "colour": 260,
+    "tooltip": "Read Roll value from the referenced mpu6050 object.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
+  },
+  {
+    "type": "lib_mpu6050_read_pitch",
+    "message0": "Read Pitch Value %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "mpu6050_object",
+        "check": "mpu6050_object"
+      }
+    ],
+    "output": "Number",
+    "colour": 260,
+    "tooltip": "Read Pitch value from the referenced mpu6050 object.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
+  },
+  {
+    "type": "lib_mpu6050_read_yaw",
+    "message0": "Read Yaw Value %1",
+    "args0": [
+      {
+        "type": "input_value",
+        "name": "mpu6050_object",
+        "check": "mpu6050_object"
+      }
+    ],
+    "output": "Number",
+    "colour": 260,
+    "tooltip": "Read Yaw value from the referenced mpu6050 object.",
+    "helpUrl": "https://schoolrobotics.com/docs/micropython/mpu6050.html"
+  },
+  {
     "type": "lib_mpu6050_get_accel",
     "message0": "Read Accelerometer Value %1",
     "args0": [

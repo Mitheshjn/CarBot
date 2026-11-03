@@ -134,6 +134,12 @@
 				</block>
 				<block type="lib_mpu6050_get_accel">
 				</block>
+				<block type="lib_mpu6050_get_roll">
+				</block>
+				<block type="lib_mpu6050_get_pitch">
+				</block>
+				<block type="lib_mpu6050_get_yaw">
+				</block>
 			</category>
     <category name="TOF" colour="180">
 				<block type="lib_tof_initialize">
